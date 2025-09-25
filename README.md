@@ -30,7 +30,7 @@ axiom "Research the impact of AI on software development"
 
 ## Architecture
 
-- **LangGraph Orchestration**: Planner → Parallel Task Runners → Observer/Validator
+- **LangGraph Orchestration**: Planner → Parallel Task Runners → Observer/Validators
 - **Input Enrichment**: Multi-query expansion and HyDE via DSPy optimization
 - **Evidence Gathering**: Tavily for snippet-first reasoning, Firecrawl for deep crawling
 - **OpenAI-Compatible**: Works with SGLang locally or any OpenAI-compatible endpoint

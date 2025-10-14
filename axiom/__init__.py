@@ -1,8 +1,8 @@
-"""Axiom Research and Web Intelligence Agent."""
+"""Axiom Investment Banking Analytics Platform."""
 
 __version__ = "0.1.0"
 __author__ = "Axiom Team"
-__description__ = "Research and Web Intelligence Agent — Input‑Enriched, Evidence‑Grounded, LangGraph‑Orchestrated"
+__description__ = "Investment Banking Analytics Platform — AI-Powered Due Diligence, M&A Analysis, and Financial Intelligence"
 
 from axiom.graph.graph import run_research, create_research_graph
 from axiom.config.settings import settings

@@ -1,4 +1,4 @@
-"""Configuration settings for Axiom research agent."""
+"""Configuration settings for Axiom Investment Banking Analytics Platform."""
 
 import os
 from pydantic_settings import BaseSettings

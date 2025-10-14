@@ -1,4 +1,4 @@
-"""Main entry point for Axiom research agent."""
+"""Main entry point for Axiom Investment Banking Analytics Platform."""
 
 import asyncio
 import json

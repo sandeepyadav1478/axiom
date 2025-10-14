@@ -1,4 +1,4 @@
-"""Pydantic schemas for Axiom research agent."""
+"""Pydantic schemas for Axiom Investment Banking Analytics Platform."""
 
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional, Literal

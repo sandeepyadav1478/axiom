@@ -1,4 +1,4 @@
-"""LangGraph state management for Axiom research agent."""
+"""LangGraph state management for Axiom Investment Banking Analytics Platform."""
 
 from typing import TypedDict, List, Optional, Annotated
 from langgraph.graph import add_messages

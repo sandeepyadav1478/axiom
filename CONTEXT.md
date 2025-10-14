@@ -232,3 +232,69 @@ Input‑enrichment before retrieval materially lifts recall and precision in ope
 
 - Record any prompt/route/provider changes in docs/decisions/ with date, rationale, and trace links for auditability. [web:694]  
 - Version evaluation datasets and compiled DSPy artifacts to reproduce results and roll back safely. [web:351]  
+
+
+## Appendix G — Investment Banking Analytics Transformation (Oct 2024)
+
+### Project Evolution
+The core architecture described above has been specialized for Investment Banking Analytics while maintaining all original technical capabilities. The transformation leverages the same DSPy + LangGraph + multi‑tool foundation for high‑value financial analysis use cases.
+
+### Investment Banking Specialization
+- **Domain Focus**: M&A due diligence, company valuation, market intelligence, risk assessment
+- **Analysis Types**: Due diligence workflows, DCF valuations, competitive analysis, regulatory compliance checks
+- **Output Format**: Investment banking‑grade reports with structured financial metrics, risk assessments, and confidence scoring
+- **Quality Standards**: Conservative analysis with multiple validation layers suitable for financial decision‑making
+
+### Multi‑AI Provider Architecture Enhancement
+- **Provider Abstraction**: `axiom/ai_client_integrations/base_ai_provider.py` — unified interface for OpenAI, Claude, SGLang, Hugging Face, Gemini
+- **Layer Configuration**: `axiom/config/ai_layer_config.py` — user‑configurable AI provider assignments per analysis type
+- **Dynamic Detection**: System auto‑detects available providers based on configured credentials
+- **Optimal Routing**: Due diligence → Claude (reasoning), Valuation → OpenAI (structured), Market Intelligence → Claude (synthesis)
+
+### Investment Banking Workflow Adaptations
+- **Financial Planner**: Decomposes investment queries into structured analysis tasks (financial health, market position, regulatory compliance)
+- **Parallel Analysis Engines**: Execute financial research across multiple data sources simultaneously
+- **Investment Validator**: Aggregates findings with conservative confidence thresholds suitable for financial decisions
+- **Audit Trail**: Enhanced LangSmith tracing for regulatory compliance and decision documentation
+
+### Environment Configuration Updates
+- **Multi‑Provider Support**: Optional configuration for OpenAI, Claude, SGLang, Hugging Face, Gemini
+- **Financial Data Sources**: Integration points for financial APIs (Alpha Vantage, Financial Modeling Prep, Polygon)
+- **Investment Banking Parameters**: Due diligence confidence thresholds, valuation model types, risk assessment settings
+- **Compliance Configuration**: Regulatory compliance checks, audit trail requirements, conservative temperature settings
+
+### Repository Structure Evolution
+```
+axiom/
+├── ai_client_integrations/  # Multi‑AI provider abstraction layer
+├── config/                  # Enhanced with AI layer configuration and financial parameters  
+├── graph/                   # Investment banking workflow orchestration
+├── tools/                   # Financial data integration (Tavily, Firecrawl, MCP)
+├── dspy_modules/           # Financial query optimization and analysis enhancement
+├── tracing/                # Audit trails and compliance tracking
+└── eval/                   # Investment decision accuracy and performance metrics
+```
+
+### Backwards Compatibility
+- Original research agent functionality preserved as foundation
+- Same core architecture (LangGraph + DSPy + tools + tracing)
+- OpenAI‑compatible inference maintains provider portability
+- All original evaluation and optimization workflows remain functional
+
+### Usage Examples
+```bash
+# M&A Analysis
+python -m axiom.main "Analyze Microsoft acquisition of OpenAI for strategic value"
+
+# Due Diligence  
+python -m axiom.main "Comprehensive due diligence analysis of NVIDIA financial health"
+
+# Market Intelligence
+python -m axiom.main "Investment banking analysis of AI infrastructure market trends"
+```
+
+### Development Status
+- **macOS Development**: Fully functional with core components and multi‑provider support
+- **NVIDIA Production**: SGLang local inference ready for high‑performance deployment
+- **Multi‑AI Flexibility**: Users can configure optimal AI providers for each analysis layer
+- **Professional Grade**: Investment banking‑focused prompts, conservative settings, audit compliance

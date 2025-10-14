@@ -1,8 +1,9 @@
 """Configuration settings for Axiom research agent."""
 
 import os
-from pydantic import BaseSettings, Field
-from typing import Optional
+from pydantic_settings import BaseSettings
+from pydantic import Field
+from typing import Optional, List, Dict, Any
 
 
 class Settings(BaseSettings):
@@ -12,26 +13,190 @@ class Settings(BaseSettings):
     tavily_api_key: str = Field(..., env="TAVILY_API_KEY")
     firecrawl_api_key: str = Field(..., env="FIRECRAWL_API_KEY")
 
-    # OpenAI-compatible endpoint
-    openai_api_key: str = Field("sk-placeholder", env="OPENAI_API_KEY")
-    openai_base_url: str = Field("http://localhost:30000/v1", env="OPENAI_BASE_URL")
-    openai_model_name: str = Field("meta-llama/Meta-Llama-3.1-8B-Instruct", env="OPENAI_MODEL_NAME")
+    # Multi-AI Provider Support - Dynamic Configuration
+    # Users configure only the providers they want to use
+    
+    # OpenAI Configuration (optional)
+    openai_api_key: Optional[str] = Field(None, env="OPENAI_API_KEY")
+    openai_base_url: str = Field("https://api.openai.com/v1", env="OPENAI_BASE_URL")
+    openai_model_name: str = Field("gpt-4o-mini", env="OPENAI_MODEL_NAME")
+    
+    # Claude Configuration (optional)
+    claude_api_key: Optional[str] = Field(None, env="CLAUDE_API_KEY")
+    claude_base_url: str = Field("https://api.anthropic.com", env="CLAUDE_BASE_URL")
+    claude_model_name: str = Field("claude-3-sonnet-20240229", env="CLAUDE_MODEL_NAME")
+    
+    # SGLang Configuration (optional - for local inference)
+    sglang_api_key: Optional[str] = Field(None, env="SGLANG_API_KEY")  # Usually None for local
+    sglang_base_url: str = Field("http://localhost:30000/v1", env="SGLANG_BASE_URL")
+    sglang_model_name: str = Field("meta-llama/Meta-Llama-3.1-8B-Instruct", env="SGLANG_MODEL_NAME")
+    
+    # Hugging Face Configuration (optional)
+    huggingface_api_key: Optional[str] = Field(None, env="HUGGINGFACE_API_KEY")
+    huggingface_base_url: str = Field("https://api-inference.huggingface.co", env="HUGGINGFACE_BASE_URL")
+    huggingface_model_name: str = Field("microsoft/DialoGPT-medium", env="HUGGINGFACE_MODEL_NAME")
+    
+    # Add more providers as needed - just follow same pattern
+    # provider_name_api_key: Optional[str] = Field(None, env="PROVIDER_NAME_API_KEY")
 
     # LangSmith tracing
     langchain_tracing_v2: bool = Field(True, env="LANGCHAIN_TRACING_V2")
     langchain_endpoint: str = Field("https://api.smith.langchain.com", env="LANGCHAIN_ENDPOINT")
     langchain_api_key: Optional[str] = Field(None, env="LANGCHAIN_API_KEY")
-    langchain_project: str = Field("axiom-research-agent", env="LANGCHAIN_PROJECT")
+    langchain_project: str = Field("axiom-investment-banking", env="LANGCHAIN_PROJECT")
 
-    # Application settings
+    # Investment Banking Application settings
     debug: bool = Field(False, env="DEBUG")
-    max_parallel_tasks: int = Field(3, env="MAX_PARALLEL_TASKS")
+    max_parallel_analysis_tasks: int = Field(5, env="MAX_PARALLEL_ANALYSIS_TASKS")
+    financial_data_depth: str = Field("comprehensive", env="FINANCIAL_DATA_DEPTH")
+    due_diligence_confidence_threshold: float = Field(0.8, env="DUE_DILIGENCE_CONFIDENCE_THRESHOLD")
+    
+    # Financial Analysis Parameters
+    valuation_model_types: str = Field("dcf,comparable,precedent", env="VALUATION_MODEL_TYPES")
+    risk_analysis_enabled: bool = Field(True, env="RISK_ANALYSIS_ENABLED")
+    regulatory_compliance_check: bool = Field(True, env="REGULATORY_COMPLIANCE_CHECK")
+    market_volatility_assessment: bool = Field(True, env="MARKET_VOLATILITY_ASSESSMENT")
+    
+    # Financial Data API Keys (Optional)
+    alpha_vantage_api_key: Optional[str] = Field(None, env="ALPHA_VANTAGE_API_KEY")
+    financial_modeling_prep_api_key: Optional[str] = Field(None, env="FINANCIAL_MODELING_PREP_API_KEY")
+    polygon_api_key: Optional[str] = Field(None, env="POLYGON_API_KEY")
+    sec_edgar_user_agent: Optional[str] = Field(None, env="SEC_EDGAR_USER_AGENT")
+    
+    # Legacy settings (for backward compatibility)
+    max_parallel_tasks: int = Field(5, env="MAX_PARALLEL_TASKS")
     snippet_reasoning_threshold: int = Field(5, env="SNIPPET_REASONING_THRESHOLD")
     crawl_escalation_threshold: float = Field(0.6, env="CRAWL_ESCALATION_THRESHOLD")
 
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        
+    def get_configured_providers(self) -> List[str]:
+        """Dynamically detect which AI providers have valid credentials"""
+        providers = []
+        
+        # Check each provider for valid configuration
+        if self.openai_api_key and self.openai_api_key.startswith('sk-'):
+            providers.append("openai")
+            
+        if self.claude_api_key and self.claude_api_key.startswith('sk-ant-'):
+            providers.append("claude")
+            
+        # SGLang: Check if local server is potentially available
+        if self.sglang_base_url and 'localhost' in self.sglang_base_url:
+            providers.append("sglang")
+            
+        if self.huggingface_api_key and self.huggingface_api_key.startswith('hf_'):
+            providers.append("huggingface")
+            
+        if self.gemini_api_key and len(self.gemini_api_key) > 10:  # Basic validation
+            providers.append("gemini")
+            
+        return providers
+        
+    def get_provider_config(self, provider: str) -> Dict[str, Any]:
+        """Get configuration for specific AI provider"""
+        provider = provider.lower()
+        
+        provider_configs = {
+            "openai": {
+                "api_key": self.openai_api_key,
+                "base_url": self.openai_base_url,
+                "model_name": self.openai_model_name,
+                "available": bool(self.openai_api_key and self.openai_api_key.startswith('sk-'))
+            },
+            "claude": {
+                "api_key": self.claude_api_key,
+                "base_url": self.claude_base_url,
+                "model_name": self.claude_model_name,
+                "available": bool(self.claude_api_key and self.claude_api_key.startswith('sk-ant-'))
+            },
+            "sglang": {
+                "api_key": self.sglang_api_key or "local-inference",
+                "base_url": self.sglang_base_url,
+                "model_name": self.sglang_model_name,
+                "available": bool(self.sglang_base_url)
+            },
+            "huggingface": {
+                "api_key": self.huggingface_api_key,
+                "base_url": self.huggingface_base_url,
+                "model_name": self.huggingface_model_name,
+                "available": bool(self.huggingface_api_key)
+            },
+            "gemini": {
+                "api_key": self.gemini_api_key,
+                "base_url": self.gemini_base_url,
+                "model_name": self.gemini_model_name,
+                "available": bool(self.gemini_api_key)
+            }
+        }
+        
+        return provider_configs.get(provider, {})
+        
+    def get_all_available_configs(self) -> Dict[str, Dict[str, Any]]:
+        """Get configurations for all available providers"""
+        return {
+            provider: self.get_provider_config(provider)
+            for provider in self.get_configured_providers()
+        }
+        
+    def get_configured_providers(self) -> List[str]:
+        """Get list of providers that have valid API keys configured"""
+        providers = []
+        
+        # Check each provider for valid credentials
+        if self.openai_api_key and self.openai_api_key != "sk-placeholder":
+            providers.append("openai")
+            
+        if self.claude_api_key and self.claude_api_key != "sk-placeholder":
+            providers.append("claude")
+            
+        # SGLang doesn't need API key for local inference
+        if self.sglang_base_url:
+            providers.append("sglang")
+            
+        if self.huggingface_api_key and self.huggingface_api_key != "hf_placeholder":
+            providers.append("huggingface")
+            
+        return providers
+        
+    def get_provider_config(self, provider: str) -> Dict[str, Any]:
+        """Get configuration for specific AI provider (only if configured)"""
+        provider = provider.lower()
+        configured_providers = self.get_configured_providers()
+        
+        if provider not in configured_providers:
+            raise ValueError(f"AI provider '{provider}' is not configured. Available: {configured_providers}")
+            
+        configs = {
+            "openai": {
+                "api_key": self.openai_api_key,
+                "base_url": self.openai_base_url,
+                "model_name": self.openai_model_name
+            },
+            "claude": {
+                "api_key": self.claude_api_key,
+                "base_url": self.claude_base_url,
+                "model_name": self.claude_model_name
+            },
+            "sglang": {
+                "api_key": self.sglang_api_key or "local-inference",
+                "base_url": self.sglang_base_url,
+                "model_name": self.sglang_model_name
+            },
+            "huggingface": {
+                "api_key": self.huggingface_api_key,
+                "base_url": self.huggingface_base_url,
+                "model_name": self.huggingface_model_name
+            }
+        }
+        
+        return configs.get(provider, {})
+        
+    def has_multiple_providers(self) -> bool:
+        """Check if multiple AI providers are configured"""
+        return len(self.get_configured_providers()) > 1
 
 
 # Global settings instance

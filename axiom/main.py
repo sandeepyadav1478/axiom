@@ -69,8 +69,20 @@ def main():
     """CLI entry point."""
 
     if len(sys.argv) < 2:
-        print("Usage: python -m axiom.main '<research query>'")
-        print("Example: python -m axiom.main 'What are the latest developments in quantum computing?'")
+        print("Usage: python -m axiom.main '<investment analysis query>'")
+        print("")
+        print("Investment Banking Examples:")
+        print("  M&A Analysis:")
+        print("    python -m axiom.main 'Analyze Microsoft acquisition of OpenAI for strategic value'")
+        print("  ")
+        print("  Due Diligence:")
+        print("    python -m axiom.main 'Comprehensive due diligence analysis of NVIDIA financial health'")
+        print("  ")
+        print("  Market Intelligence:")
+        print("    python -m axiom.main 'Investment banking analysis of AI infrastructure market trends'")
+        print("  ")
+        print("  Company Valuation:")
+        print("    python -m axiom.main 'DCF valuation analysis of Tesla with risk assessment'")
         sys.exit(1)
 
     query = " ".join(sys.argv[1:])

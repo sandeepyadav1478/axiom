@@ -1,6 +1,6 @@
-# Axiom Research Agent
+# Axiom Investment Banking Analytics
 
-Research and Web Intelligence Agent — Input‑Enriched, Evidence‑Grounded, LangGraph‑Orchestrated with DSPy Optimization, Tavily/Firecrawl Tools, SGLang Inference, and LangSmith Tracing.
+AI-Powered Investment Banking Platform — M&A Due Diligence, Company Valuation, Market Intelligence with DSPy Optimization, LangGraph Orchestration, and Financial Data Integration.
 
 ## Quick Start
 
@@ -9,7 +9,7 @@ Research and Web Intelligence Agent — Input‑Enriched, Evidence‑Grounded, L
 pip install -e .
 # or for development
 pip install -e ".[dev]"
-# or with SGLang for local inference
+# or with SGLang for local inference (NVIDIA systems only)
 pip install -e ".[dev,sglang]"
 ```
 
@@ -19,22 +19,25 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
-### 3. Run the Agent
+### 3. Run Investment Analytics
 ```bash
-# Basic usage
-python -m axiom.main "What are the latest developments in quantum computing?"
+# M&A Due Diligence Analysis
+python -m axiom.main "Analyze Microsoft's acquisition potential for OpenAI"
 
-# Or via CLI
-axiom "Research the impact of AI on software development"
+# Company Valuation Analysis
+axiom "Comprehensive financial analysis of NVIDIA for IPO readiness"
+
+# Market Intelligence
+axiom "Investment banking analysis of the AI infrastructure market"
 ```
 
-## Architecture
+## Investment Banking Architecture
 
-- **LangGraph Orchestration**: Planner → Parallel Task Runners → Observer/Validators
-- **Input Enrichment**: Multi-query expansion and HyDE via DSPy optimization
-- **Evidence Gathering**: Tavily for snippet-first reasoning, Firecrawl for deep crawling
-- **OpenAI-Compatible**: Works with SGLang locally or any OpenAI-compatible endpoint
-- **Observability**: Full tracing via LangSmith with token/cost tracking
+- **LangGraph Workflow**: Financial Planner → Parallel Analysis Engines → Investment Validator
+- **DSPy Optimization**: Multi-source financial query optimization and valuation model enhancement
+- **Data Integration**: Tavily for market intelligence, Firecrawl for SEC filings and financial reports
+- **AI Infrastructure**: SGLang for structured financial analysis or cloud AI endpoints
+- **Audit Trail**: Complete LangSmith tracing for regulatory compliance and decision auditing
 
 ## Development
 
@@ -54,23 +57,23 @@ ruff check --fix .
 python -m axiom.eval.run_eval
 ```
 
-## Configuration
+## Financial Data Configuration
 
 Key environment variables:
-- `TAVILY_API_KEY`: For search API access
-- `FIRECRAWL_API_KEY`: For web crawling
-- `OPENAI_BASE_URL`: SGLang endpoint (default: http://localhost:30000/v1)
-- `OPENAI_MODEL_NAME`: Model name for inference
-- `LANGCHAIN_API_KEY`: For LangSmith tracing (optional)
+- `TAVILY_API_KEY`: For market intelligence and news analysis
+- `FIRECRAWL_API_KEY`: For SEC filings and financial reports extraction
+- `OPENAI_BASE_URL`: AI inference endpoint (default: https://api.openai.com/v1)
+- `OPENAI_MODEL_NAME`: Financial analysis model (default: gpt-4o-mini)
+- `LANGCHAIN_API_KEY`: For audit trails and compliance tracing (recommended)
 
-## Project Structure
+## Investment Banking Platform Structure
 
 ```
 axiom/
-├── graph/          # LangGraph nodes and state management
-├── tools/          # Tavily/Firecrawl clients and MCP adapters
-├── dspy_modules/   # Query enrichment and optimization
-├── tracing/        # LangSmith integration
-├── config/         # Settings and schemas
-└── eval/           # Evaluation metrics and datasets
+├── graph/          # Financial analysis workflows and decision trees
+├── tools/          # Market data, SEC filings, and financial news integration
+├── dspy_modules/   # Financial query optimization and valuation models
+├── tracing/        # Audit trails and compliance tracking
+├── config/         # Financial data sources and analysis parameters
+└── eval/           # Investment decision accuracy and performance metrics
 ```

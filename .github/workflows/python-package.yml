@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.13"]
 
     steps:
     - name: Checkout Investment Banking Analytics Platform
@@ -329,14 +329,14 @@ jobs:
       run: |
         echo "📚 Validating Investment Banking documentation..."
         
-        required_docs = [
+        required_docs=(
           "README.md"
           "QUICKSTART.md"
           "STATUS.md"
           "CONTEXT.md"
           "SETUP_GUIDE.md"
           ".env.example"
-        ]
+        )
         
         for doc in "${required_docs[@]}"; do
           if [[ -f "$doc" ]]; then

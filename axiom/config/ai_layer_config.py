@@ -10,20 +10,20 @@ from pydantic import BaseModel
 
 class AnalysisLayer(Enum):
     """Different layers of investment banking analysis - M&A Priority Focus"""
-    
+
     PLANNER = "planner"  # Initial query planning and decomposition
     TASK_RUNNER = "task_runner"  # Parallel research execution
     OBSERVER = "observer"  # Final synthesis and validation
-    
+
     # M&A Priority Features (Phase 1 Development)
-    MA_DUE_DILIGENCE = "ma_due_diligence"      # M&A-specific due diligence analysis
-    MA_VALUATION = "ma_valuation"               # M&A valuation and synergy analysis
-    MA_MARKET_ANALYSIS = "ma_market_analysis"   # M&A market and competitive impact
-    MA_STRATEGIC_FIT = "ma_strategic_fit"       # Strategic fit and integration analysis
-    
+    MA_DUE_DILIGENCE = "ma_due_diligence"  # M&A-specific due diligence analysis
+    MA_VALUATION = "ma_valuation"  # M&A valuation and synergy analysis
+    MA_MARKET_ANALYSIS = "ma_market_analysis"  # M&A market and competitive impact
+    MA_STRATEGIC_FIT = "ma_strategic_fit"  # Strategic fit and integration analysis
+
     # Future Investment Banking Features (Phase 2+)
-    DUE_DILIGENCE = "due_diligence"      # General due diligence
-    VALUATION = "valuation"               # General valuation
+    DUE_DILIGENCE = "due_diligence"  # General due diligence
+    VALUATION = "valuation"  # General valuation
     MARKET_INTELLIGENCE = "market_intel"  # General market analysis
 
 
@@ -77,7 +77,6 @@ class AILayerMapping(BaseModel):
             temperature=0.05,  # Very conservative for M&A decisions
             max_tokens=4000,
         ),
-        
         # M&A Priority Features (Phase 1 Development)
         AnalysisLayer.MA_DUE_DILIGENCE: LayerAIConfig(
             layer=AnalysisLayer.MA_DUE_DILIGENCE,
@@ -110,7 +109,6 @@ class AILayerMapping(BaseModel):
             temperature=0.05,
             max_tokens=3000,
         ),
-        
         # Future Features (Phase 2+) - Lower priority
         AnalysisLayer.DUE_DILIGENCE: LayerAIConfig(
             layer=AnalysisLayer.DUE_DILIGENCE,

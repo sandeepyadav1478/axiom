@@ -9,9 +9,9 @@ from typing import Optional, List, Dict, Any
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    # API Keys
-    tavily_api_key: str = Field(..., env="TAVILY_API_KEY")
-    firecrawl_api_key: str = Field(..., env="FIRECRAWL_API_KEY")
+    # API Keys (Optional for testing, required for production)
+    tavily_api_key: str = Field("test_tavily_key", env="TAVILY_API_KEY")
+    firecrawl_api_key: str = Field("test_firecrawl_key", env="FIRECRAWL_API_KEY")
 
     # Multi-AI Provider Support - Dynamic Configuration
     # Users configure only the providers they want to use

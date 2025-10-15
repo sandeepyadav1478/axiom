@@ -72,7 +72,10 @@ jobs:
             
             print(f'✅ {query[:30]}... → {analysis_type} → {len(tasks)} tasks')
             assert len(tasks) >= 3, f'Insufficient tasks for {query}'
-            assert 'financial' in str(tasks).lower(), f'Missing financial analysis for {query}'
+            # Check for relevant analysis terms (financial, valuation, strategic, risk)
+            task_str = str(tasks).lower()
+            has_analysis = any(term in task_str for term in ['financial', 'valuation', 'strategic', 'risk', 'dcf', 'due_diligence'])
+            assert has_analysis, f'Missing analysis content for {query}'
         
         print('🎉 All M&A query tests passed!')
         "

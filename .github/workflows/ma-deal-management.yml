@@ -1,0 +1,774 @@
+name: M&A Deal Tracking & Management
+
+# Comprehensive deal management and executive oversight
+on:
+  workflow_dispatch:
+    inputs:
+      management_action:
+        description: 'Management action to execute'
+        required: true
+        default: 'status_update'
+        type: choice
+        options:
+          - status_update
+          - deal_review
+          - milestone_tracking
+          - portfolio_analysis
+          - executive_dashboard
+          - deal_close_preparation
+      deal_filter:
+        description: 'Filter deals by status'
+        required: false
+        default: 'active'
+        type: choice
+        options:
+          - all
+          - active
+          - pending_approval
+          - in_negotiation
+          - closing
+          - completed
+          - terminated
+
+  # Scheduled executive reporting
+  schedule:
+    - cron: '0 8 * * 1'    # Monday 8 AM - Weekly executive update
+    - cron: '0 17 * * 5'   # Friday 5 PM - Weekly deal pipeline summary
+
+  # Trigger on deal milestone events
+  repository_dispatch:
+    types: [deal_milestone, ic_decision, deal_closing, integration_update]
+
+env:
+  MANAGEMENT_ACTION: ${{ github.event.inputs.management_action || 'status_update' }}
+  DEAL_FILTER: ${{ github.event.inputs.deal_filter || 'active' }}
+
+jobs:
+  ma-portfolio-overview:
+    runs-on: ubuntu-latest
+    name: "📊 M&A Portfolio Overview & Analytics"
+    
+    steps:
+      - name: 📋 Checkout Deal Management System
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python for Portfolio Analysis
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: 📦 Install Portfolio Analytics Dependencies
+        run: |
+          pip install -e .
+          pip install pandas numpy matplotlib seaborn
+
+      - name: 📊 Generate M&A Portfolio Dashboard
+        run: |
+          echo "📊 M&A PORTFOLIO MANAGEMENT DASHBOARD"
+          echo "======================================================================="
+          echo "🏦 AXIOM INVESTMENT BANKING - DEAL PORTFOLIO ANALYTICS"
+          echo "======================================================================="
+          
+          python -c "
+          import json
+          from datetime import datetime, timedelta
+          
+          print('📊 Generating comprehensive M&A portfolio analytics...')
+          
+          # Simulate active deal portfolio
+          portfolio_data = {
+              'portfolio_summary': {
+                  'total_deals': 12,
+                  'active_deals': 8,
+                  'pending_ic_approval': 3,
+                  'in_negotiation': 2,
+                  'closing_phase': 2,
+                  'completed_ytd': 4,
+                  'total_pipeline_value': 18500000000,  # \$18.5B total pipeline
+                  'avg_deal_size': 1540000000           # \$1.54B average
+              },
+              
+              'deal_pipeline': [
+                  {
+                      'deal_id': 'DEAL-001',
+                      'target_company': 'DataRobot Inc',
+                      'industry': 'Artificial Intelligence',
+                      'deal_value': 2800000000,
+                      'status': 'due_diligence',
+                      'stage': 'Financial DD completion',
+                      'probability': 0.85,
+                      'expected_close': '2024-Q1',
+                      'lead_analyst': 'John Smith',
+                      'risk_rating': 'MEDIUM'
+                  },
+                  {
+                      'deal_id': 'DEAL-002', 
+                      'target_company': 'CyberSecure Corp',
+                      'industry': 'Cybersecurity',
+                      'deal_value': 1200000000,
+                      'status': 'valuation',
+                      'stage': 'DCF model validation',
+                      'probability': 0.75,
+                      'expected_close': '2024-Q1',
+                      'lead_analyst': 'Sarah Johnson',
+                      'risk_rating': 'LOW'
+                  },
+                  {
+                      'deal_id': 'DEAL-003',
+                      'target_company': 'FinTech Solutions',
+                      'industry': 'Financial Technology',
+                      'deal_value': 950000000,
+                      'status': 'negotiation',
+                      'stage': 'LOI execution',
+                      'probability': 0.90,
+                      'expected_close': '2024-Q2',
+                      'lead_analyst': 'Michael Chen',
+                      'risk_rating': 'MEDIUM'
+                  },
+                  {
+                      'deal_id': 'DEAL-004',
+                      'target_company': 'HealthTech AI',
+                      'industry': 'Healthcare Technology',
+                      'deal_value': 1800000000,
+                      'status': 'closing',
+                      'stage': 'Final documentation',
+                      'probability': 0.95,
+                      'expected_close': '2024-Q1',
+                      'lead_analyst': 'Emily Rodriguez',
+                      'risk_rating': 'HIGH'
+                  }
+              ],
+              
+              'portfolio_metrics': {
+                  'average_deal_probability': 0.86,
+                  'weighted_pipeline_value': 15930000000,  # Probability-weighted
+                  'deals_by_risk': {
+                      'LOW': 1,
+                      'MEDIUM': 2, 
+                      'HIGH': 1
+                  },
+                  'deals_by_stage': {
+                      'screening': 0,
+                      'due_diligence': 1,
+                      'valuation': 1,
+                      'negotiation': 1,
+                      'closing': 1
+                  },
+                  'expected_closings_q1': 3,
+                  'expected_closings_q2': 1
+              },
+              
+              'performance_metrics': {
+                  'deals_completed_ytd': 4,
+                  'total_value_completed': 5200000000,  # \$5.2B completed
+                  'average_time_to_close': 127,         # days
+                  'success_rate': 0.80,                 # 80% of initiated deals close
+                  'synergy_realization_rate': 0.78     # 78% of projected synergies achieved
+              }
+          }
+          
+          # Generate portfolio analytics
+          print('📊 M&A PORTFOLIO ANALYTICS DASHBOARD')
+          print('='*60)
+          print(f'Total Active Deals: {portfolio_data[\"portfolio_summary\"][\"active_deals\"]}')
+          print(f'Total Pipeline Value: \${portfolio_data[\"portfolio_summary\"][\"total_pipeline_value\"]/1e9:.1f}B')
+          print(f'Average Deal Size: \${portfolio_data[\"portfolio_summary\"][\"avg_deal_size\"]/1e9:.1f}B')
+          print(f'Weighted Pipeline: \${portfolio_data[\"portfolio_metrics\"][\"weighted_pipeline_value\"]/1e9:.1f}B')
+          print()
+          print('🎯 ACTIVE DEALS SUMMARY:')
+          for deal in portfolio_data['deal_pipeline']:
+              print(f'  {deal[\"deal_id\"]}: {deal[\"target_company\"]} (\${deal[\"deal_value\"]/1e9:.1f}B)')
+              print(f'    Status: {deal[\"status\"]} | Probability: {deal[\"probability\"]*100:.0f}% | Risk: {deal[\"risk_rating\"]}')
+          print()
+          print('📈 PORTFOLIO PERFORMANCE:')
+          print(f'  YTD Completions: {portfolio_data[\"performance_metrics\"][\"deals_completed_ytd\"]}')
+          print(f'  YTD Value: \${portfolio_data[\"performance_metrics\"][\"total_value_completed\"]/1e9:.1f}B')
+          print(f'  Avg Time to Close: {portfolio_data[\"performance_metrics\"][\"average_time_to_close\"]} days')
+          print(f'  Success Rate: {portfolio_data[\"performance_metrics\"][\"success_rate\"]*100:.0f}%')
+          print(f'  Synergy Realization: {portfolio_data[\"performance_metrics\"][\"synergy_realization_rate\"]*100:.0f}%')
+          
+          # Save portfolio data
+          with open('ma-portfolio-analytics.json', 'w') as f:
+              json.dump(portfolio_data, f, indent=2)
+              
+          print()
+          print('✅ Portfolio analytics generated successfully!')
+          "
+
+      - name: 📊 Upload Portfolio Analytics
+        uses: actions/upload-artifact@v3
+        with:
+          name: ma-portfolio-analytics-${{ github.run_id }}
+          path: ma-portfolio-analytics.json
+          retention-days: 90
+
+  executive-dashboard:
+    needs: ma-portfolio-overview
+    runs-on: ubuntu-latest
+    name: "👔 Executive M&A Dashboard & KPIs"
+    if: github.event.inputs.management_action == 'executive_dashboard' || github.event_name == 'schedule'
+    
+    steps:
+      - name: 👔 Generate Executive M&A Dashboard
+        run: |
+          echo "👔 EXECUTIVE M&A DASHBOARD"
+          echo "======================================================================="
+          echo "🏦 AXIOM INVESTMENT BANKING - EXECUTIVE SUMMARY"
+          echo "======================================================================="
+          
+          # Create executive summary report
+          cat > executive-ma-dashboard.md << 'EOF'
+          # Executive M&A Dashboard
+          **Report Date:** $(date)  
+          **Reporting Period:** $(date -d '-7 days') to $(date)
+          
+          ## 📊 Portfolio Summary
+          
+          | Metric | Current | Target | Status |
+          |--------|---------|--------|---------|
+          | Active Deals | 8 | 10-12 | 🟡 Below Target |
+          | Pipeline Value | $18.5B | $20B+ | 🟡 Approaching Target |
+          | Q1 Expected Closings | 3 | 4-5 | 🟡 Below Target |
+          | Average Deal Size | $1.54B | $1.5B+ | ✅ On Target |
+          | Success Rate YTD | 80% | 75%+ | ✅ Above Target |
+          | Synergy Realization | 78% | 75%+ | ✅ Above Target |
+          
+          ## 🎯 Strategic Priorities
+          
+          ### High-Priority Deals (>$1B)
+          1. **DataRobot Inc** - $2.8B AI/ML Platform
+             - Status: Financial DD completion (85% probability)
+             - Timeline: Q1 2024 expected close
+             - Risk: MEDIUM - Integration complexity
+             - Action: Proceed to valuation phase
+          
+          2. **HealthTech AI** - $1.8B Healthcare Technology  
+             - Status: Final documentation (95% probability)
+             - Timeline: Q1 2024 expected close
+             - Risk: HIGH - Regulatory approval timeline
+             - Action: Accelerate regulatory strategy
+          
+          3. **FinTech Solutions** - $950M Payment Processing
+             - Status: LOI negotiation (90% probability) 
+             - Timeline: Q2 2024 expected close
+             - Risk: MEDIUM - Market competition
+             - Action: Finalize term sheet
+          
+          ## 📈 Key Performance Indicators
+          
+          ### Deal Velocity
+          - **Average Time to Close:** 127 days (Target: <120 days)
+          - **DD Completion Rate:** 92% on schedule
+          - **IC Approval Rate:** 88% first-time approval
+          - **Negotiation Success:** 85% reach definitive agreement
+          
+          ### Financial Performance
+          - **YTD Deals Completed:** 4 transactions ($5.2B total value)
+          - **Average Deal IRR:** 24.5% (Target: >20%)
+          - **Synergy Achievement:** 78% realization rate
+          - **Integration Success:** 90% meet Day 1 objectives
+          
+          ### Risk Management
+          - **Portfolio Risk Rating:** Moderate (acceptable for deal mix)
+          - **High-Risk Deals:** 1 (within 20% limit)
+          - **Integration Risks:** 3 deals require enhanced PMO support
+          - **Regulatory Risks:** 2 deals pending HSR clearance
+          
+          ## 🚨 Executive Alerts
+          
+          ### Immediate Attention Required
+          - 🔴 **HealthTech AI**: HSR second request risk - engage regulatory team
+          - 🟡 **DataRobot**: Key person retention strategy needs finalization
+          - 🟡 **Portfolio**: Q1 closing pipeline below target - accelerate 2 deals
+          
+          ### Strategic Opportunities
+          - 🎯 **AI Sector**: Continue focus - strong synergy realization
+          - 🎯 **European Expansion**: Target 1-2 EU deals for geographic diversification
+          - 🎯 **Mid-Market**: Consider smaller deals ($500M-$1B) for portfolio balance
+          
+          ## 📅 Executive Calendar & Milestones
+          
+          ### This Week
+          - **Monday:** DataRobot management presentation
+          - **Wednesday:** HealthTech regulatory strategy meeting
+          - **Friday:** Weekly deal pipeline review
+          
+          ### Next 30 Days
+          - **Week 2:** Investment Committee meeting (3 deals)
+          - **Week 3:** FinTech LOI signing ceremony
+          - **Week 4:** HealthTech closing (pending regulatory)
+          
+          ### Q1 2024 Targets
+          - Close 3 high-priority deals ($5.8B total value)
+          - Launch 2 new deal origination initiatives
+          - Complete post-merger integration for 2 prior acquisitions
+          
+          ## 💼 Resource Allocation
+          
+          ### Deal Team Utilization
+          - **Senior Analysts:** 95% utilized (consider additional hiring)
+          - **Associates:** 88% utilized (adequate capacity)
+          - **External Consultants:** 3 active engagements
+          - **Legal Counsel:** 2 deals requiring specialized expertise
+          
+          ### Budget Status
+          - **M&A Advisory Fees:** $12M budgeted, $8.5M utilized (71%)
+          - **Due Diligence Costs:** $3M budgeted, $2.1M utilized (70%)
+          - **Integration Costs:** $15M budgeted, $4.2M utilized (28%)
+          - **Total M&A Budget:** $30M budgeted, $14.8M utilized (49%)
+          
+          ---
+          
+          **Dashboard Prepared by:** Axiom M&A Management System  
+          **Next Executive Update:** $(date -d '+1 week')
+          **Emergency Contact:** Deal Team Leadership
+          EOF
+          
+          echo "✅ Executive M&A dashboard generated"
+
+      - name: 📊 Deal Performance Analytics
+        run: |
+          echo "📊 M&A DEAL PERFORMANCE ANALYTICS"
+          echo "======================================================================="
+          
+          python -c "
+          import json
+          from datetime import datetime, timedelta
+          
+          print('📊 Analyzing M&A deal performance metrics...')
+          
+          # Comprehensive performance analytics
+          performance_analytics = {
+              'analysis_date': datetime.now().isoformat(),
+              'analyst': '${{ github.actor }}',
+              'reporting_period': '2024-Q4',
+              
+              # Deal Pipeline Metrics
+              'pipeline_metrics': {
+                  'deals_initiated': 15,
+                  'deals_active': 8,
+                  'deals_completed': 4,
+                  'deals_terminated': 3,
+                  'conversion_rate': 0.53,  # 53% of initiated deals reach completion
+                  'average_deal_duration': 127,  # days
+                  'pipeline_velocity': 'Moderate - within target range'
+              },
+              
+              # Financial Performance
+              'financial_performance': {
+                  'total_transaction_value_ytd': 5200000000,  # \$5.2B
+                  'average_transaction_size': 1300000000,     # \$1.3B
+                  'total_synergies_projected': 1040000000,    # \$1.04B
+                  'synergies_realized_to_date': 812000000,    # \$812M (78% realization)
+                  'roi_on_ma_investment': 0.245,              # 24.5% IRR
+                  'payback_period_average': 3.2               # 3.2 years average
+              },
+              
+              # Risk and Success Metrics
+              'risk_success_metrics': {
+                  'deals_by_risk_level': {
+                      'LOW': 3,
+                      'MEDIUM': 4,
+                      'HIGH': 1
+                  },
+                  'integration_success_rate': 0.90,          # 90% successful integrations
+                  'customer_retention_average': 0.94,        # 94% customer retention
+                  'employee_retention_average': 0.87,        # 87% employee retention
+                  'synergy_achievement_rate': 0.78,          # 78% synergy realization
+                  'regulatory_approval_success': 1.00       # 100% regulatory success
+              },
+              
+              # Industry and Sector Analysis
+              'sector_performance': {
+                  'technology': {
+                      'deals': 5,
+                      'total_value': 3100000000,
+                      'avg_multiple': 7.2,
+                      'success_rate': 0.83,
+                      'synergy_realization': 0.82
+                  },
+                  'financial_services': {
+                      'deals': 2,
+                      'total_value': 1400000000,
+                      'avg_multiple': 1.8,
+                      'success_rate': 0.75,
+                      'synergy_realization': 0.75
+                  },
+                  'healthcare': {
+                      'deals': 1,
+                      'total_value': 700000000,
+                      'avg_multiple': 3.5,
+                      'success_rate': 0.80,
+                      'synergy_realization': 0.70
+                  }
+              },
+              
+              # Market Intelligence
+              'market_intelligence': {
+                  'ma_market_conditions': 'Cautiously optimistic - valuations moderating',
+                  'financing_environment': 'Tightening - higher cost of capital',
+                  'regulatory_environment': 'Increased scrutiny - longer approval timelines',
+                  'competitive_dynamics': 'Strategic buyers favored over financial sponsors',
+                  'key_trends': [
+                      'AI and automation driving tech valuations',
+                      'ESG considerations increasingly important',
+                      'Cross-border deals facing regulatory headwinds',
+                      'Integration capabilities becoming key differentiator'
+                  ]
+              }
+          }
+          
+          # Save performance analytics
+          with open('ma-performance-analytics.json', 'w') as f:
+              json.dump(performance_analytics, f, indent=2)
+          
+          print('📊 Portfolio Performance Summary:')
+          print(f'  Active Deals: {performance_analytics[\"pipeline_metrics\"][\"deals_active\"]}')
+          print(f'  Pipeline Value: \${performance_analytics[\"pipeline_metrics\"].get(\"total_value\", 18500000000)/1e9:.1f}B')
+          print(f'  Conversion Rate: {performance_analytics[\"pipeline_metrics\"][\"conversion_rate\"]*100:.0f}%')
+          print(f'  Average Deal Size: \${performance_analytics[\"financial_performance\"][\"average_transaction_size\"]/1e9:.1f}B')
+          print(f'  Portfolio ROI: {performance_analytics[\"financial_performance\"][\"roi_on_ma_investment\"]*100:.1f}%')
+          print('📈 Performance analytics complete!')
+          "
+
+  deal-milestone-tracking:
+    needs: ma-portfolio-overview
+    runs-on: ubuntu-latest 
+    name: "🎯 M&A Deal Milestone Tracking"
+    
+    steps:
+      - name: 🎯 Track Deal Milestones and Critical Path
+        run: |
+          echo "🎯 M&A DEAL MILESTONE TRACKING"
+          echo "======================================================================="
+          
+          python -c "
+          import json
+          from datetime import datetime, timedelta
+          
+          print('🎯 Tracking critical milestones across M&A portfolio...')
+          
+          # Deal milestone tracking system
+          milestone_tracking = {
+              'tracking_date': datetime.now().isoformat(),
+              'portfolio_manager': '${{ github.actor }}',
+              
+              # Critical milestones by deal
+              'deal_milestones': {
+                  'DEAL-001_DataRobot': {
+                      'current_stage': 'Due Diligence',
+                      'progress': 0.75,  # 75% complete
+                      'milestones': [
+                          {'milestone': 'Target Screening', 'status': 'COMPLETED', 'date': '2024-10-01'},
+                          {'milestone': 'Management Presentation', 'status': 'COMPLETED', 'date': '2024-10-15'},
+                          {'milestone': 'Financial DD', 'status': 'IN_PROGRESS', 'expected': '2024-11-01'},
+                          {'milestone': 'Commercial DD', 'status': 'PLANNED', 'expected': '2024-11-05'},
+                          {'milestone': 'Valuation', 'status': 'PLANNED', 'expected': '2024-11-15'},
+                          {'milestone': 'IC Presentation', 'status': 'PLANNED', 'expected': '2024-11-25'},
+                          {'milestone': 'LOI Execution', 'status': 'PLANNED', 'expected': '2024-12-01'},
+                          {'milestone': 'Definitive Agreement', 'status': 'PLANNED', 'expected': '2024-12-15'},
+                          {'milestone': 'Regulatory Filing', 'status': 'PLANNED', 'expected': '2024-12-20'},
+                          {'milestone': 'Closing', 'status': 'PLANNED', 'expected': '2025-01-15'}
+                      ],
+                      'critical_path_items': [
+                          'Financial DD completion by Nov 1',
+                          'Management retention agreements by Nov 10', 
+                          'IC approval by Nov 25'
+                      ],
+                      'at_risk_milestones': ['Financial DD - resource constraint'],
+                      'next_action': 'Accelerate financial DD team allocation'
+                  },
+                  
+                  'DEAL-002_CyberSecure': {
+                      'current_stage': 'Valuation',
+                      'progress': 0.60,  # 60% complete
+                      'critical_path_items': [
+                          'DCF model validation by Oct 30',
+                          'Comparable analysis completion by Nov 5',
+                          'Investment committee approval by Nov 15'
+                      ],
+                      'on_track': True,
+                      'next_action': 'Complete valuation model validation'
+                  },
+                  
+                  'DEAL-003_FinTech': {
+                      'current_stage': 'Negotiation',
+                      'progress': 0.85,  # 85% complete
+                      'critical_path_items': [
+                          'LOI execution by Oct 25',
+                          'Exclusivity period negotiation',
+                          'Definitive agreement by Dec 1'
+                      ],
+                      'on_track': True,
+                      'next_action': 'Finalize LOI terms and execute'
+                  },
+                  
+                  'DEAL-004_HealthTech': {
+                      'current_stage': 'Closing',
+                      'progress': 0.95,  # 95% complete
+                      'critical_path_items': [
+                          'Final regulatory approval',
+                          'Closing documentation completion',
+                          'Integration team mobilization'
+                      ],
+                      'at_risk_milestones': ['Regulatory approval - timing uncertainty'],
+                      'next_action': 'Engage regulatory counsel for clearance timeline'
+                  }
+              },
+              
+              # Portfolio-level milestone tracking
+              'portfolio_milestones': {
+                  'q1_closing_pipeline': {
+                      'target_closings': 4,
+                      'probable_closings': 3,
+                      'at_risk_closings': 1,
+                      'confidence_level': 0.75
+                  },
+                  'ic_presentation_queue': [
+                      {'deal': 'DataRobot', 'scheduled': '2024-11-25', 'preparation': 'ON_TRACK'},
+                      {'deal': 'CyberSecure', 'scheduled': '2024-11-15', 'preparation': 'AHEAD_OF_SCHEDULE'},
+                      {'deal': 'NewDeal_005', 'scheduled': '2024-12-10', 'preparation': 'PLANNING'}
+                  ],
+                  'regulatory_filing_pipeline': [
+                      {'deal': 'HealthTech', 'status': 'PENDING_APPROVAL', 'timeline': '2-4 weeks'},
+                      {'deal': 'DataRobot', 'status': 'PREPARATION', 'timeline': 'Filing in Dec 2024'}
+                  ]
+              }
+          }
+          
+          # Save milestone tracking
+          with open('deal-milestone-tracking.json', 'w') as f:
+              json.dump(milestone_tracking, f, indent=2)
+          
+          print('🎯 Deal Milestone Summary:')
+          for deal_id, data in milestone_tracking['deal_milestones'].items():
+              company = deal_id.split('_')[1]
+              progress = data['progress'] * 100
+              print(f'  {company}: {progress:.0f}% complete - {data[\"current_stage\"]}')
+              
+              if data.get('at_risk_milestones'):
+                  print(f'    ⚠️ At Risk: {data[\"at_risk_milestones\"][0]}')
+          
+          print()
+          print('📅 Upcoming Critical Milestones:')
+          print('  Oct 30: CyberSecure DCF validation due')
+          print('  Nov 1: DataRobot Financial DD completion') 
+          print('  Nov 15: CyberSecure IC presentation')
+          print('  Nov 25: DataRobot IC presentation')
+          print('  Dec 1: FinTech definitive agreement target')
+          print('✅ Milestone tracking complete!')
+          "
+
+      - name: 🔔 Generate Critical Path Alerts
+        run: |
+          echo "🔔 M&A CRITICAL PATH MONITORING"
+          echo "======================================================================="
+          
+          echo "🚨 CRITICAL PATH ALERTS:"
+          echo ""
+          echo "🔴 IMMEDIATE ACTION REQUIRED:"
+          echo "  DataRobot Financial DD: Resource allocation needed"
+          echo "  HealthTech Regulatory: Engage additional regulatory counsel" 
+          echo ""
+          echo "🟡 ATTENTION NEEDED (Next 7 Days):"
+          echo "  CyberSecure Valuation: DCF model validation due Oct 30"
+          echo "  FinTech LOI: Term sheet finalization in progress"
+          echo ""
+          echo "✅ ON TRACK:"
+          echo "  Portfolio performance: 78% synergy realization rate"
+          echo "  Integration success: 90% Day 1 objective achievement"
+          echo "  Regulatory approvals: 100% success rate maintained"
+          echo ""
+          echo "📅 EXECUTIVE CALENDAR COORDINATION:"
+          echo "  Monday: DataRobot management meeting (CEO calendar)"
+          echo "  Wednesday: Regulatory strategy session (GC + external counsel)"
+          echo "  Friday: Weekly deal pipeline review (full team)"
+
+      - name: 📊 Upload Executive Dashboard
+        uses: actions/upload-artifact@v3
+        with:
+          name: executive-ma-dashboard-${{ github.run_id }}
+          path: |
+            executive-ma-dashboard.md
+            ma-performance-analytics.json
+            deal-milestone-tracking.json
+          retention-days: 365
+
+  investment-committee-coordination:
+    needs: [ma-portfolio-overview, executive-dashboard, deal-milestone-tracking]
+    runs-on: ubuntu-latest
+    name: "🏛️ Investment Committee Coordination"
+    if: github.event.inputs.management_action == 'deal_review' || github.event_name == 'schedule'
+    
+    steps:
+      - name: 🏛️ Investment Committee Deal Review Preparation
+        run: |
+          echo "🏛️ INVESTMENT COMMITTEE COORDINATION"
+          echo "======================================================================="
+          
+          # Generate IC meeting preparation
+          cat > ic-meeting-agenda.md << 'EOF'
+          # Investment Committee Meeting Agenda
+          
+          **Meeting Date:** $(date -d '+1 week')  
+          **Meeting Time:** 2:00 PM - 4:00 PM EST
+          **Location:** Executive Conference Room / Virtual Hybrid
+          
+          ## Agenda Items
+          
+          ### 1. Portfolio Review (15 minutes)
+          - **Presenter:** Head of M&A
+          - **Materials:** Portfolio dashboard, performance metrics
+          - **Key Points:** Pipeline status, Q1 targets, resource allocation
+          
+          ### 2. Deal Presentations (90 minutes)
+          
+          #### Deal A: DataRobot Inc Acquisition ($2.8B)
+          - **Presenter:** Lead Analyst + Management Team
+          - **Duration:** 30 minutes presentation + 15 minutes Q&A
+          - **Decision Required:** Proceed to LOI phase
+          - **Materials:** 
+            - Due diligence summary report
+            - Valuation analysis (DCF + comparables)
+            - Integration planning overview
+            - Risk assessment and mitigation plan
+          
+          #### Deal B: CyberSecure Corp Acquisition ($1.2B)  
+          - **Presenter:** Lead Analyst
+          - **Duration:** 20 minutes presentation + 10 minutes Q&A
+          - **Decision Required:** Approve valuation parameters
+          - **Materials:**
+            - Market analysis and competitive positioning
+            - Financial model validation results
+            - Synergy analysis and integration timeline
+          
+          #### Deal C: HealthTech AI Closing Update ($1.8B)
+          - **Presenter:** Deal Team + Legal Counsel
+          - **Duration:** 15 minutes update + 10 minutes Q&A  
+          - **Decision Required:** Closing strategy approval
+          - **Materials:**
+            - Regulatory approval status update
+            - Final documentation review
+            - Integration readiness assessment
+          
+          ### 3. Strategic Initiatives (30 minutes)
+          - **Topic:** Q1 2025 M&A Strategy and Pipeline Development
+          - **Presenter:** Head of Corporate Development
+          - **Discussion Points:**
+            - Target industry priorities for 2025
+            - Geographic expansion opportunities
+            - Capital allocation for M&A activities
+            - Integration capability development
+          
+          ### 4. Risk Management Update (15 minutes)
+          - **Presenter:** Chief Risk Officer
+          - **Topics:** 
+            - Portfolio risk assessment summary
+            - Integration risk monitoring update
+            - Regulatory environment changes
+            - Market condition implications
+          
+          ## Pre-Meeting Requirements
+          
+          ### Committee Members
+          - [ ] Review all presentation materials 48 hours in advance
+          - [ ] Submit preliminary questions to deal teams
+          - [ ] Review portfolio performance dashboard
+          
+          ### Deal Teams
+          - [ ] Finalize presentation materials 72 hours before meeting
+          - [ ] Conduct internal rehearsals and Q&A preparation
+          - [ ] Prepare contingency scenarios and sensitivities
+          - [ ] Coordinate with finance and legal teams
+          
+          ### Support Teams
+          - [ ] Risk management: Prepare risk assessment updates
+          - [ ] Legal: Review regulatory status and timing
+          - [ ] Finance: Validate financial models and assumptions
+          - [ ] Integration: Update integration capability assessment
+          
+          ## Decision Framework
+          
+          ### Approval Criteria
+          - Strategic fit with corporate objectives
+          - Financial return meeting hurdle rate (>20% IRR)
+          - Acceptable risk profile for transaction size
+          - Integration capability and resource availability
+          - Regulatory approval probability >80%
+          
+          ### Voting Requirements
+          - Quorum: 75% of committee members
+          - Approval: Simple majority for deals <$1B
+          - Approval: 2/3 majority for deals >$1B
+          - Abstention: Members with conflicts must abstain
+          
+          ---
+          
+          **Agenda Prepared by:** Investment Committee Support
+          **Meeting Coordinator:** Executive Assistant
+          **Technology Support:** IT Department (AV setup)
+          EOF
+          
+          echo "✅ Investment Committee meeting agenda prepared"
+          echo "📋 IC coordination materials ready"
+
+      - name: 📊 Upload IC Coordination Materials
+        uses: actions/upload-artifact@v3
+        with:
+          name: investment-committee-materials-${{ github.run_id }}
+          path: ic-meeting-agenda.md
+          retention-days: 180
+
+# Final M&A management workflow summary
+  ma-management-summary:
+    needs: [ma-portfolio-overview, executive-dashboard, deal-milestone-tracking, investment-committee-coordination]
+    runs-on: ubuntu-latest
+    name: "🎉 M&A Management Workflow Complete"
+    if: always()
+    
+    steps:
+      - name: 🎉 M&A Deal Management Summary
+        run: |
+          echo "🎉 M&A DEAL MANAGEMENT WORKFLOW COMPLETED"
+          echo "======================================================================="
+          echo "🏦 AXIOM INVESTMENT BANKING - EXECUTIVE MANAGEMENT SYSTEM"
+          echo "======================================================================="
+          echo ""
+          echo "📊 MANAGEMENT WORKFLOW STATUS:"
+          echo "  Portfolio Overview: ${{ needs.ma-portfolio-overview.result }}"
+          echo "  Executive Dashboard: ${{ needs.executive-dashboard.result }}"
+          echo "  Milestone Tracking: ${{ needs.deal-milestone-tracking.result }}"
+          echo "  IC Coordination: ${{ needs.investment-committee-coordination.result }}"
+          echo ""
+          echo "📋 EXECUTIVE DELIVERABLES:"
+          echo "  ✓ M&A Portfolio Analytics Dashboard"
+          echo "  ✓ Deal Performance Metrics and KPIs"
+          echo "  ✓ Critical Path Milestone Tracking"
+          echo "  ✓ Investment Committee Coordination Materials"
+          echo "  ✓ Executive Summary and Action Items"
+          echo ""
+          echo "🎯 KEY INSIGHTS:"
+          echo "  📊 Active Pipeline: 8 deals ($18.5B total value)"
+          echo "  📈 Performance: 24.5% average IRR, 78% synergy realization"
+          echo "  ⚠️ Risk Profile: Moderate with 1 high-risk deal requiring attention"
+          echo "  🎯 Q1 Target: 3 expected closings ($5.8B value)"
+          echo ""
+          echo "🚨 EXECUTIVE ACTION ITEMS:"
+          echo "  🔴 HIGH: Allocate additional resources to DataRobot Financial DD"
+          echo "  🔴 HIGH: Accelerate HealthTech regulatory approval process"
+          echo "  🟡 MEDIUM: Prepare CyberSecure IC presentation materials"
+          echo "  🟡 MEDIUM: Review Q1 closing pipeline capacity"
+          echo ""
+          echo "📅 NEXT EXECUTIVE TOUCHPOINTS:"
+          echo "  Monday: DataRobot management presentation"
+          echo "  Wednesday: Portfolio risk review meeting"
+          echo "  Friday: Weekly deal pipeline update"
+          echo "  Next Week: Investment Committee meeting preparation"
+          echo ""
+          echo "🔗 MANAGEMENT DASHBOARDS:"
+          echo "  Portfolio Analytics: Available in workflow artifacts"
+          echo "  Executive Dashboard: Available in workflow artifacts"
+          echo "  Milestone Tracking: Available in workflow artifacts"
+          echo "  IC Materials: Available in workflow artifacts"
+          echo "======================================================================="
+          echo "🏆 Axiom M&A Management System - Executive Overview Complete"

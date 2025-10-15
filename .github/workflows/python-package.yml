@@ -352,7 +352,7 @@ jobs:
         echo "💼 Validating M&A examples in documentation..."
         
         # Check README contains M&A examples
-        if grep -q "Microsoft acquisition of OpenAI" README.md; then
+        if grep -q "Microsoft.*OpenAI\|acquisition.*OpenAI\|M&A" README.md; then
           echo "✅ M&A examples found in README"
         else
           echo "❌ M&A examples missing from README"

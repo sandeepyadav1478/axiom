@@ -19,25 +19,32 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
-### 3. Run Investment Analytics
+### 3. Run M&A Analytics (Priority Development Phase)
 ```bash
-# M&A Due Diligence Analysis
-python -m axiom.main "Analyze Microsoft's acquisition potential for OpenAI"
+# M&A Due Diligence Analysis (Phase 1)
+python -m axiom.main "M&A due diligence analysis of Microsoft acquiring OpenAI"
 
-# Company Valuation Analysis
-axiom "Comprehensive financial analysis of NVIDIA for IPO readiness"
+# M&A Valuation Analysis (Phase 1)
+axiom "M&A valuation analysis for NVIDIA acquisition with synergy assessment"
 
-# Market Intelligence
-axiom "Investment banking analysis of the AI infrastructure market"
+# M&A Strategic Fit Analysis (Phase 1)
+axiom "Strategic fit analysis for Tesla acquisition by traditional automaker"
+
+# M&A Market Impact Analysis (Phase 1)
+axiom "Market impact analysis of proposed Disney-Netflix merger"
 ```
 
-## Investment Banking Architecture
+## M&A-Focused Investment Banking Architecture
 
-- **LangGraph Workflow**: Financial Planner → Parallel Analysis Engines → Investment Validator
-- **DSPy Optimization**: Multi-source financial query optimization and valuation model enhancement
-- **Data Integration**: Tavily for market intelligence, Firecrawl for SEC filings and financial reports
-- **AI Infrastructure**: SGLang for structured financial analysis or cloud AI endpoints
-- **Audit Trail**: Complete LangSmith tracing for regulatory compliance and decision auditing
+- **LangGraph Workflow**: M&A Planner → Parallel M&A Analysis Engines → M&A Validator
+- **DSPy Optimization**: M&A-specific query optimization for due diligence, valuation, and strategic analysis
+- **Data Integration**: Tavily for M&A market intelligence, Firecrawl for SEC filings and acquisition reports
+- **Multi-AI System**: Claude for M&A reasoning, OpenAI for structured analysis, SGLang for local inference
+- **M&A Audit Trail**: Complete deal tracing for regulatory compliance and acquisition decision auditing
+
+### Phase 1 Priority: M&A Analytics
+**Current Focus**: Mergers & Acquisitions analysis automation
+**Future Phases**: General investment banking, IPO analysis, restructuring
 
 ## Development
 

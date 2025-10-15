@@ -130,7 +130,7 @@ class FinancialValidator:
                 value = float(transaction_data["transaction_value"])
                 if value <= 0:
                     errors.append("Transaction value must be positive")
-                elif value > 1000000:  # $1T transaction
+                elif value > 1000000000000:  # $1T transaction
                     errors.append(f"Transaction value seems unreasonably high: {value}")
             except (ValueError, TypeError):
                 errors.append("Invalid transaction value")

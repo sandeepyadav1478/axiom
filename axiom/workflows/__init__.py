@@ -1,14 +1,17 @@
-"""Axiom Investment Banking Analytics Platform."""
+"""
+Axiom Investment Banking M&A Workflows Package
 
-__version__ = "0.1.0"
-__author__ = "Axiom Team"
-__description__ = "Investment Banking Analytics Platform — AI-Powered Due Diligence, M&A Analysis, and Financial Intelligence"
+Complete M&A lifecycle management with specialized workflows for:
+- Target Identification & Screening
+- Due Diligence (Financial, Commercial, Legal, Operational)
+- Valuation & Deal Structure
+- Risk Assessment & Management
+- Post-Merger Integration Planning
+- Regulatory & Antitrust Analysis
+- Deal Execution Support
+"""
 
-from axiom.config.schemas import Citation, Evidence, ResearchBrief
-from axiom.config.settings import settings
-from axiom.graph.graph import create_research_graph, run_research
-from axiom.main import research_query
-from axiom.workflows.due_diligence import (
+from .due_diligence import (
     CommercialDDResult,
     ComprehensiveDDResult,
     FinancialDDResult,
@@ -17,16 +20,14 @@ from axiom.workflows.due_diligence import (
     run_comprehensive_dd,
     run_financial_dd,
 )
-
-# M&A Workflow Imports
-from axiom.workflows.target_screening import (
+from .target_screening import (
     MATargetScreeningWorkflow,
     ScreeningResult,
     TargetCriteria,
     TargetProfile,
     run_target_screening,
 )
-from axiom.workflows.valuation import (
+from .valuation import (
     ComparableAnalysis,
     DCFAnalysis,
     MAValuationWorkflow,
@@ -38,21 +39,13 @@ from axiom.workflows.valuation import (
 )
 
 __all__ = [
-    # Core Platform
-    "run_research",
-    "create_research_graph",
-    "research_query",
-    "settings",
-    "ResearchBrief",
-    "Evidence",
-    "Citation",
-    # M&A Target Screening
+    # Target Screening
     "MATargetScreeningWorkflow",
     "TargetCriteria",
     "TargetProfile",
     "ScreeningResult",
     "run_target_screening",
-    # M&A Due Diligence
+    # Due Diligence
     "MADueDiligenceWorkflow",
     "FinancialDDResult",
     "CommercialDDResult",
@@ -60,7 +53,7 @@ __all__ = [
     "ComprehensiveDDResult",
     "run_financial_dd",
     "run_comprehensive_dd",
-    # M&A Valuation
+    # Valuation
     "MAValuationWorkflow",
     "DCFAnalysis",
     "ComparableAnalysis",

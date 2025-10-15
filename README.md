@@ -2,21 +2,39 @@
 
 AI-Powered Investment Banking Platform — M&A Due Diligence, Company Valuation, Market Intelligence with DSPy Optimization, LangGraph Orchestration, and Financial Data Integration.
 
-## Quick Start
+## 🎉 Status: Core Implementation Complete!
 
-### 1. Install Dependencies
+✅ **Multi-AI Provider System**: OpenAI, Claude, SGLang with intelligent routing
+✅ **Investment Banking Workflows**: M&A due diligence, valuation, strategic analysis
+✅ **Financial Data Integration**: Enhanced Tavily + Firecrawl for SEC filings
+✅ **DSPy Optimization**: Investment banking query enrichment and optimization
+✅ **Comprehensive Validation**: Financial metrics, compliance, data quality
+✅ **Error Handling**: Investment banking grade error management
+
+## 🚀 Quick Start
+
+### 1. Activate Virtual Environment & Install
 ```bash
-pip install -e .
-# or for development
-pip install -e ".[dev]"
-# or with SGLang for local inference (NVIDIA systems only)
-pip install -e ".[dev,sglang]"
+# IMPORTANT: Activate the virtual environment first
+source .venv/bin/activate
+
+# Verify installation
+python tests/validate_system.py
+# Expected: 7/7 validations passed ✅
+
+# Test core M&A functionality
+python demo_ma_analysis.py
+# Expected: 5/5 demos successful ✅
 ```
 
 ### 2. Environment Setup
 ```bash
+# Configure API keys
 cp .env.example .env
-# Edit .env with your API keys
+# Edit .env with your API keys (minimum required):
+# TAVILY_API_KEY=your_tavily_api_key_here
+# FIRECRAWL_API_KEY=your_firecrawl_api_key_here
+# OPENAI_API_KEY=sk-your_openai_key_here  # OR Claude
 ```
 
 ### 3. Run Investment Analytics

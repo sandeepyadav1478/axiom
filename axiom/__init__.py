@@ -11,7 +11,7 @@ from axiom.main import research_query
 
 __all__ = [
     "run_research",
-    "create_research_graph", 
+    "create_research_graph",
     "research_query",
     "settings",
     "ResearchBrief",

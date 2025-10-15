@@ -1,6 +1,6 @@
 """LangGraph state management for Axiom Investment Banking Analytics Platform."""
 
-from typing import TypedDict, List, Optional, Annotated
+from typing import List, Optional, Annotated, TypedDict
 from langgraph.graph import add_messages
 from axiom.config.schemas import (
     TaskPlan, SearchQuery, SearchResult, CrawlResult, 

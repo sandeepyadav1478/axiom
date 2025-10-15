@@ -16,40 +16,43 @@ from axiom.ai_client_integrations import get_layer_provider, AIMessage
 def detect_analysis_type(query: str) -> str:
     """Detect the type of investment banking analysis from the query."""
     query_lower = query.lower()
-    
-    if any(term in query_lower for term in ['m&a', 'merger', 'acquisition', 'acquire', 'acquiring']):
-        if 'due diligence' in query_lower:
-            return 'ma_due_diligence'
-        elif 'valuation' in query_lower:
-            return 'ma_valuation'
-        elif 'market' in query_lower or 'strategic' in query_lower:
-            return 'ma_market_analysis'
+
+    if any(
+        term in query_lower
+        for term in ["m&a", "merger", "acquisition", "acquire", "acquiring"]
+    ):
+        if "due diligence" in query_lower:
+            return "ma_due_diligence"
+        elif "valuation" in query_lower:
+            return "ma_valuation"
+        elif "market" in query_lower or "strategic" in query_lower:
+            return "ma_market_analysis"
         else:
-            return 'ma_due_diligence'  # Default M&A analysis
-    elif 'due diligence' in query_lower:
-        return 'due_diligence'
-    elif 'valuation' in query_lower:
-        return 'valuation'
-    elif 'market' in query_lower:
-        return 'market_intelligence'
+            return "ma_due_diligence"  # Default M&A analysis
+    elif "due diligence" in query_lower:
+        return "due_diligence"
+    elif "valuation" in query_lower:
+        return "valuation"
+    elif "market" in query_lower:
+        return "market_intelligence"
     else:
-        return 'ma_due_diligence'  # Default to M&A focus
+        return "ma_due_diligence"  # Default to M&A focus
 
 
 def extract_company_info(query: str) -> Dict[str, str]:
     """Extract company information from the query."""
     # Simple regex patterns - could be enhanced
     company_patterns = [
-        r'(?:of|for)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*)',
-        r'([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*)\s+(?:acquisition|merger)',
-        r'([A-Z][A-Za-z]+)\s+(?:acquiring|merging)'
+        r"(?:of|for)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*)",
+        r"([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*)\s+(?:acquisition|merger)",
+        r"([A-Z][A-Za-z]+)\s+(?:acquiring|merging)",
     ]
-    
+
     for pattern in company_patterns:
         match = re.search(pattern, query)
         if match:
             return {"name": match.group(1).strip()}
-    
+
     return {"name": "target company"}
 
 
@@ -64,9 +67,9 @@ async def planner_node(state: AxiomState) -> Dict[str, Any]:
             raise Exception("No available AI provider for planning layer")
 
         # Detect analysis type and extract company info
-        analysis_type = detect_analysis_type(state['query'])
-        company_info = extract_company_info(state['query'])
-        
+        analysis_type = detect_analysis_type(state["query"])
+        company_info = extract_company_info(state["query"])
+
         # Create investment banking planning prompt
         planning_messages = [
             AIMessage(
@@ -88,7 +91,7 @@ For each task, provide:
 - 2-3 specific search queries targeting financial data sources
 - Priority level (1=critical, 2=important, 3=supplementary)
 
-Be specific about financial metrics, regulatory considerations, and M&A-relevant factors."""
+Be specific about financial metrics, regulatory considerations, and M&A-relevant factors.""",
             ),
             AIMessage(
                 role="user",
@@ -97,108 +100,189 @@ Be specific about financial metrics, regulatory considerations, and M&A-relevant
 Analysis Type: {analysis_type}
 Target Company: {company_info.get('name', 'Not specified')}
 
-Create a comprehensive research plan with parallel tasks:"""
-            )
+Create a comprehensive research plan with parallel tasks:""",
+            ),
         ]
 
         # Generate research plan using optimal AI provider
         response = await provider.generate_response_async(
             planning_messages,
             max_tokens=2000,
-            temperature=0.05  # Very conservative for M&A planning
+            temperature=0.05,  # Very conservative for M&A planning
         )
-        
+
         plan_text = response.content
 
         # Create structured investment banking task plans
-        task_plans = create_ib_task_plans(state['query'], analysis_type, company_info, plan_text)
+        task_plans = create_ib_task_plans(
+            state["query"], analysis_type, company_info, plan_text
+        )
 
         return {
             "task_plans": task_plans,
             "step_count": state["step_count"] + 1,
-            "messages": state["messages"] + [HumanMessage(content=f"Investment banking analysis planned: {len(task_plans)} parallel tasks for {analysis_type}")]
+            "messages": state["messages"]
+            + [
+                HumanMessage(
+                    content=f"Investment banking analysis planned: {len(task_plans)} parallel tasks for {analysis_type}"
+                )
+            ],
         }
 
     except Exception as e:
         error_msg = f"Investment banking planner error: {str(e)}"
         return {
             "error_messages": state["error_messages"] + [error_msg],
-            "step_count": state["step_count"] + 1
+            "step_count": state["step_count"] + 1,
         }
 
 
-def create_ib_task_plans(query: str, analysis_type: str, company_info: Dict, plan_text: str) -> List[TaskPlan]:
+def create_ib_task_plans(
+    query: str, analysis_type: str, company_info: Dict, plan_text: str
+) -> List[TaskPlan]:
     """Create structured investment banking task plans."""
-    
-    company_name = company_info.get('name', 'target company')
-    
+
+    company_name = company_info.get("name", "target company")
+
     # M&A-focused task templates
     task_templates = {
-        'ma_due_diligence': [
+        "ma_due_diligence": [
             TaskPlan(
                 task_id="financial_due_diligence",
                 description=f"Financial due diligence analysis of {company_name}: revenue quality, profitability trends, cash flow analysis, debt structure, and working capital assessment",
                 queries=[
-                    SearchQuery(query=f"{company_name} financial statements revenue EBITDA", query_type="original", priority=1),
-                    SearchQuery(query=f"{company_name} debt structure credit rating financial health", query_type="expanded", priority=1),
-                    SearchQuery(query=f"{company_name} cash flow working capital financial performance", query_type="expanded", priority=2)
+                    SearchQuery(
+                        query=f"{company_name} financial statements revenue EBITDA",
+                        query_type="original",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} debt structure credit rating financial health",
+                        query_type="expanded",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} cash flow working capital financial performance",
+                        query_type="expanded",
+                        priority=2,
+                    ),
                 ],
-                estimated_priority=1
+                estimated_priority=1,
             ),
             TaskPlan(
                 task_id="strategic_due_diligence",
                 description=f"Strategic due diligence of {company_name}: market position, competitive advantages, strategic rationale, and synergy potential",
                 queries=[
-                    SearchQuery(query=f"{company_name} market share competitive position industry", query_type="original", priority=1),
-                    SearchQuery(query=f"{company_name} competitive advantages strategic assets", query_type="expanded", priority=1),
-                    SearchQuery(query=f"{company_name} merger synergies strategic fit", query_type="expanded", priority=2)
+                    SearchQuery(
+                        query=f"{company_name} market share competitive position industry",
+                        query_type="original",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} competitive advantages strategic assets",
+                        query_type="expanded",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} merger synergies strategic fit",
+                        query_type="expanded",
+                        priority=2,
+                    ),
                 ],
-                estimated_priority=1
+                estimated_priority=1,
             ),
             TaskPlan(
                 task_id="risk_assessment",
                 description=f"Risk assessment for {company_name}: business risks, regulatory compliance, integration complexity, and mitigation strategies",
                 queries=[
-                    SearchQuery(query=f"{company_name} business risks regulatory compliance", query_type="original", priority=1),
-                    SearchQuery(query=f"{company_name} integration challenges operational risks", query_type="expanded", priority=2),
-                    SearchQuery(query=f"{company_name} litigation regulatory issues ESG risks", query_type="expanded", priority=2)
+                    SearchQuery(
+                        query=f"{company_name} business risks regulatory compliance",
+                        query_type="original",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} integration challenges operational risks",
+                        query_type="expanded",
+                        priority=2,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} litigation regulatory issues ESG risks",
+                        query_type="expanded",
+                        priority=2,
+                    ),
                 ],
-                estimated_priority=2
-            )
+                estimated_priority=2,
+            ),
         ],
-        'ma_valuation': [
+        "ma_valuation": [
             TaskPlan(
                 task_id="dcf_valuation",
                 description=f"DCF valuation analysis of {company_name}: cash flow projections, discount rate calculation, terminal value, and sensitivity analysis",
                 queries=[
-                    SearchQuery(query=f"{company_name} cash flow projections DCF valuation", query_type="original", priority=1),
-                    SearchQuery(query=f"{company_name} WACC discount rate cost of capital", query_type="expanded", priority=1),
-                    SearchQuery(query=f"{company_name} terminal value growth rate assumptions", query_type="expanded", priority=2)
+                    SearchQuery(
+                        query=f"{company_name} cash flow projections DCF valuation",
+                        query_type="original",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} WACC discount rate cost of capital",
+                        query_type="expanded",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} terminal value growth rate assumptions",
+                        query_type="expanded",
+                        priority=2,
+                    ),
                 ],
-                estimated_priority=1
+                estimated_priority=1,
             ),
             TaskPlan(
                 task_id="comparable_analysis",
                 description=f"Comparable company and transaction analysis for {company_name}: trading multiples, precedent transactions, and valuation benchmarks",
                 queries=[
-                    SearchQuery(query=f"{company_name} comparable companies trading multiples", query_type="original", priority=1),
-                    SearchQuery(query=f"{company_name} industry precedent transactions M&A multiples", query_type="expanded", priority=1),
-                    SearchQuery(query=f"{company_name} peer group valuation benchmarks", query_type="expanded", priority=2)
+                    SearchQuery(
+                        query=f"{company_name} comparable companies trading multiples",
+                        query_type="original",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} industry precedent transactions M&A multiples",
+                        query_type="expanded",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} peer group valuation benchmarks",
+                        query_type="expanded",
+                        priority=2,
+                    ),
                 ],
-                estimated_priority=1
+                estimated_priority=1,
             ),
             TaskPlan(
                 task_id="synergy_analysis",
                 description=f"Synergy and accretion analysis for {company_name}: revenue synergies, cost savings, tax benefits, and EPS impact",
                 queries=[
-                    SearchQuery(query=f"{company_name} merger synergies revenue cost savings", query_type="original", priority=1),
-                    SearchQuery(query=f"{company_name} acquisition accretion dilution EPS impact", query_type="expanded", priority=1),
-                    SearchQuery(query=f"{company_name} tax synergies integration costs", query_type="expanded", priority=2)
+                    SearchQuery(
+                        query=f"{company_name} merger synergies revenue cost savings",
+                        query_type="original",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} acquisition accretion dilution EPS impact",
+                        query_type="expanded",
+                        priority=1,
+                    ),
+                    SearchQuery(
+                        query=f"{company_name} tax synergies integration costs",
+                        query_type="expanded",
+                        priority=2,
+                    ),
                 ],
-                estimated_priority=1
-            )
-        ]
+                estimated_priority=1,
+            ),
+        ],
     }
-    
+
     # Return M&A-specific tasks, or fall back to due diligence
-    return task_templates.get(analysis_type, task_templates['ma_due_diligence'])
+    return task_templates.get(analysis_type, task_templates["ma_due_diligence"])

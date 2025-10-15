@@ -10,49 +10,42 @@ from .base_ai_provider import BaseAIProvider, AIMessage, AIResponse, AIProviderE
 
 class ClaudeProvider(BaseAIProvider):
     """Claude provider implementation with investment banking optimization."""
-    
+
     def __init__(
         self,
         api_key: str,
         base_url: Optional[str] = None,
         model_name: str = "claude-3-sonnet-20240229",
-        **kwargs
+        **kwargs,
     ):
         super().__init__(api_key, base_url, model_name, **kwargs)
-        
+
         # Initialize Anthropic client
-        self.client = Anthropic(
-            api_key=self.api_key,
-            base_url=self.base_url
-        )
-        
-        self.async_client = AsyncAnthropic(
-            api_key=self.api_key,
-            base_url=self.base_url
-        )
-    
+        self.client = Anthropic(api_key=self.api_key, base_url=self.base_url)
+
+        self.async_client = AsyncAnthropic(api_key=self.api_key, base_url=self.base_url)
+
     def generate_response(
         self,
         messages: List[AIMessage],
         max_tokens: int = 2000,
         temperature: float = 0.1,
-        **kwargs
+        **kwargs,
     ) -> AIResponse:
         """Generate response using Claude API."""
         try:
             # Separate system message from conversation messages
             system_msg = ""
             conversation_messages = []
-            
+
             for msg in messages:
                 if msg.role == "system":
                     system_msg = msg.content
                 else:
-                    conversation_messages.append({
-                        "role": msg.role,
-                        "content": msg.content
-                    })
-            
+                    conversation_messages.append(
+                        {"role": msg.role, "content": msg.content}
+                    )
+
             # Call Claude API
             response = self.client.messages.create(
                 model=self.model_name,
@@ -60,46 +53,49 @@ class ClaudeProvider(BaseAIProvider):
                 temperature=temperature,
                 system=system_msg if system_msg else None,
                 messages=conversation_messages,
-                **kwargs
+                **kwargs,
             )
-            
+
             # Extract response content
             content = response.content[0].text if response.content else ""
-            usage_tokens = response.usage.input_tokens + response.usage.output_tokens if response.usage else None
-            
+            usage_tokens = (
+                response.usage.input_tokens + response.usage.output_tokens
+                if response.usage
+                else None
+            )
+
             return AIResponse(
                 content=content,
                 provider="Claude",
                 model=self.model_name,
                 usage_tokens=usage_tokens,
-                confidence=0.90  # Claude typically has high confidence for reasoning
+                confidence=0.90,  # Claude typically has high confidence for reasoning
             )
-            
+
         except Exception as e:
             raise AIProviderError("Claude", f"Failed to generate response: {str(e)}", e)
-    
+
     async def generate_response_async(
         self,
         messages: List[AIMessage],
         max_tokens: int = 2000,
         temperature: float = 0.1,
-        **kwargs
+        **kwargs,
     ) -> AIResponse:
         """Generate response asynchronously using Claude API."""
         try:
             # Separate system message from conversation messages
             system_msg = ""
             conversation_messages = []
-            
+
             for msg in messages:
                 if msg.role == "system":
                     system_msg = msg.content
                 else:
-                    conversation_messages.append({
-                        "role": msg.role,
-                        "content": msg.content
-                    })
-            
+                    conversation_messages.append(
+                        {"role": msg.role, "content": msg.content}
+                    )
+
             # Call Claude API asynchronously
             response = await self.async_client.messages.create(
                 model=self.model_name,
@@ -107,24 +103,30 @@ class ClaudeProvider(BaseAIProvider):
                 temperature=temperature,
                 system=system_msg if system_msg else None,
                 messages=conversation_messages,
-                **kwargs
+                **kwargs,
             )
-            
+
             # Extract response content
             content = response.content[0].text if response.content else ""
-            usage_tokens = response.usage.input_tokens + response.usage.output_tokens if response.usage else None
-            
+            usage_tokens = (
+                response.usage.input_tokens + response.usage.output_tokens
+                if response.usage
+                else None
+            )
+
             return AIResponse(
                 content=content,
                 provider="Claude",
                 model=self.model_name,
                 usage_tokens=usage_tokens,
-                confidence=0.90
+                confidence=0.90,
             )
-            
+
         except Exception as e:
-            raise AIProviderError("Claude", f"Failed to generate async response: {str(e)}", e)
-    
+            raise AIProviderError(
+                "Claude", f"Failed to generate async response: {str(e)}", e
+            )
+
     def is_available(self) -> bool:
         """Check if Claude provider is available."""
         try:
@@ -132,31 +134,28 @@ class ClaudeProvider(BaseAIProvider):
             response = self.client.messages.create(
                 model=self.model_name,
                 max_tokens=1,
-                messages=[{"role": "user", "content": "test"}]
+                messages=[{"role": "user", "content": "test"}],
             )
             return True
         except Exception:
             return False
-    
+
     def get_investment_banking_config(self) -> Dict[str, Any]:
         """Get investment banking optimized configuration for Claude."""
         return {
             "temperature": 0.03,  # Extremely conservative for M&A analysis
-            "max_tokens": 5000,   # Long detailed responses for complex analysis
-            "top_p": 0.95,       # High quality, focused responses
+            "max_tokens": 5000,  # Long detailed responses for complex analysis
+            "top_p": 0.95,  # High quality, focused responses
         }
-    
+
     def financial_analysis_prompt(
-        self, 
-        analysis_type: str,
-        company_info: Dict[str, Any],
-        context: str = ""
+        self, analysis_type: str, company_info: Dict[str, Any], context: str = ""
     ) -> List[AIMessage]:
         """
         Override base class with Claude-optimized prompts for investment banking.
         Claude excels at complex reasoning and structured analysis.
         """
-        
+
         # Investment banking system prompt optimized for Claude
         system_prompt = """You are a distinguished senior investment banking analyst with deep expertise in:
 
@@ -205,7 +204,6 @@ Be methodical, precise, and professional. Structure responses for investment com
 - Management and cultural fit assessment
 
 Provide executive summary with clear go/no-go recommendation.""",
-            
             "ma_valuation": f"""Perform comprehensive M&A valuation for {company_info.get('name', 'target company')}:
 
 **Valuation Methodologies:**
@@ -226,7 +224,6 @@ Provide executive summary with clear go/no-go recommendation.""",
 - Premium analysis vs. market comparables
 
 Deliver investment committee-ready valuation summary.""",
-            
             "ma_market_analysis": f"""Analyze market dynamics for {company_info.get('name', 'target company')} acquisition:
 
 **Market Assessment:**
@@ -247,18 +244,18 @@ Deliver investment committee-ready valuation summary.""",
 - Market consolidation acceleration
 - Customer/supplier relationship impacts
 
-Conclude with strategic market rationale for the transaction."""
+Conclude with strategic market rationale for the transaction.""",
         }
-        
+
         user_prompt = analysis_prompts.get(
-            analysis_type, 
-            f"Provide comprehensive investment banking analysis of {company_info.get('name', 'target company')} for {analysis_type} purposes."
+            analysis_type,
+            f"Provide comprehensive investment banking analysis of {company_info.get('name', 'target company')} for {analysis_type} purposes.",
         )
-        
+
         if context:
             user_prompt += f"\n\n**Additional Context:**\n{context}"
-            
+
         return [
             AIMessage(role="system", content=system_prompt),
-            AIMessage(role="user", content=user_prompt)
+            AIMessage(role="user", content=user_prompt),
         ]

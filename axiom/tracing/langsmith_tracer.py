@@ -11,8 +11,7 @@ from axiom.config.settings import settings
 # Initialize LangSmith client if API key is provided
 if settings.langchain_api_key:
     langsmith_client = Client(
-        api_url=settings.langchain_endpoint,
-        api_key=settings.langchain_api_key
+        api_url=settings.langchain_endpoint, api_key=settings.langchain_api_key
     )
 else:
     langsmith_client = None
@@ -28,7 +27,7 @@ def trace_node(node_name: str):
         @traceable(
             name=f"axiom_node_{node_name}",
             project_name=settings.langchain_project,
-            client=langsmith_client
+            client=langsmith_client,
         )
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -40,6 +39,7 @@ def trace_node(node_name: str):
             return await func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
@@ -53,13 +53,14 @@ def trace_tool(tool_name: str):
         @traceable(
             name=f"axiom_tool_{tool_name}",
             project_name=settings.langchain_project,
-            client=langsmith_client
+            client=langsmith_client,
         )
         @wraps(func)
         async def wrapper(*args, **kwargs):
             return await func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 

@@ -9,10 +9,16 @@ from axiom.ai_client_integrations import provider_factory
 class InvestmentBankingQueryExpansion(dspy.Signature):
     """Expand investment banking queries into focused financial analysis sub-queries."""
 
-    original_query = dspy.InputField(desc="The original investment banking or M&A query")
-    analysis_type = dspy.InputField(desc="Type of analysis: ma_due_diligence, ma_valuation, market_analysis, risk_assessment, or financial_analysis")
+    original_query = dspy.InputField(
+        desc="The original investment banking or M&A query"
+    )
+    analysis_type = dspy.InputField(
+        desc="Type of analysis: ma_due_diligence, ma_valuation, market_analysis, risk_assessment, or financial_analysis"
+    )
     company_context = dspy.InputField(desc="Company or sector context if available")
-    expanded_queries = dspy.OutputField(desc="4-6 focused investment banking sub-queries covering financial metrics, strategic analysis, market intelligence, and risk factors")
+    expanded_queries = dspy.OutputField(
+        desc="4-6 focused investment banking sub-queries covering financial metrics, strategic analysis, market intelligence, and risk factors"
+    )
 
 
 class MASpecificExpansion(dspy.Signature):
@@ -20,17 +26,29 @@ class MASpecificExpansion(dspy.Signature):
 
     ma_query = dspy.InputField(desc="M&A transaction or analysis query")
     target_company = dspy.InputField(desc="Target company name or sector")
-    deal_stage = dspy.InputField(desc="Deal stage: early_evaluation, due_diligence, valuation, or post_merger")
-    ma_focused_queries = dspy.OutputField(desc="5-7 M&A-specific queries covering strategic rationale, financial due diligence, valuation methodologies, synergy analysis, integration planning, and regulatory considerations")
+    deal_stage = dspy.InputField(
+        desc="Deal stage: early_evaluation, due_diligence, valuation, or post_merger"
+    )
+    ma_focused_queries = dspy.OutputField(
+        desc="5-7 M&A-specific queries covering strategic rationale, financial due diligence, valuation methodologies, synergy analysis, integration planning, and regulatory considerations"
+    )
 
 
 class FinancialMetricsExpansion(dspy.Signature):
     """Expand financial analysis queries into comprehensive metrics coverage."""
 
-    financial_query = dspy.InputField(desc="Financial analysis or company performance query")
-    metrics_scope = dspy.InputField(desc="Metrics scope: profitability, liquidity, leverage, efficiency, or valuation")
-    time_horizon = dspy.InputField(desc="Analysis time horizon: current, historical_trends, or forward_looking")
-    metrics_queries = dspy.OutputField(desc="4-5 financial metrics queries covering ratios, trends, peer comparisons, and industry benchmarks")
+    financial_query = dspy.InputField(
+        desc="Financial analysis or company performance query"
+    )
+    metrics_scope = dspy.InputField(
+        desc="Metrics scope: profitability, liquidity, leverage, efficiency, or valuation"
+    )
+    time_horizon = dspy.InputField(
+        desc="Analysis time horizon: current, historical_trends, or forward_looking"
+    )
+    metrics_queries = dspy.OutputField(
+        desc="4-5 financial metrics queries covering ratios, trends, peer comparisons, and industry benchmarks"
+    )
 
 
 class InvestmentBankingMultiQueryModule(dspy.Module):
@@ -42,8 +60,13 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
         self.ma_expand = dspy.ChainOfThought(MASpecificExpansion)
         self.financial_expand = dspy.ChainOfThought(FinancialMetricsExpansion)
 
-    def forward(self, query: str, analysis_type: str = "financial_analysis",
-               company_context: str = "", **kwargs) -> List[str]:
+    def forward(
+        self,
+        query: str,
+        analysis_type: str = "financial_analysis",
+        company_context: str = "",
+        **kwargs,
+    ) -> List[str]:
         """Generate investment banking focused queries from input query."""
 
         try:
@@ -53,67 +76,74 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
             elif self._is_financial_metrics_query(query):
                 return self._expand_financial_query(query, kwargs)
             else:
-                return self._expand_general_ib_query(query, analysis_type, company_context)
+                return self._expand_general_ib_query(
+                    query, analysis_type, company_context
+                )
 
         except Exception as e:
             print(f"Investment banking multi-query error: {e}")
             return self._fallback_queries(query)
 
-    def _expand_ma_query(self, query: str, company_context: str, kwargs: Dict) -> List[str]:
+    def _expand_ma_query(
+        self, query: str, company_context: str, kwargs: Dict
+    ) -> List[str]:
         """Expand M&A-specific queries."""
-        
+
         result = self.ma_expand(
             ma_query=query,
-            target_company=company_context or kwargs.get("target_company", "target company"),
-            deal_stage=kwargs.get("deal_stage", "due_diligence")
+            target_company=company_context
+            or kwargs.get("target_company", "target company"),
+            deal_stage=kwargs.get("deal_stage", "due_diligence"),
         )
 
-        if hasattr(result, 'ma_focused_queries'):
+        if hasattr(result, "ma_focused_queries"):
             return self._parse_queries(result.ma_focused_queries)
 
         return self._fallback_ma_queries(query)
 
     def _expand_financial_query(self, query: str, kwargs: Dict) -> List[str]:
         """Expand financial metrics queries."""
-        
+
         result = self.financial_expand(
             financial_query=query,
             metrics_scope=kwargs.get("metrics_scope", "profitability"),
-            time_horizon=kwargs.get("time_horizon", "current")
+            time_horizon=kwargs.get("time_horizon", "current"),
         )
 
-        if hasattr(result, 'metrics_queries'):
+        if hasattr(result, "metrics_queries"):
             return self._parse_queries(result.metrics_queries)
 
         return self._fallback_financial_queries(query)
 
-    def _expand_general_ib_query(self, query: str, analysis_type: str, company_context: str) -> List[str]:
+    def _expand_general_ib_query(
+        self, query: str, analysis_type: str, company_context: str
+    ) -> List[str]:
         """Expand general investment banking queries."""
-        
+
         result = self.ib_expand(
             original_query=query,
             analysis_type=analysis_type,
-            company_context=company_context
+            company_context=company_context,
         )
 
-        if hasattr(result, 'expanded_queries'):
+        if hasattr(result, "expanded_queries"):
             return self._parse_queries(result.expanded_queries)
 
         return self._fallback_queries(query)
 
     def _parse_queries(self, raw_queries: str) -> List[str]:
         """Parse and clean expanded queries."""
-        
+
         queries = []
-        
+
         # Split by common delimiters
-        raw_splits = raw_queries.replace('\n', '|').replace(';', '|').split('|')
-        
+        raw_splits = raw_queries.replace("\n", "|").replace(";", "|").split("|")
+
         for q in raw_splits:
             # Clean up formatting
-            q = q.strip('- •*0123456789. ()[]{}')
+            q = q.strip("- •*0123456789. ()[]{}")
             q = q.strip()
-            
+
             if len(q) > 15 and len(q) < 200:  # Reasonable query length
                 queries.append(q)
 
@@ -121,35 +151,53 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
 
     def _is_ma_query(self, query: str) -> bool:
         """Check if query is M&A focused."""
-        ma_terms = ['m&a', 'merger', 'acquisition', 'acquire', 'deal', 'transaction', 'combine']
+        ma_terms = [
+            "m&a",
+            "merger",
+            "acquisition",
+            "acquire",
+            "deal",
+            "transaction",
+            "combine",
+        ]
         return any(term in query.lower() for term in ma_terms)
 
     def _is_financial_metrics_query(self, query: str) -> bool:
         """Check if query is financial metrics focused."""
-        metrics_terms = ['ratio', 'ebitda', 'revenue', 'profit', 'cash flow', 'debt', 'equity', 'roe', 'roa']
+        metrics_terms = [
+            "ratio",
+            "ebitda",
+            "revenue",
+            "profit",
+            "cash flow",
+            "debt",
+            "equity",
+            "roe",
+            "roa",
+        ]
         return any(term in query.lower() for term in metrics_terms)
 
     def _fallback_ma_queries(self, query: str) -> List[str]:
         """Fallback M&A queries if DSPy fails."""
         base_company = self._extract_company_name(query)
-        
+
         return [
             f"{base_company} financial due diligence revenue profitability debt analysis",
             f"{base_company} strategic fit market position competitive advantages",
             f"{base_company} M&A valuation DCF comparable transactions multiples",
             f"{base_company} merger synergies cost savings revenue enhancement",
-            f"{base_company} acquisition risks regulatory compliance integration challenges"
+            f"{base_company} acquisition risks regulatory compliance integration challenges",
         ]
 
     def _fallback_financial_queries(self, query: str) -> List[str]:
         """Fallback financial queries if DSPy fails."""
         company = self._extract_company_name(query)
-        
+
         return [
             f"{company} financial performance revenue growth profitability trends",
             f"{company} financial ratios liquidity leverage efficiency metrics",
             f"{company} cash flow analysis operating investing financing activities",
-            f"{company} peer comparison industry benchmarks valuation multiples"
+            f"{company} peer comparison industry benchmarks valuation multiples",
         ]
 
     def _fallback_queries(self, query: str) -> List[str]:
@@ -158,18 +206,18 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
             f"{query} financial analysis",
             f"{query} market analysis industry trends",
             f"{query} competitive positioning strategic analysis",
-            f"{query} investment analysis valuation metrics"
+            f"{query} investment analysis valuation metrics",
         ]
 
     def _extract_company_name(self, query: str) -> str:
         """Simple company name extraction."""
         words = query.split()
-        
+
         # Look for capitalized words (potential company names)
         for word in words:
             if word[0].isupper() and len(word) > 2 and word.isalpha():
                 return word
-        
+
         return "target company"
 
 
@@ -184,12 +232,9 @@ class SectorMultiQueryModule(dspy.Module):
         """Generate sector-specific analysis queries."""
 
         try:
-            result = self.sector_expand(
-                sector=sector,
-                analysis_focus=analysis_focus
-            )
+            result = self.sector_expand(sector=sector, analysis_focus=analysis_focus)
 
-            if hasattr(result, 'sector_queries'):
+            if hasattr(result, "sector_queries"):
                 return self._parse_queries(result.sector_queries)
 
             return self._fallback_sector_queries(sector)
@@ -201,10 +246,10 @@ class SectorMultiQueryModule(dspy.Module):
     def _parse_queries(self, raw_queries: str) -> List[str]:
         """Parse sector analysis queries."""
         queries = []
-        raw_splits = raw_queries.replace('\n', '|').split('|')
-        
+        raw_splits = raw_queries.replace("\n", "|").split("|")
+
         for q in raw_splits:
-            q = q.strip('- •*0123456789. ')
+            q = q.strip("- •*0123456789. ")
             if len(q) > 15:
                 queries.append(q)
 
@@ -217,7 +262,7 @@ class SectorMultiQueryModule(dspy.Module):
             f"{sector} sector M&A activity consolidation transactions",
             f"{sector} industry valuation multiples trading comparables",
             f"{sector} competitive landscape key players market share",
-            f"{sector} regulatory environment compliance requirements changes"
+            f"{sector} regulatory environment compliance requirements changes",
         ]
 
 
@@ -225,8 +270,12 @@ class SectorAnalysisExpansion(dspy.Signature):
     """Expand sector analysis into comprehensive industry intelligence."""
 
     sector = dspy.InputField(desc="Industry sector or market segment")
-    analysis_focus = dspy.InputField(desc="Analysis focus: market_trends, ma_activity, competitive_landscape, or regulatory_environment")
-    sector_queries = dspy.OutputField(desc="5 sector-specific queries covering market dynamics, competitive positioning, M&A trends, and regulatory factors")
+    analysis_focus = dspy.InputField(
+        desc="Analysis focus: market_trends, ma_activity, competitive_landscape, or regulatory_environment"
+    )
+    sector_queries = dspy.OutputField(
+        desc="5 sector-specific queries covering market dynamics, competitive positioning, M&A trends, and regulatory factors"
+    )
 
 
 def setup_dspy_with_provider():
@@ -235,14 +284,14 @@ def setup_dspy_with_provider():
     try:
         # Try to get an available provider
         providers = provider_factory.get_available_providers()
-        
+
         if not providers:
             raise Exception("No AI providers available for DSPy")
 
         # Use first available provider
         provider_name = providers[0]
         config = settings.get_provider_config(provider_name)
-        
+
         # Configure DSPy
         dspy.configure(
             lm=dspy.OpenAI(
@@ -250,12 +299,12 @@ def setup_dspy_with_provider():
                 api_base=config["base_url"],
                 api_key=config["api_key"],
                 max_tokens=1500,
-                temperature=0.1  # Conservative for financial analysis
+                temperature=0.1,  # Conservative for financial analysis
             )
         )
-        
+
         print(f"DSPy configured with {provider_name} provider")
-        
+
     except Exception as e:
         print(f"DSPy setup error: {e}")
         # Fallback configuration
@@ -264,7 +313,7 @@ def setup_dspy_with_provider():
                 model=settings.openai_model_name,
                 api_base=settings.openai_base_url,
                 api_key=settings.openai_api_key or "placeholder",
-                max_tokens=1500
+                max_tokens=1500,
             )
         )
 

@@ -49,10 +49,7 @@ def create_research_graph():
     workflow.add_conditional_edges(
         "planner",
         should_continue,
-        {
-            "task_runner": "task_runner",
-            "observer": "observer"
-        }
+        {"task_runner": "task_runner", "observer": "observer"},
     )
 
     workflow.add_conditional_edges(
@@ -60,8 +57,8 @@ def create_research_graph():
         should_continue,
         {
             "observer": "observer",
-            "planner": "planner"  # Rare case where we need more planning
-        }
+            "planner": "planner",  # Rare case where we need more planning
+        },
     )
 
     # Observer always ends
@@ -84,8 +81,7 @@ async def run_research(query: str, trace_id: str = None) -> AxiomState:
 
     # Execute the workflow
     final_state = await app.ainvoke(
-        initial_state,
-        config={"configurable": {"thread_id": trace_id or "default"}}
+        initial_state, config={"configurable": {"thread_id": trace_id or "default"}}
     )
 
     return final_state

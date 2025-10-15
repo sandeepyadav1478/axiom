@@ -43,26 +43,18 @@ async def research_query(query: str, trace_id: Optional[str] = None) -> dict:
                 "stats": {
                     "evidence_count": len(brief.evidence),
                     "citation_count": len(brief.citations),
-                    "confidence": brief.confidence
-                }
+                    "confidence": brief.confidence,
+                },
             }
         else:
             error_msgs = final_state.get("error_messages", ["Unknown error"])
             print(f"\n❌ Research failed: {'; '.join(error_msgs)}")
 
-            return {
-                "success": False,
-                "errors": error_msgs,
-                "trace_id": trace_id
-            }
+            return {"success": False, "errors": error_msgs, "trace_id": trace_id}
 
     except Exception as e:
         print(f"\n💥 Critical error: {str(e)}")
-        return {
-            "success": False,
-            "errors": [str(e)],
-            "trace_id": trace_id
-        }
+        return {"success": False, "errors": [str(e)], "trace_id": trace_id}
 
 
 def main():
@@ -73,16 +65,24 @@ def main():
         print("")
         print("Investment Banking Examples:")
         print("  M&A Analysis:")
-        print("    python -m axiom.main 'Analyze Microsoft acquisition of OpenAI for strategic value'")
+        print(
+            "    python -m axiom.main 'Analyze Microsoft acquisition of OpenAI for strategic value'"
+        )
         print("  ")
         print("  Due Diligence:")
-        print("    python -m axiom.main 'Comprehensive due diligence analysis of NVIDIA financial health'")
+        print(
+            "    python -m axiom.main 'Comprehensive due diligence analysis of NVIDIA financial health'"
+        )
         print("  ")
         print("  Market Intelligence:")
-        print("    python -m axiom.main 'Investment banking analysis of AI infrastructure market trends'")
+        print(
+            "    python -m axiom.main 'Investment banking analysis of AI infrastructure market trends'"
+        )
         print("  ")
         print("  Company Valuation:")
-        print("    python -m axiom.main 'DCF valuation analysis of Tesla with risk assessment'")
+        print(
+            "    python -m axiom.main 'DCF valuation analysis of Tesla with risk assessment'"
+        )
         sys.exit(1)
 
     query = " ".join(sys.argv[1:])
@@ -92,9 +92,9 @@ def main():
 
     # Output results
     if result["success"]:
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("RESEARCH BRIEF")
-        print("="*60)
+        print("=" * 60)
 
         brief = result["brief"]
         print(f"\nTopic: {brief['topic']}")

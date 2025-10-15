@@ -9,8 +9,12 @@ class InvestmentBankingHyDE(dspy.Signature):
     """Generate hypothetical investment banking documents for enhanced financial search."""
 
     query = dspy.InputField(desc="The investment banking or M&A research query")
-    analysis_type = dspy.InputField(desc="Type of analysis: ma_due_diligence, ma_valuation, market_analysis, or financial_analysis")
-    hypothetical_document = dspy.OutputField(desc="A comprehensive hypothetical investment banking document covering financial metrics, strategic analysis, and market intelligence that would contain the target information")
+    analysis_type = dspy.InputField(
+        desc="Type of analysis: ma_due_diligence, ma_valuation, market_analysis, or financial_analysis"
+    )
+    hypothetical_document = dspy.OutputField(
+        desc="A comprehensive hypothetical investment banking document covering financial metrics, strategic analysis, and market intelligence that would contain the target information"
+    )
 
 
 class FinancialQueryEnrichment(dspy.Signature):
@@ -18,7 +22,9 @@ class FinancialQueryEnrichment(dspy.Signature):
 
     original_query = dspy.InputField(desc="The original investment banking query")
     company_context = dspy.InputField(desc="Company or sector context if available")
-    enriched_query = dspy.OutputField(desc="Enhanced query with financial terminology, relevant metrics, and investment banking context")
+    enriched_query = dspy.OutputField(
+        desc="Enhanced query with financial terminology, relevant metrics, and investment banking context"
+    )
 
 
 class MAAnalysisHyDE(dspy.Signature):
@@ -26,8 +32,12 @@ class MAAnalysisHyDE(dspy.Signature):
 
     query = dspy.InputField(desc="M&A analysis query")
     target_company = dspy.InputField(desc="Target company name or description")
-    analysis_focus = dspy.InputField(desc="Analysis focus: strategic_fit, synergies, valuation, or due_diligence")
-    hypothetical_analysis = dspy.OutputField(desc="Comprehensive hypothetical M&A analysis document with financial metrics, strategic rationale, synergy assessment, and risk factors")
+    analysis_focus = dspy.InputField(
+        desc="Analysis focus: strategic_fit, synergies, valuation, or due_diligence"
+    )
+    hypothetical_analysis = dspy.OutputField(
+        desc="Comprehensive hypothetical M&A analysis document with financial metrics, strategic rationale, synergy assessment, and risk factors"
+    )
 
 
 class InvestmentBankingHyDEModule(dspy.Module):
@@ -39,29 +49,34 @@ class InvestmentBankingHyDEModule(dspy.Module):
         self.ma_hyde = dspy.ChainOfThought(MAAnalysisHyDE)
         self.enrich_query = dspy.ChainOfThought(FinancialQueryEnrichment)
 
-    def forward(self, query: str, analysis_type: str = "financial_analysis",
-               target_company: str = "", analysis_focus: str = "overview") -> str:
+    def forward(
+        self,
+        query: str,
+        analysis_type: str = "financial_analysis",
+        target_company: str = "",
+        analysis_focus: str = "overview",
+    ) -> str:
         """Generate hypothetical investment banking document for enhanced search."""
 
         try:
             # Determine if this is M&A specific
-            if any(term in query.lower() for term in ['m&a', 'merger', 'acquisition', 'acquire']):
+            if any(
+                term in query.lower()
+                for term in ["m&a", "merger", "acquisition", "acquire"]
+            ):
                 result = self.ma_hyde(
                     query=query,
                     target_company=target_company or "target company",
-                    analysis_focus=analysis_focus
+                    analysis_focus=analysis_focus,
                 )
-                
-                if hasattr(result, 'hypothetical_analysis'):
-                    return result.hypothetical_analysis
-            
-            # General investment banking analysis
-            result = self.general_hyde(
-                query=query,
-                analysis_type=analysis_type
-            )
 
-            if hasattr(result, 'hypothetical_document'):
+                if hasattr(result, "hypothetical_analysis"):
+                    return result.hypothetical_analysis
+
+            # General investment banking analysis
+            result = self.general_hyde(query=query, analysis_type=analysis_type)
+
+            if hasattr(result, "hypothetical_document"):
                 return result.hypothetical_document
 
             return query  # Fallback to original query
@@ -75,11 +90,10 @@ class InvestmentBankingHyDEModule(dspy.Module):
 
         try:
             result = self.enrich_query(
-                original_query=query,
-                company_context=company_context
+                original_query=query, company_context=company_context
             )
 
-            if hasattr(result, 'enriched_query'):
+            if hasattr(result, "enriched_query"):
                 return result.enriched_query
 
             return query
@@ -93,16 +107,24 @@ class FinancialMetricsHyDE(dspy.Signature):
     """Generate hypothetical financial metrics and analysis for company research."""
 
     company_query = dspy.InputField(desc="Company financial analysis query")
-    metrics_focus = dspy.InputField(desc="Focus area: profitability, liquidity, leverage, valuation, or growth")
-    hypothetical_metrics = dspy.OutputField(desc="Comprehensive hypothetical financial metrics document including ratios, trends, peer comparisons, and industry benchmarks")
+    metrics_focus = dspy.InputField(
+        desc="Focus area: profitability, liquidity, leverage, valuation, or growth"
+    )
+    hypothetical_metrics = dspy.OutputField(
+        desc="Comprehensive hypothetical financial metrics document including ratios, trends, peer comparisons, and industry benchmarks"
+    )
 
 
 class SectorAnalysisHyDE(dspy.Signature):
     """Generate hypothetical sector analysis documents for market intelligence."""
 
     sector_query = dspy.InputField(desc="Industry sector analysis query")
-    analysis_scope = dspy.InputField(desc="Analysis scope: market_trends, ma_activity, valuation_multiples, or regulatory_environment")
-    hypothetical_sector_analysis = dspy.OutputField(desc="Detailed hypothetical sector analysis covering market dynamics, competitive landscape, M&A trends, valuation metrics, and growth outlook")
+    analysis_scope = dspy.InputField(
+        desc="Analysis scope: market_trends, ma_activity, valuation_multiples, or regulatory_environment"
+    )
+    hypothetical_sector_analysis = dspy.OutputField(
+        desc="Detailed hypothetical sector analysis covering market dynamics, competitive landscape, M&A trends, valuation metrics, and growth outlook"
+    )
 
 
 class ComprehensiveFinancialHyDEModule(dspy.Module):
@@ -121,19 +143,19 @@ class ComprehensiveFinancialHyDEModule(dspy.Module):
             if document_type == "financial_metrics":
                 result = self.financial_metrics(
                     company_query=query,
-                    metrics_focus=kwargs.get("metrics_focus", "profitability")
+                    metrics_focus=kwargs.get("metrics_focus", "profitability"),
                 )
-                
-                if hasattr(result, 'hypothetical_metrics'):
+
+                if hasattr(result, "hypothetical_metrics"):
                     return result.hypothetical_metrics
 
             elif document_type == "sector_analysis":
                 result = self.sector_analysis(
                     sector_query=query,
-                    analysis_scope=kwargs.get("analysis_scope", "market_trends")
+                    analysis_scope=kwargs.get("analysis_scope", "market_trends"),
                 )
-                
-                if hasattr(result, 'hypothetical_sector_analysis'):
+
+                if hasattr(result, "hypothetical_sector_analysis"):
                     return result.hypothetical_sector_analysis
 
             # Default to investment banking analysis
@@ -141,7 +163,7 @@ class ComprehensiveFinancialHyDEModule(dspy.Module):
                 query=query,
                 analysis_type=kwargs.get("analysis_type", "financial_analysis"),
                 target_company=kwargs.get("target_company", ""),
-                analysis_focus=kwargs.get("analysis_focus", "overview")
+                analysis_focus=kwargs.get("analysis_focus", "overview"),
             )
 
         except Exception as e:
@@ -160,12 +182,9 @@ class FinancialQueryEnrichmentModule(dspy.Module):
         """Enrich investment banking queries with financial context."""
 
         try:
-            result = self.enrich(
-                original_query=query,
-                company_context=company_context
-            )
+            result = self.enrich(original_query=query, company_context=company_context)
 
-            if hasattr(result, 'enriched_query'):
+            if hasattr(result, "enriched_query"):
                 return result.enriched_query
 
             return query

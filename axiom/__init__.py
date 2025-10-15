@@ -16,5 +16,5 @@ __all__ = [
     "settings",
     "ResearchBrief",
     "Evidence",
-    "Citation"
+    "Citation",
 ]

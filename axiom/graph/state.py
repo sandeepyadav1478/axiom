@@ -3,8 +3,12 @@
 from typing import List, Optional, Annotated, TypedDict
 from langgraph.graph import add_messages
 from axiom.config.schemas import (
-    TaskPlan, SearchQuery, SearchResult, CrawlResult, 
-    Evidence, ResearchBrief
+    TaskPlan,
+    SearchQuery,
+    SearchResult,
+    CrawlResult,
+    Evidence,
+    ResearchBrief,
 )
 
 
@@ -19,7 +23,7 @@ class AxiomState(TypedDict):
     task_plans: List[TaskPlan]
     enriched_queries: List[SearchQuery]
 
-    # Execution phase  
+    # Execution phase
     search_results: List[SearchResult]
     crawl_results: List[CrawlResult]
 
@@ -46,5 +50,5 @@ def create_initial_state(query: str, trace_id: Optional[str] = None) -> AxiomSta
         messages=[],
         step_count=0,
         error_messages=[],
-        trace_id=trace_id
+        trace_id=trace_id,
     )

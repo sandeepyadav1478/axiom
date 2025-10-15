@@ -40,9 +40,15 @@ async def task_runner_node(state: AxiomState) -> Dict[str, Any]:
                 # Add investment banking specific search parameters
                 search_task = tavily.search(
                     query.query,
-                    include_domains=['sec.gov', 'bloomberg.com', 'reuters.com', 'wsj.com', 'ft.com'],
+                    include_domains=[
+                        "sec.gov",
+                        "bloomberg.com",
+                        "reuters.com",
+                        "wsj.com",
+                        "ft.com",
+                    ],
                     max_results=8,
-                    include_raw_content=True
+                    include_raw_content=True,
                 )
                 search_tasks.append((search_task, task_plan.task_id, query.query))
 
@@ -61,7 +67,7 @@ async def task_runner_node(state: AxiomState) -> Dict[str, Any]:
 
         search_responses = await asyncio.gather(
             *[bounded_financial_search(task_info) for task_info in search_tasks],
-            return_exceptions=True
+            return_exceptions=True,
         )
 
         # Process financial search results
@@ -69,19 +75,19 @@ async def task_runner_node(state: AxiomState) -> Dict[str, Any]:
         for response_data in search_responses:
             if isinstance(response_data, Exception):
                 continue
-            
+
             response, task_id, original_query = response_data
-            if response and hasattr(response, 'results'):
+            if response and hasattr(response, "results"):
                 for result in response.results:
                     search_result = SearchResult(
-                        title=result.get('title', ''),
-                        url=result.get('url', ''),
-                        snippet=result.get('content', ''),
-                        score=result.get('score', 0.0),
-                        timestamp=result.get('published_at')
+                        title=result.get("title", ""),
+                        url=result.get("url", ""),
+                        snippet=result.get("content", ""),
+                        score=result.get("score", 0.0),
+                        timestamp=result.get("published_at"),
                     )
                     search_results.append(search_result)
-                    
+
                     # Group results by task for analysis
                     if task_id not in task_specific_results:
                         task_specific_results[task_id] = []
@@ -89,32 +95,34 @@ async def task_runner_node(state: AxiomState) -> Dict[str, Any]:
 
         # Extract investment banking evidence using AI analysis
         evidence = await extract_financial_evidence(
-            provider,
-            state['query'],
-            task_specific_results,
-            state["task_plans"]
+            provider, state["query"], task_specific_results, state["task_plans"]
         )
 
         # Optional: Escalate to full content crawling for critical financial documents
         critical_urls = identify_critical_financial_sources(search_results)
         if critical_urls:
-            crawl_results = await crawl_financial_documents(firecrawl, critical_urls[:3])
+            crawl_results = await crawl_financial_documents(
+                firecrawl, critical_urls[:3]
+            )
 
         return {
             "search_results": state["search_results"] + search_results,
             "crawl_results": state["crawl_results"] + crawl_results,
             "evidence": state["evidence"] + evidence,
             "step_count": state["step_count"] + 1,
-            "messages": state["messages"] + [HumanMessage(
-                content=f"Investment banking task execution complete: {len(search_results)} search results, {len(evidence)} evidence pieces, {len(crawl_results)} documents crawled"
-            )]
+            "messages": state["messages"]
+            + [
+                HumanMessage(
+                    content=f"Investment banking task execution complete: {len(search_results)} search results, {len(evidence)} evidence pieces, {len(crawl_results)} documents crawled"
+                )
+            ],
         }
 
     except Exception as e:
         error_msg = f"Investment banking task runner error: {str(e)}"
         return {
             "error_messages": state["error_messages"] + [error_msg],
-            "step_count": state["step_count"] + 1
+            "step_count": state["step_count"] + 1,
         }
 
 
@@ -122,26 +130,28 @@ async def extract_financial_evidence(
     provider,
     original_query: str,
     task_results: Dict[str, List[SearchResult]],
-    task_plans: List
+    task_plans: List,
 ) -> List[Evidence]:
     """Extract structured financial evidence using investment banking AI analysis."""
-    
+
     evidence = []
-    
+
     for task_id, results in task_results.items():
         if not results:
             continue
-            
+
         # Find corresponding task plan
         task_plan = next((tp for tp in task_plans if tp.task_id == task_id), None)
         if not task_plan:
             continue
 
         # Create investment banking evidence extraction prompt
-        results_summary = "\n".join([
-            f"• {result.title}\n  Source: {result.url}\n  Content: {result.snippet[:300]}...\n"
-            for result in results[:8]
-        ])
+        results_summary = "\n".join(
+            [
+                f"• {result.title}\n  Source: {result.url}\n  Content: {result.snippet[:300]}...\n"
+                for result in results[:8]
+            ]
+        )
 
         evidence_messages = [
             AIMessage(
@@ -162,7 +172,7 @@ async def extract_financial_evidence(
 - Relevance to investment banking decision-making (0.0-1.0)
 - Brief explanation of why this evidence matters for M&A/valuation
 
-Focus on actionable intelligence for investment committee consumption."""
+Focus on actionable intelligence for investment committee consumption.""",
             ),
             AIMessage(
                 role="user",
@@ -172,78 +182,93 @@ Task: {task_plan.description}
 Search Results:
 {results_summary}
 
-Extract key investment banking evidence:"""
-            )
+Extract key investment banking evidence:""",
+            ),
         ]
 
         try:
             response = await provider.generate_response_async(
                 evidence_messages,
                 max_tokens=1500,
-                temperature=0.05  # Very conservative for financial evidence
+                temperature=0.05,  # Very conservative for financial evidence
             )
-            
+
             # Parse AI response and create evidence objects
             # For now, create structured evidence from top results
             for i, result in enumerate(results[:3]):
-                evidence.append(Evidence(
-                    content=f"[{task_id.replace('_', ' ').title()}] {result.snippet[:400]}",
-                    source_url=result.url,
-                    source_title=result.title,
-                    confidence=min(0.9, 0.7 + (result.score * 0.2)),
-                    relevance_score=result.score
-                ))
-                
+                evidence.append(
+                    Evidence(
+                        content=f"[{task_id.replace('_', ' ').title()}] {result.snippet[:400]}",
+                        source_url=result.url,
+                        source_title=result.title,
+                        confidence=min(0.9, 0.7 + (result.score * 0.2)),
+                        relevance_score=result.score,
+                    )
+                )
+
         except Exception as e:
             print(f"Evidence extraction failed for {task_id}: {str(e)}")
             # Fallback: create basic evidence
             for result in results[:2]:
-                evidence.append(Evidence(
-                    content=result.snippet[:300],
-                    source_url=result.url,
-                    source_title=result.title,
-                    confidence=0.7,
-                    relevance_score=result.score
-                ))
+                evidence.append(
+                    Evidence(
+                        content=result.snippet[:300],
+                        source_url=result.url,
+                        source_title=result.title,
+                        confidence=0.7,
+                        relevance_score=result.score,
+                    )
+                )
 
     return evidence
 
 
-def identify_critical_financial_sources(search_results: List[SearchResult]) -> List[str]:
+def identify_critical_financial_sources(
+    search_results: List[SearchResult],
+) -> List[str]:
     """Identify critical financial documents that should be fully crawled."""
-    critical_domains = ['sec.gov', 'investor.', 'ir.']
-    critical_keywords = ['10-k', '10-q', '8-k', 'earnings', 'investor relations', 'annual report']
-    
+    critical_domains = ["sec.gov", "investor.", "ir."]
+    critical_keywords = [
+        "10-k",
+        "10-q",
+        "8-k",
+        "earnings",
+        "investor relations",
+        "annual report",
+    ]
+
     critical_urls = []
     for result in search_results:
         url_lower = result.url.lower()
         title_lower = result.title.lower()
-        
+
         # Prioritize SEC filings and investor relations pages
         if any(domain in url_lower for domain in critical_domains):
             critical_urls.append(result.url)
         elif any(keyword in title_lower for keyword in critical_keywords):
             critical_urls.append(result.url)
-    
+
     return critical_urls[:5]  # Limit to top 5 critical sources
 
 
-async def crawl_financial_documents(firecrawl: FirecrawlClient, urls: List[str]) -> List:
+async def crawl_financial_documents(
+    firecrawl: FirecrawlClient, urls: List[str]
+) -> List:
     """Crawl critical financial documents for detailed analysis."""
     crawl_results = []
-    
+
     for url in urls:
         try:
             # Crawl with financial document optimization
             result = await firecrawl.crawl(
                 url,
-                include_selectors=['table', '.financial-data', '.metrics'],
-                exclude_selectors=['nav', 'footer', '.ads'],
-                max_depth=1
+                include_selectors=["table", ".financial-data", ".metrics"],
+                exclude_selectors=["nav", "footer", ".ads"],
+                max_depth=1,
             )
             if result:
                 crawl_results.append(result)
         except Exception as e:
             print(f"Failed to crawl {url}: {str(e)}")
-    
+
     return crawl_results

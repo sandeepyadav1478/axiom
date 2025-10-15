@@ -1,12 +1,11 @@
 """AI Provider Factory for Investment Banking Analytics."""
 
-from typing import Dict, List, Optional, Type, Union
+from axiom.config.ai_layer_config import AnalysisLayer, ai_layer_mapping
 from axiom.config.settings import settings
-from axiom.config.ai_layer_config import AnalysisLayer, AIProviderType, ai_layer_mapping
 
-from .base_ai_provider import BaseAIProvider, AIProviderError
-from .openai_provider import OpenAIProvider
+from .base_ai_provider import AIProviderError, BaseAIProvider
 from .claude_provider import ClaudeProvider
+from .openai_provider import OpenAIProvider
 from .sglang_provider import SGLangProvider
 
 
@@ -14,14 +13,14 @@ class AIProviderFactory:
     """Factory for creating and managing AI provider instances."""
 
     # Registry of available provider classes
-    PROVIDER_CLASSES: Dict[str, Type[BaseAIProvider]] = {
+    PROVIDER_CLASSES: dict[str, type[BaseAIProvider]] = {
         "openai": OpenAIProvider,
         "claude": ClaudeProvider,
         "sglang": SGLangProvider,
     }
 
     def __init__(self):
-        self._providers: Dict[str, BaseAIProvider] = {}
+        self._providers: dict[str, BaseAIProvider] = {}
         self._initialize_providers()
 
     def _initialize_providers(self):
@@ -47,15 +46,15 @@ class AIProviderFactory:
             except Exception as e:
                 print(f"❌ Failed to initialize {provider_name}: {str(e)}")
 
-    def get_provider(self, provider_name: str) -> Optional[BaseAIProvider]:
+    def get_provider(self, provider_name: str) -> BaseAIProvider | None:
         """Get a specific AI provider by name."""
         return self._providers.get(provider_name.lower())
 
-    def get_available_providers(self) -> List[str]:
+    def get_available_providers(self) -> list[str]:
         """Get list of available AI providers."""
         return list(self._providers.keys())
 
-    def get_provider_for_layer(self, layer: AnalysisLayer) -> Optional[BaseAIProvider]:
+    def get_provider_for_layer(self, layer: AnalysisLayer) -> BaseAIProvider | None:
         """Get the optimal AI provider for a specific analysis layer."""
         layer_config = ai_layer_mapping.get_layer_config(layer)
 
@@ -83,7 +82,7 @@ class AIProviderFactory:
             "Factory", f"No available providers for layer {layer.value}"
         )
 
-    def test_all_providers(self) -> Dict[str, bool]:
+    def test_all_providers(self) -> dict[str, bool]:
         """Test availability of all configured providers."""
         results = {}
         for name, provider in self._providers.items():
@@ -93,7 +92,7 @@ class AIProviderFactory:
                 results[name] = False
         return results
 
-    def get_provider_info(self) -> Dict[str, Dict]:
+    def get_provider_info(self) -> dict[str, dict]:
         """Get information about all providers."""
         return {
             name: provider.get_provider_info()
@@ -108,7 +107,7 @@ class AIProviderFactory:
         """Remove a provider."""
         self._providers.pop(provider_name.lower(), None)
 
-    def get_consensus_providers(self, layer: AnalysisLayer) -> List[BaseAIProvider]:
+    def get_consensus_providers(self, layer: AnalysisLayer) -> list[BaseAIProvider]:
         """Get providers for consensus analysis (if enabled for layer)."""
         layer_config = ai_layer_mapping.get_layer_config(layer)
 
@@ -140,16 +139,16 @@ class AIProviderFactory:
 provider_factory = AIProviderFactory()
 
 
-def get_ai_provider(provider_name: str) -> Optional[BaseAIProvider]:
+def get_ai_provider(provider_name: str) -> BaseAIProvider | None:
     """Convenience function to get an AI provider."""
     return provider_factory.get_provider(provider_name)
 
 
-def get_layer_provider(layer: AnalysisLayer) -> Optional[BaseAIProvider]:
+def get_layer_provider(layer: AnalysisLayer) -> BaseAIProvider | None:
     """Convenience function to get optimal provider for analysis layer."""
     return provider_factory.get_provider_for_layer(layer)
 
 
-def test_providers() -> Dict[str, bool]:
+def test_providers() -> dict[str, bool]:
     """Convenience function to test all providers."""
     return provider_factory.test_all_providers()

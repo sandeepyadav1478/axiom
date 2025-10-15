@@ -1,12 +1,12 @@
 """LangSmith tracing integration."""
 
 import uuid
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, Optional
+
 from langsmith import Client, traceable
 
 from axiom.config.settings import settings
-
 
 # Initialize LangSmith client if API key is provided
 if settings.langchain_api_key:
@@ -69,7 +69,7 @@ def create_trace_id() -> str:
     return str(uuid.uuid4())
 
 
-def get_trace_url(trace_id: str) -> Optional[str]:
+def get_trace_url(trace_id: str) -> str | None:
     """Get the LangSmith trace URL for a given trace ID."""
     if not langsmith_client:
         return None

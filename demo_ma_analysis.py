@@ -4,7 +4,6 @@ Shows M&A analysis workflow without requiring external API dependencies
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add axiom to Python path
@@ -19,9 +18,8 @@ def demo_configuration_system():
     try:
         # Test basic imports that don't require external dependencies
         from axiom.config.ai_layer_config import (
-            ai_layer_mapping,
             AnalysisLayer,
-            AIProviderType,
+            ai_layer_mapping,
         )
 
         # Show M&A configuration
@@ -56,14 +54,14 @@ def demo_schemas():
     print("-" * 40)
 
     try:
+
         from axiom.config.schemas import (
+            Citation,
+            Evidence,
+            ResearchBrief,
             SearchQuery,
             TaskPlan,
-            Evidence,
-            Citation,
-            ResearchBrief,
         )
-        from datetime import datetime
 
         # Create sample M&A search query
         ma_query = SearchQuery(
@@ -128,13 +126,8 @@ def demo_ai_provider_abstraction():
     print("-" * 40)
 
     try:
-        from axiom.ai_client_integrations.base_ai_provider import (
-            BaseAIProvider,
-            AIMessage,
-            AIResponse,
-        )
-        from axiom.ai_client_integrations.openai_provider import OpenAIProvider
         from axiom.ai_client_integrations.claude_provider import ClaudeProvider
+        from axiom.ai_client_integrations.openai_provider import OpenAIProvider
 
         # Create provider instances (without actual API calls)
         openai_provider = OpenAIProvider(
@@ -157,7 +150,7 @@ def demo_ai_provider_abstraction():
 
         print(f"✅ M&A Due Diligence Prompt: {len(claude_messages)} messages")
         print(f"   System prompt length: {len(claude_messages[0].content)} chars")
-        print(f"   User prompt includes: Tesla Inc ✓, due diligence ✓")
+        print("   User prompt includes: Tesla Inc ✓, due diligence ✓")
 
         return True
 
@@ -172,7 +165,7 @@ def demo_validation_system():
     print("-" * 40)
 
     try:
-        from axiom.utils.validation import FinancialValidator, ComplianceValidator
+        from axiom.utils.validation import ComplianceValidator, FinancialValidator
 
         # Test financial metrics validation
         valid_metrics = {
@@ -236,9 +229,9 @@ def demo_ma_query_analysis():
     try:
         # Import planner utilities
         from axiom.graph.nodes.planner import (
+            create_ib_task_plans,
             detect_analysis_type,
             extract_company_info,
-            create_ib_task_plans,
         )
 
         # Test M&A query
@@ -265,7 +258,7 @@ def demo_ma_query_analysis():
         # Show sample queries
         if task_plans:
             sample_queries = task_plans[0].queries
-            print(f"✅ Sample Financial Queries:")
+            print("✅ Sample Financial Queries:")
             for query in sample_queries[:2]:
                 print(f"   • {query.query}")
 

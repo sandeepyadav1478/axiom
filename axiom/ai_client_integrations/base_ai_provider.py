@@ -4,7 +4,8 @@ Multi-provider AI integration supporting OpenAI, Claude, SGLang, and others
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -21,8 +22,8 @@ class AIResponse(BaseModel):
     content: str
     provider: str
     model: str
-    usage_tokens: Optional[int] = None
-    confidence: Optional[float] = None
+    usage_tokens: int | None = None
+    confidence: float | None = None
 
 
 class BaseAIProvider(ABC):
@@ -41,7 +42,7 @@ class BaseAIProvider(ABC):
     def __init__(
         self,
         api_key: str,
-        base_url: Optional[str] = None,
+        base_url: str | None = None,
         model_name: str = "default",
         **kwargs,
     ):
@@ -54,7 +55,7 @@ class BaseAIProvider(ABC):
     @abstractmethod
     def generate_response(
         self,
-        messages: List[AIMessage],
+        messages: list[AIMessage],
         max_tokens: int = 2000,
         temperature: float = 0.1,  # Conservative for financial analysis
         **kwargs,
@@ -78,8 +79,8 @@ class BaseAIProvider(ABC):
         pass
 
     def financial_analysis_prompt(
-        self, analysis_type: str, company_info: Dict[str, Any], context: str = ""
-    ) -> List[AIMessage]:
+        self, analysis_type: str, company_info: dict[str, Any], context: str = ""
+    ) -> list[AIMessage]:
         """
         Create optimized prompts for investment banking analysis
 
@@ -95,7 +96,7 @@ class BaseAIProvider(ABC):
         # Investment banking system prompt
         system_prompt = """You are a senior investment banking analyst with expertise in:
 - M&A due diligence and valuation
-- Financial statement analysis  
+- Financial statement analysis
 - Market intelligence and competitive analysis
 - Risk assessment and regulatory compliance
 
@@ -129,7 +130,7 @@ Be precise, professional, and conservative in assessments."""
             AIMessage(role="user", content=user_prompt),
         ]
 
-    def get_provider_info(self) -> Dict[str, Any]:
+    def get_provider_info(self) -> dict[str, Any]:
         """Get provider information and configuration"""
         return {
             "name": self.provider_name,

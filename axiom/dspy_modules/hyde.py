@@ -1,8 +1,6 @@
 """Investment Banking DSPy HyDE Module - Hypothetical Financial Document Generation."""
 
 import dspy
-from typing import List, Dict, Any
-from axiom.config.settings import settings
 
 
 class InvestmentBankingHyDE(dspy.Signature):

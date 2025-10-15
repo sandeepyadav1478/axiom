@@ -1,14 +1,16 @@
 """LangGraph state management for Axiom Investment Banking Analytics Platform."""
 
-from typing import List, Optional, Annotated, TypedDict
+from typing import Annotated, TypedDict
+
 from langgraph.graph import add_messages
+
 from axiom.config.schemas import (
-    TaskPlan,
-    SearchQuery,
-    SearchResult,
     CrawlResult,
     Evidence,
     ResearchBrief,
+    SearchQuery,
+    SearchResult,
+    TaskPlan,
 )
 
 
@@ -17,27 +19,27 @@ class AxiomState(TypedDict):
 
     # Core input/output
     query: str
-    brief: Optional[ResearchBrief]
+    brief: ResearchBrief | None
 
     # Planning phase
-    task_plans: List[TaskPlan]
-    enriched_queries: List[SearchQuery]
+    task_plans: list[TaskPlan]
+    enriched_queries: list[SearchQuery]
 
     # Execution phase
-    search_results: List[SearchResult]
-    crawl_results: List[CrawlResult]
+    search_results: list[SearchResult]
+    crawl_results: list[CrawlResult]
 
     # Analysis phase
-    evidence: List[Evidence]
+    evidence: list[Evidence]
 
     # Messages and tracing
-    messages: Annotated[List, add_messages]
+    messages: Annotated[list, add_messages]
     step_count: int
-    error_messages: List[str]
-    trace_id: Optional[str]
+    error_messages: list[str]
+    trace_id: str | None
 
 
-def create_initial_state(query: str, trace_id: Optional[str] = None) -> AxiomState:
+def create_initial_state(query: str, trace_id: str | None = None) -> AxiomState:
     """Create initial state for a research query."""
     return AxiomState(
         query=query,

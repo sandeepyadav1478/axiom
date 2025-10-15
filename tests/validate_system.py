@@ -1,9 +1,8 @@
 """Simple system validation script for Axiom Investment Banking Analytics."""
 
-import sys
 import os
+import sys
 from pathlib import Path
-import importlib.util
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -15,9 +14,9 @@ def test_import(module_name: str, description: str = "") -> bool:
         if "." in module_name:
             # Handle submodules
             parts = module_name.split(".")
-            module = __import__(module_name, fromlist=[parts[-1]])
+            __import__(module_name, fromlist=[parts[-1]])
         else:
-            module = __import__(module_name)
+            __import__(module_name)
         print(f"✅ {description or module_name}: Import successful")
         return True
     except Exception as e:
@@ -41,7 +40,7 @@ def test_class_instantiation(
     """Test if a class can be instantiated."""
     try:
         module = __import__(module_name, fromlist=[class_name])
-        cls = getattr(module, class_name)
+        getattr(module, class_name)
         # Don't actually instantiate, just check if class exists
         print(f"✅ {description or f'{module_name}.{class_name}'}: Class available")
         return True
@@ -137,8 +136,8 @@ def validate_configuration():
     print("\n⚙️  Validating Configuration...")
 
     try:
+        from axiom.config.ai_layer_config import AnalysisLayer, ai_layer_mapping
         from axiom.config.settings import settings
-        from axiom.config.ai_layer_config import ai_layer_mapping, AnalysisLayer
 
         # Test basic config access
         providers = settings.get_configured_providers()
@@ -203,20 +202,19 @@ def validate_graph_components():
 
     try:
         # Test state management
-        from axiom.graph.state import AxiomState, create_initial_state
+        from axiom.graph.state import create_initial_state
 
         test_state = create_initial_state("Test query", "test-trace")
         print(f"✅ State creation: {type(test_state)}")
 
         # Test node imports
-        from axiom.graph.nodes import planner, task_runner, observer
 
         print("✅ Graph nodes: planner, task_runner, observer imported")
 
         # Test graph creation
         from axiom.graph.graph import create_research_graph
 
-        graph = create_research_graph()
+        create_research_graph()
         print("✅ Research graph created successfully")
 
         return True

@@ -1,16 +1,14 @@
 """Main entry point for Axiom Investment Banking Analytics Platform."""
 
 import asyncio
-import json
 import sys
-from typing import Optional
 
+from axiom.config.settings import settings
 from axiom.graph.graph import run_research
 from axiom.tracing.langsmith_tracer import create_trace_id, get_trace_url
-from axiom.config.settings import settings
 
 
-async def research_query(query: str, trace_id: Optional[str] = None) -> dict:
+async def research_query(query: str, trace_id: str | None = None) -> dict:
     """Run a research query and return the results."""
 
     if not trace_id:

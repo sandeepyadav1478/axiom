@@ -1,16 +1,15 @@
 """Investment Banking Research Planner - M&A and Financial Analysis Task Decomposition."""
 
-import asyncio
 import re
-from typing import Dict, Any, List
+from typing import Any
+
 from langchain_core.messages import HumanMessage
 
-from axiom.config.settings import settings
-from axiom.config.schemas import TaskPlan, SearchQuery
+from axiom.ai_client_integrations import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
+from axiom.config.schemas import SearchQuery, TaskPlan
 from axiom.graph.state import AxiomState
 from axiom.tracing.langsmith_tracer import trace_node
-from axiom.ai_client_integrations import get_layer_provider, AIMessage
 
 
 def detect_analysis_type(query: str) -> str:
@@ -39,7 +38,7 @@ def detect_analysis_type(query: str) -> str:
         return "ma_due_diligence"  # Default to M&A focus
 
 
-def extract_company_info(query: str) -> Dict[str, str]:
+def extract_company_info(query: str) -> dict[str, str]:
     """Extract company information from the query."""
     # Simple regex patterns - could be enhanced
     company_patterns = [
@@ -57,7 +56,7 @@ def extract_company_info(query: str) -> Dict[str, str]:
 
 
 @trace_node("investment_banking_planner")
-async def planner_node(state: AxiomState) -> Dict[str, Any]:
+async def planner_node(state: AxiomState) -> dict[str, Any]:
     """Plan investment banking research by decomposing query into specialized tasks."""
 
     try:
@@ -138,8 +137,8 @@ Create a comprehensive research plan with parallel tasks:""",
 
 
 def create_ib_task_plans(
-    query: str, analysis_type: str, company_info: Dict, plan_text: str
-) -> List[TaskPlan]:
+    query: str, analysis_type: str, company_info: dict, plan_text: str
+) -> list[TaskPlan]:
     """Create structured investment banking task plans."""
 
     company_name = company_info.get("name", "target company")

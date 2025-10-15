@@ -1,22 +1,22 @@
 """Investment Banking Task Runner - Parallel Execution of Financial Analysis Tasks."""
 
 import asyncio
-import json
-from typing import Dict, Any, List
+from typing import Any
+
 from langchain_core.messages import HumanMessage
 
-from axiom.config.settings import settings
-from axiom.config.schemas import SearchResult, Evidence
+from axiom.ai_client_integrations import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
+from axiom.config.schemas import Evidence, SearchResult
+from axiom.config.settings import settings
 from axiom.graph.state import AxiomState
-from axiom.tools.tavily_client import TavilyClient
 from axiom.tools.firecrawl_client import FirecrawlClient
+from axiom.tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
-from axiom.ai_client_integrations import get_layer_provider, AIMessage
 
 
 @trace_node("investment_banking_task_runner")
-async def task_runner_node(state: AxiomState) -> Dict[str, Any]:
+async def task_runner_node(state: AxiomState) -> dict[str, Any]:
     """Execute investment banking research tasks in parallel with financial data focus."""
 
     try:
@@ -129,9 +129,9 @@ async def task_runner_node(state: AxiomState) -> Dict[str, Any]:
 async def extract_financial_evidence(
     provider,
     original_query: str,
-    task_results: Dict[str, List[SearchResult]],
-    task_plans: List,
-) -> List[Evidence]:
+    task_results: dict[str, list[SearchResult]],
+    task_plans: list,
+) -> list[Evidence]:
     """Extract structured financial evidence using investment banking AI analysis."""
 
     evidence = []
@@ -187,7 +187,7 @@ Extract key investment banking evidence:""",
         ]
 
         try:
-            response = await provider.generate_response_async(
+            await provider.generate_response_async(
                 evidence_messages,
                 max_tokens=1500,
                 temperature=0.05,  # Very conservative for financial evidence
@@ -224,8 +224,8 @@ Extract key investment banking evidence:""",
 
 
 def identify_critical_financial_sources(
-    search_results: List[SearchResult],
-) -> List[str]:
+    search_results: list[SearchResult],
+) -> list[str]:
     """Identify critical financial documents that should be fully crawled."""
     critical_domains = ["sec.gov", "investor.", "ir."]
     critical_keywords = [
@@ -252,8 +252,8 @@ def identify_critical_financial_sources(
 
 
 async def crawl_financial_documents(
-    firecrawl: FirecrawlClient, urls: List[str]
-) -> List:
+    firecrawl: FirecrawlClient, urls: list[str]
+) -> list:
     """Crawl critical financial documents for detailed analysis."""
     crawl_results = []
 

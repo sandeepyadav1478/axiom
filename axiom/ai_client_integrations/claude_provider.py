@@ -1,11 +1,10 @@
 """Claude provider implementation for Investment Banking Analytics."""
 
-import asyncio
-from typing import List, Optional, Dict, Any
-import anthropic
+from typing import Any
+
 from anthropic import Anthropic, AsyncAnthropic
 
-from .base_ai_provider import BaseAIProvider, AIMessage, AIResponse, AIProviderError
+from .base_ai_provider import AIMessage, AIProviderError, AIResponse, BaseAIProvider
 
 
 class ClaudeProvider(BaseAIProvider):
@@ -14,7 +13,7 @@ class ClaudeProvider(BaseAIProvider):
     def __init__(
         self,
         api_key: str,
-        base_url: Optional[str] = None,
+        base_url: str | None = None,
         model_name: str = "claude-3-sonnet-20240229",
         **kwargs,
     ):
@@ -27,7 +26,7 @@ class ClaudeProvider(BaseAIProvider):
 
     def generate_response(
         self,
-        messages: List[AIMessage],
+        messages: list[AIMessage],
         max_tokens: int = 2000,
         temperature: float = 0.1,
         **kwargs,
@@ -77,7 +76,7 @@ class ClaudeProvider(BaseAIProvider):
 
     async def generate_response_async(
         self,
-        messages: List[AIMessage],
+        messages: list[AIMessage],
         max_tokens: int = 2000,
         temperature: float = 0.1,
         **kwargs,
@@ -131,7 +130,7 @@ class ClaudeProvider(BaseAIProvider):
         """Check if Claude provider is available."""
         try:
             # Test connection with a simple request
-            response = self.client.messages.create(
+            self.client.messages.create(
                 model=self.model_name,
                 max_tokens=1,
                 messages=[{"role": "user", "content": "test"}],
@@ -140,7 +139,7 @@ class ClaudeProvider(BaseAIProvider):
         except Exception:
             return False
 
-    def get_investment_banking_config(self) -> Dict[str, Any]:
+    def get_investment_banking_config(self) -> dict[str, Any]:
         """Get investment banking optimized configuration for Claude."""
         return {
             "temperature": 0.03,  # Extremely conservative for M&A analysis
@@ -149,8 +148,8 @@ class ClaudeProvider(BaseAIProvider):
         }
 
     def financial_analysis_prompt(
-        self, analysis_type: str, company_info: Dict[str, Any], context: str = ""
-    ) -> List[AIMessage]:
+        self, analysis_type: str, company_info: dict[str, Any], context: str = ""
+    ) -> list[AIMessage]:
         """
         Override base class with Claude-optimized prompts for investment banking.
         Claude excels at complex reasoning and structured analysis.

@@ -1,21 +1,20 @@
 """Investment Banking Observer - Synthesis and Validation of Financial Analysis."""
 
-import asyncio
-import json
-from typing import Dict, Any, List
 from datetime import datetime
+from typing import Any
+
 from langchain_core.messages import HumanMessage
 
-from axiom.config.settings import settings
-from axiom.config.schemas import ResearchBrief, Citation, Evidence
+from axiom.ai_client_integrations import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
+from axiom.config.schemas import Citation, Evidence, ResearchBrief
+from axiom.config.settings import settings
 from axiom.graph.state import AxiomState
 from axiom.tracing.langsmith_tracer import trace_node
-from axiom.ai_client_integrations import get_layer_provider, AIMessage
 
 
 @trace_node("investment_banking_observer")
-async def observer_node(state: AxiomState) -> Dict[str, Any]:
+async def observer_node(state: AxiomState) -> dict[str, Any]:
     """Synthesize investment banking evidence into comprehensive research brief with validation."""
 
     try:
@@ -179,7 +178,7 @@ Create comprehensive investment banking research brief:""",
     return brief
 
 
-def validate_investment_banking_evidence(state: AxiomState) -> tuple[bool, List[str]]:
+def validate_investment_banking_evidence(state: AxiomState) -> tuple[bool, list[str]]:
     """Validate evidence meets investment banking standards."""
     validation_errors = []
 
@@ -222,7 +221,7 @@ def validate_investment_banking_evidence(state: AxiomState) -> tuple[bool, List[
     return len(validation_errors) == 0, validation_errors
 
 
-def validate_investment_brief(brief: ResearchBrief) -> tuple[bool, List[str]]:
+def validate_investment_brief(brief: ResearchBrief) -> tuple[bool, list[str]]:
     """Validate final investment banking brief meets standards."""
     validation_errors = []
 
@@ -252,7 +251,7 @@ def validate_investment_brief(brief: ResearchBrief) -> tuple[bool, List[str]]:
     return len(validation_errors) == 0, validation_errors
 
 
-def organize_evidence_by_task(evidence: List[Evidence]) -> Dict[str, List[Evidence]]:
+def organize_evidence_by_task(evidence: list[Evidence]) -> dict[str, list[Evidence]]:
     """Organize evidence by task type for structured analysis."""
     task_evidence = {}
 
@@ -270,7 +269,7 @@ def organize_evidence_by_task(evidence: List[Evidence]) -> Dict[str, List[Eviden
     return task_evidence
 
 
-def create_evidence_summary(evidence_by_task: Dict[str, List[Evidence]]) -> str:
+def create_evidence_summary(evidence_by_task: dict[str, list[Evidence]]) -> str:
     """Create structured evidence summary for AI synthesis."""
     summary_parts = []
 
@@ -291,7 +290,7 @@ def create_task_summary(task_plans) -> str:
     return "\n".join([f"- {plan.task_id}: {plan.description}" for plan in task_plans])
 
 
-def create_citations_from_evidence(evidence: List[Evidence]) -> List[Citation]:
+def create_citations_from_evidence(evidence: list[Evidence]) -> list[Citation]:
     """Create proper citations from evidence."""
     citations = []
     seen_urls = set()
@@ -311,7 +310,7 @@ def create_citations_from_evidence(evidence: List[Evidence]) -> List[Citation]:
     return citations
 
 
-def extract_key_findings_from_synthesis(synthesis_content: str) -> List[str]:
+def extract_key_findings_from_synthesis(synthesis_content: str) -> list[str]:
     """Extract structured key findings from AI synthesis."""
     # Simplified extraction - would use more sophisticated parsing
     findings = []
@@ -339,7 +338,7 @@ def extract_key_findings_from_synthesis(synthesis_content: str) -> List[str]:
     return findings[:8]  # Limit to top findings
 
 
-def calculate_investment_confidence(evidence: List[Evidence], task_plans) -> float:
+def calculate_investment_confidence(evidence: list[Evidence], task_plans) -> float:
     """Calculate conservative confidence score for investment decisions."""
     if not evidence:
         return 0.0
@@ -367,7 +366,7 @@ def calculate_investment_confidence(evidence: List[Evidence], task_plans) -> flo
     return round(min(0.95, confidence), 3)  # Cap at 95% for risk management
 
 
-def identify_investment_gaps(evidence: List[Evidence], task_plans) -> List[str]:
+def identify_investment_gaps(evidence: list[Evidence], task_plans) -> list[str]:
     """Identify remaining gaps in investment analysis."""
     gaps = []
 
@@ -397,7 +396,7 @@ def identify_investment_gaps(evidence: List[Evidence], task_plans) -> List[str]:
     return gaps[:5]  # Limit gaps list
 
 
-def extract_questions_answered(query: str, findings: List[str]) -> List[str]:
+def extract_questions_answered(query: str, findings: list[str]) -> list[str]:
     """Extract questions answered based on query and findings."""
     questions = [f"What are the investment implications of {query}?"]
 

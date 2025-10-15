@@ -1,20 +1,19 @@
 """Integration tests for Axiom Investment Banking Analytics workflow."""
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock
-from axiom.config.schemas import (
-    TaskPlan,
-    SearchQuery,
-    SearchResult,
-    Evidence,
-    Citation,
-    ResearchBrief,
-)
-from axiom.graph.state import AxiomState, create_initial_state
-from axiom.graph.nodes.planner import planner_node
+
+from axiom.ai_client_integrations import AIResponse
 from axiom.config.ai_layer_config import AnalysisLayer
-from axiom.ai_client_integrations import AIMessage, AIResponse
+from axiom.config.schemas import (
+    Citation,
+    Evidence,
+    ResearchBrief,
+    SearchQuery,
+)
+from axiom.graph.nodes.planner import planner_node
+from axiom.graph.state import create_initial_state
 
 
 class TestWorkflowIntegration:
@@ -234,13 +233,13 @@ class TestToolIntegration:
             "investment_banking_search",
             {"query": "Test query", "search_type": "company"},
         )
-        assert validation_result["valid"] == True
+        assert validation_result["valid"]
 
         # Test invalid parameters
         validation_result = mcp_adapter.validate_parameters(
             "investment_banking_search", {}  # Missing required query
         )
-        assert validation_result["valid"] == False
+        assert not validation_result["valid"]
         assert "Missing required parameters" in validation_result["error"]
 
 
@@ -250,21 +249,20 @@ class TestAILayerConfiguration:
     def test_analysis_layer_mapping(self):
         """Test AI layer configuration mapping."""
         from axiom.config.ai_layer_config import (
-            ai_layer_mapping,
-            AnalysisLayer,
             AIProviderType,
+            ai_layer_mapping,
         )
 
         # Test M&A due diligence configuration
         ma_dd_config = ai_layer_mapping.get_layer_config(AnalysisLayer.MA_DUE_DILIGENCE)
         assert ma_dd_config.primary_provider == AIProviderType.CLAUDE
-        assert ma_dd_config.use_consensus == True
+        assert ma_dd_config.use_consensus
         assert ma_dd_config.temperature == 0.03  # Very conservative
 
         # Test M&A valuation configuration
         ma_val_config = ai_layer_mapping.get_layer_config(AnalysisLayer.MA_VALUATION)
         assert ma_val_config.primary_provider == AIProviderType.OPENAI
-        assert ma_val_config.use_consensus == True
+        assert ma_val_config.use_consensus
 
     def test_required_providers(self):
         """Test required providers detection."""
@@ -281,9 +279,8 @@ class TestAILayerConfiguration:
     def test_layer_provider_override(self):
         """Test overriding layer provider configuration."""
         from axiom.config.ai_layer_config import (
-            ai_layer_mapping,
-            AnalysisLayer,
             AIProviderType,
+            ai_layer_mapping,
         )
 
         # Override planner to use OpenAI instead of Claude

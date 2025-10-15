@@ -1,15 +1,14 @@
 """Investment Banking Data Validation and Quality Assurance."""
 
 import re
-from typing import Any, Dict, List, Optional, Union, Tuple
-from datetime import datetime, date
-from decimal import Decimal, InvalidOperation
+from datetime import datetime
+from typing import Any
 
 from .error_handling import (
-    FinancialDataError,
-    ComplianceError,
     AxiomError,
+    ComplianceError,
     ErrorSeverity,
+    FinancialDataError,
 )
 
 
@@ -37,8 +36,8 @@ class FinancialValidator:
 
     @staticmethod
     def validate_financial_metrics(
-        metrics: Dict[str, Union[float, int]], industry: Optional[str] = None
-    ) -> List[str]:
+        metrics: dict[str, float | int], industry: str | None = None
+    ) -> list[str]:
         """Validate financial metrics are within reasonable bounds."""
 
         errors = []
@@ -78,7 +77,7 @@ class FinancialValidator:
         return errors
 
     @staticmethod
-    def validate_company_data(company_data: Dict[str, Any]) -> List[str]:
+    def validate_company_data(company_data: dict[str, Any]) -> list[str]:
         """Validate company data completeness and quality."""
 
         errors = []
@@ -109,7 +108,7 @@ class FinancialValidator:
         return errors
 
     @staticmethod
-    def validate_ma_transaction(transaction_data: Dict[str, Any]) -> List[str]:
+    def validate_ma_transaction(transaction_data: dict[str, Any]) -> list[str]:
         """Validate M&A transaction data."""
 
         errors = []
@@ -161,8 +160,8 @@ class ComplianceValidator:
 
     @staticmethod
     def validate_confidence_levels(
-        analysis: Dict[str, Any], analysis_type: str
-    ) -> List[str]:
+        analysis: dict[str, Any], analysis_type: str
+    ) -> list[str]:
         """Validate confidence levels meet compliance requirements."""
 
         errors = []
@@ -203,7 +202,7 @@ class ComplianceValidator:
         return errors
 
     @staticmethod
-    def validate_regulatory_compliance(analysis: Dict[str, Any]) -> List[str]:
+    def validate_regulatory_compliance(analysis: dict[str, Any]) -> list[str]:
         """Validate regulatory compliance requirements."""
 
         errors = []
@@ -230,8 +229,8 @@ class DataQualityValidator:
 
     @staticmethod
     def validate_search_results(
-        results: List[Dict[str, Any]],
-    ) -> Tuple[List[Dict[str, Any]], List[str]]:
+        results: list[dict[str, Any]],
+    ) -> tuple[list[dict[str, Any]], list[str]]:
         """Validate and clean search results."""
 
         validated_results = []
@@ -268,7 +267,7 @@ class DataQualityValidator:
         return validated_results, errors
 
     @staticmethod
-    def validate_evidence_quality(evidence: List[Dict[str, Any]]) -> List[str]:
+    def validate_evidence_quality(evidence: list[dict[str, Any]]) -> list[str]:
         """Validate evidence quality and reliability."""
 
         errors = []
@@ -322,8 +321,8 @@ class DataQualityValidator:
 
 
 def validate_investment_banking_workflow(
-    workflow_data: Dict[str, Any],
-) -> Dict[str, List[str]]:
+    workflow_data: dict[str, Any],
+) -> dict[str, list[str]]:
     """Comprehensive validation for investment banking workflow data."""
 
     validation_results = {
@@ -390,7 +389,7 @@ def validate_investment_banking_workflow(
 
 
 def raise_validation_errors(
-    validation_results: Dict[str, List[str]],
+    validation_results: dict[str, list[str]],
     severity: ErrorSeverity = ErrorSeverity.HIGH,
 ):
     """Raise appropriate errors based on validation results."""

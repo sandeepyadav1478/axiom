@@ -3,8 +3,8 @@ AI Layer Configuration for Investment Banking Analytics
 Determines which AI providers to use at different analysis layers
 """
 
-from typing import Dict, List, Optional
 from enum import Enum
+
 from pydantic import BaseModel
 
 
@@ -41,7 +41,7 @@ class LayerAIConfig(BaseModel):
 
     layer: AnalysisLayer
     primary_provider: AIProviderType
-    fallback_providers: List[AIProviderType] = []
+    fallback_providers: list[AIProviderType] = []
     use_consensus: bool = False  # Whether to use multiple providers for consensus
     temperature: float = 0.1  # Conservative for financial analysis
     max_tokens: int = 2000
@@ -54,7 +54,7 @@ class AILayerMapping(BaseModel):
     """
 
     # M&A-Focused Configuration (Phase 1 Priority)
-    layer_configs: Dict[AnalysisLayer, LayerAIConfig] = {
+    layer_configs: dict[AnalysisLayer, LayerAIConfig] = {
         # Core System Layers
         AnalysisLayer.PLANNER: LayerAIConfig(
             layer=AnalysisLayer.PLANNER,
@@ -145,7 +145,7 @@ class AILayerMapping(BaseModel):
             fallback_providers=[AIProviderType.OPENAI],
         )
 
-    def get_required_providers(self) -> List[AIProviderType]:
+    def get_required_providers(self) -> list[AIProviderType]:
         """Get list of all AI providers required by current configuration"""
         providers = set()
 
@@ -159,7 +159,7 @@ class AILayerMapping(BaseModel):
         self,
         layer: AnalysisLayer,
         provider: AIProviderType,
-        fallbacks: Optional[List[AIProviderType]] = None,
+        fallbacks: list[AIProviderType] | None = None,
     ) -> None:
         """
         Override AI provider for specific layer

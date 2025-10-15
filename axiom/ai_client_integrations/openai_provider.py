@@ -1,11 +1,10 @@
 """OpenAI provider implementation for Investment Banking Analytics."""
 
-import asyncio
-from typing import List, Optional, Dict, Any
-import openai
-from openai import OpenAI, AsyncOpenAI
+from typing import Any
 
-from .base_ai_provider import BaseAIProvider, AIMessage, AIResponse, AIProviderError
+from openai import AsyncOpenAI, OpenAI
+
+from .base_ai_provider import AIMessage, AIProviderError, AIResponse, BaseAIProvider
 
 
 class OpenAIProvider(BaseAIProvider):
@@ -14,7 +13,7 @@ class OpenAIProvider(BaseAIProvider):
     def __init__(
         self,
         api_key: str,
-        base_url: Optional[str] = None,
+        base_url: str | None = None,
         model_name: str = "gpt-4o-mini",
         **kwargs,
     ):
@@ -31,7 +30,7 @@ class OpenAIProvider(BaseAIProvider):
 
     def generate_response(
         self,
-        messages: List[AIMessage],
+        messages: list[AIMessage],
         max_tokens: int = 2000,
         temperature: float = 0.1,
         **kwargs,
@@ -69,7 +68,7 @@ class OpenAIProvider(BaseAIProvider):
 
     async def generate_response_async(
         self,
-        messages: List[AIMessage],
+        messages: list[AIMessage],
         max_tokens: int = 2000,
         temperature: float = 0.1,
         **kwargs,
@@ -111,7 +110,7 @@ class OpenAIProvider(BaseAIProvider):
         """Check if OpenAI provider is available."""
         try:
             # Test connection with a simple request
-            response = self.client.chat.completions.create(
+            self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[{"role": "user", "content": "test"}],
                 max_tokens=1,
@@ -120,7 +119,7 @@ class OpenAIProvider(BaseAIProvider):
         except Exception:
             return False
 
-    def get_investment_banking_config(self) -> Dict[str, Any]:
+    def get_investment_banking_config(self) -> dict[str, Any]:
         """Get investment banking optimized configuration."""
         return {
             "temperature": 0.05,  # Very conservative for financial analysis

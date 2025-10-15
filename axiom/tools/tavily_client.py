@@ -1,7 +1,8 @@
 """Investment Banking Tavily Search Client - Financial Data and M&A Intelligence."""
 
 import asyncio
-from typing import List, Optional, Dict, Any
+from typing import Any
+
 from tavily import TavilyClient as BaseTavilyClient
 
 from axiom.config.settings import settings
@@ -39,10 +40,10 @@ class TavilyClient:
         query: str,
         max_results: int = 10,
         search_depth: str = "advanced",
-        include_domains: List[str] = None,
+        include_domains: list[str] = None,
         include_raw_content: bool = False,
         time_range: str = None,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Perform investment banking optimized search using Tavily API."""
 
         try:
@@ -82,7 +83,7 @@ class TavilyClient:
     @trace_tool("financial_company_search")
     async def company_search(
         self, company_name: str, analysis_type: str = "overview"
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Specialized company search for investment banking analysis."""
 
         # Create targeted company queries based on analysis type
@@ -107,7 +108,7 @@ class TavilyClient:
     @trace_tool("sector_intelligence_search")
     async def sector_search(
         self, sector: str, focus: str = "trends"
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Search for sector-specific intelligence and trends."""
 
         focus_queries = {
@@ -124,7 +125,7 @@ class TavilyClient:
         )
 
     @trace_tool("tavily_qna_search")
-    async def qna_search(self, query: str) -> Optional[str]:
+    async def qna_search(self, query: str) -> str | None:
         """Get direct financial analysis answer using Tavily QnA."""
 
         try:
@@ -177,7 +178,7 @@ class TavilyClient:
 
         return enhanced_query
 
-    def _parse_time_range(self, time_range: str) -> Optional[int]:
+    def _parse_time_range(self, time_range: str) -> int | None:
         """Parse time range string to days for Tavily API."""
 
         time_mappings = {
@@ -194,11 +195,11 @@ class TavilyClient:
         return time_mappings.get(time_range.lower())
 
     def _rank_financial_results(
-        self, results: List[Dict], original_query: str
-    ) -> List[Dict]:
+        self, results: list[dict], original_query: str
+    ) -> list[dict]:
         """Rank search results by financial relevance and authority."""
 
-        def calculate_financial_score(result: Dict) -> float:
+        def calculate_financial_score(result: dict) -> float:
             score = result.get("score", 0.0)
             url = result.get("url", "").lower()
             title = result.get("title", "").lower()

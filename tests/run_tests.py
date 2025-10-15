@@ -1,15 +1,16 @@
 """Test runner for Axiom Investment Banking Analytics."""
 
-import pytest
-import sys
 import os
+import sys
 from pathlib import Path
+
+import pytest
 
 # Add the parent directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from axiom.utils import setup_logging, global_health_checker
 from axiom.ai_client_integrations import test_providers
+from axiom.utils import global_health_checker, setup_logging
 
 
 def run_health_checks():

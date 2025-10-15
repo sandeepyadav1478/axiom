@@ -2,7 +2,8 @@
 
 import asyncio
 import re
-from typing import List, Optional, Dict, Any
+from typing import Any
+
 from firecrawl import FirecrawlApp
 
 from axiom.config.settings import settings
@@ -28,10 +29,10 @@ class FirecrawlClient:
         self,
         url: str,
         wait_for: int = 3000,  # Longer wait for financial sites
-        formats: List[str] = None,
-        include_selectors: List[str] = None,
-        exclude_selectors: List[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        formats: list[str] = None,
+        include_selectors: list[str] = None,
+        exclude_selectors: list[str] = None,
+    ) -> dict[str, Any] | None:
         """Scrape financial documents with enhanced processing."""
 
         if formats is None:
@@ -77,7 +78,7 @@ class FirecrawlClient:
             return None
 
     @trace_tool("sec_filing_scrape")
-    async def scrape_sec_filing(self, url: str) -> Optional[Dict[str, Any]]:
+    async def scrape_sec_filing(self, url: str) -> dict[str, Any] | None:
         """Specialized scraping for SEC filings (10-K, 10-Q, 8-K, etc.)."""
 
         try:
@@ -121,8 +122,8 @@ class FirecrawlClient:
 
     @trace_tool("investor_relations_crawl")
     async def crawl_investor_relations(
-        self, base_url: str, max_pages: int = 8, focus_areas: List[str] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, base_url: str, max_pages: int = 8, focus_areas: list[str] = None
+    ) -> dict[str, Any] | None:
         """Crawl investor relations sections for comprehensive financial data."""
 
         if focus_areas is None:
@@ -166,7 +167,7 @@ class FirecrawlClient:
             return None
 
     @trace_tool("financial_table_extraction")
-    async def extract_financial_tables(self, url: str) -> Optional[Dict[str, Any]]:
+    async def extract_financial_tables(self, url: str) -> dict[str, Any] | None:
         """Extract and structure financial tables from documents."""
 
         try:
@@ -219,8 +220,8 @@ class FirecrawlClient:
         return any(indicator in url_lower for indicator in financial_indicators)
 
     def _enhance_financial_content(
-        self, response: Dict[str, Any], url: str
-    ) -> Dict[str, Any]:
+        self, response: dict[str, Any], url: str
+    ) -> dict[str, Any]:
         """Enhance scraped content with financial document processing."""
 
         if "markdown" in response:
@@ -240,8 +241,8 @@ class FirecrawlClient:
         return response
 
     def _extract_sec_metadata(
-        self, response: Dict[str, Any], url: str
-    ) -> Dict[str, Any]:
+        self, response: dict[str, Any], url: str
+    ) -> dict[str, Any]:
         """Extract SEC filing specific metadata."""
 
         content = response.get("markdown", "")
@@ -259,8 +260,8 @@ class FirecrawlClient:
         return response
 
     def _process_investor_crawl_results(
-        self, response: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, response: dict[str, Any]
+    ) -> dict[str, Any]:
         """Process results from investor relations crawling."""
 
         if "results" in response:
@@ -292,7 +293,7 @@ class FirecrawlClient:
 
         return response
 
-    def _parse_financial_tables(self, response: Dict[str, Any]) -> Dict[str, Any]:
+    def _parse_financial_tables(self, response: dict[str, Any]) -> dict[str, Any]:
         """Parse financial tables from HTML content."""
 
         html_content = response.get("html", "")
@@ -347,7 +348,7 @@ class FirecrawlClient:
         else:
             return "standard"
 
-    def _extract_financial_keywords(self, content: str) -> List[str]:
+    def _extract_financial_keywords(self, content: str) -> list[str]:
         """Extract financial keywords from content."""
 
         financial_keywords = [

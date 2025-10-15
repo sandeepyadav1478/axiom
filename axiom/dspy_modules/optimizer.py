@@ -1,18 +1,18 @@
 """Investment Banking DSPy Optimization - M&A and Financial Analysis Query Optimization."""
 
-import dspy
 import json
 import os
-from typing import List, Dict, Any, Optional
+
+import dspy
+
+from axiom.dspy_modules.hyde import (
+    FinancialQueryEnrichmentModule,
+    InvestmentBankingHyDEModule,
+)
 from axiom.dspy_modules.multi_query import (
     InvestmentBankingMultiQueryModule,
     setup_dspy_with_provider,
 )
-from axiom.dspy_modules.hyde import (
-    InvestmentBankingHyDEModule,
-    FinancialQueryEnrichmentModule,
-)
-from axiom.config.settings import settings
 
 
 class InvestmentBankingOptimizer:
@@ -30,7 +30,7 @@ class InvestmentBankingOptimizer:
 
         self.compiled_modules = {}
 
-    def create_investment_banking_training_data(self) -> List[dspy.Example]:
+    def create_investment_banking_training_data(self) -> list[dspy.Example]:
         """Create investment banking specific training examples."""
 
         # M&A and financial analysis training data
@@ -90,7 +90,7 @@ class InvestmentBankingOptimizer:
 
         return examples
 
-    def create_sector_training_data(self) -> List[dspy.Example]:
+    def create_sector_training_data(self) -> list[dspy.Example]:
         """Create sector-specific training examples."""
 
         sector_examples = [
@@ -312,7 +312,7 @@ class InvestmentBankingOptimizer:
 
         try:
             if os.path.exists(path):
-                with open(path, "r") as f:
+                with open(path) as f:
                     module_info = json.load(f)
 
                 print(
@@ -327,7 +327,7 @@ class InvestmentBankingOptimizer:
             print(f"Load modules error: {e}")
             return None
 
-    def evaluate_modules(self) -> Dict[str, float]:
+    def evaluate_modules(self) -> dict[str, float]:
         """Evaluate optimized modules on test data."""
 
         test_data = self.create_investment_banking_training_data()[
@@ -374,11 +374,11 @@ def run_investment_banking_optimization():
 
     # Optimize investment banking multi-query expansion
     print("📊 Optimizing investment banking multi-query expansion...")
-    optimized_ib_multi_query = optimizer.optimize_investment_banking_multi_query()
+    optimizer.optimize_investment_banking_multi_query()
 
     # Optimize investment banking HyDE
     print("📋 Optimizing investment banking HyDE module...")
-    optimized_ib_hyde = optimizer.optimize_investment_banking_hyde()
+    optimizer.optimize_investment_banking_hyde()
 
     # Evaluate results
     print("📈 Evaluating optimized modules...")

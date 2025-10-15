@@ -1,8 +1,9 @@
 """Pydantic schemas for Axiom Investment Banking Analytics Platform."""
 
-from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional, Literal
 from datetime import datetime
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
 
 
 class SearchQuery(BaseModel):
@@ -22,7 +23,7 @@ class SearchResult(BaseModel):
     url: str = Field(..., description="Source URL")
     snippet: str = Field(..., description="Text snippet")
     score: float = Field(..., description="Relevance score")
-    timestamp: Optional[datetime] = Field(None, description="Publication timestamp")
+    timestamp: datetime | None = Field(None, description="Publication timestamp")
 
 
 class CrawlResult(BaseModel):
@@ -31,7 +32,7 @@ class CrawlResult(BaseModel):
     url: str = Field(..., description="Crawled URL")
     title: str = Field(..., description="Page title")
     content: str = Field(..., description="Full page content")
-    metadata: Dict[str, Any] = Field(
+    metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata"
     )
 
@@ -41,7 +42,7 @@ class TaskPlan(BaseModel):
 
     task_id: str = Field(..., description="Unique task identifier")
     description: str = Field(..., description="Task description")
-    queries: List[SearchQuery] = Field(..., description="Search queries for this task")
+    queries: list[SearchQuery] = Field(..., description="Search queries for this task")
     estimated_priority: int = Field(1, description="Task priority")
 
 
@@ -70,13 +71,13 @@ class ResearchBrief(BaseModel):
     """Final structured research brief."""
 
     topic: str = Field(..., description="Research topic")
-    questions_answered: List[str] = Field(
+    questions_answered: list[str] = Field(
         ..., description="Questions that were answered"
     )
-    key_findings: List[str] = Field(..., description="Key findings and insights")
-    evidence: List[Evidence] = Field(..., description="Supporting evidence")
-    citations: List[Citation] = Field(..., description="Source citations")
-    remaining_gaps: List[str] = Field(
+    key_findings: list[str] = Field(..., description="Key findings and insights")
+    evidence: list[Evidence] = Field(..., description="Supporting evidence")
+    citations: list[Citation] = Field(..., description="Source citations")
+    remaining_gaps: list[str] = Field(
         default_factory=list, description="Unanswered questions"
     )
     confidence: float = Field(..., description="Overall confidence in findings (0-1)")
@@ -92,35 +93,35 @@ class GraphState(BaseModel):
     query: str = Field(..., description="Original research query")
 
     # Planning phase
-    task_plans: List[TaskPlan] = Field(
+    task_plans: list[TaskPlan] = Field(
         default_factory=list, description="Decomposed tasks"
     )
-    enriched_queries: List[SearchQuery] = Field(
+    enriched_queries: list[SearchQuery] = Field(
         default_factory=list, description="DSPy-enriched queries"
     )
 
     # Execution phase
-    search_results: List[SearchResult] = Field(
+    search_results: list[SearchResult] = Field(
         default_factory=list, description="Search results"
     )
-    crawl_results: List[CrawlResult] = Field(
+    crawl_results: list[CrawlResult] = Field(
         default_factory=list, description="Crawled content"
     )
 
     # Analysis phase
-    evidence: List[Evidence] = Field(
+    evidence: list[Evidence] = Field(
         default_factory=list, description="Extracted evidence"
     )
 
     # Output
-    brief: Optional[ResearchBrief] = Field(None, description="Final research brief")
+    brief: ResearchBrief | None = Field(None, description="Final research brief")
 
     # Metadata
     step_count: int = Field(0, description="Current step in workflow")
-    error_messages: List[str] = Field(
+    error_messages: list[str] = Field(
         default_factory=list, description="Any errors encountered"
     )
-    trace_id: Optional[str] = Field(None, description="LangSmith trace ID")
+    trace_id: str | None = Field(None, description="LangSmith trace ID")
 
 
 class DSPyMetrics(BaseModel):

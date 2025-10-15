@@ -1,9 +1,9 @@
 """Investment Banking DSPy Multi-Query Module - M&A and Financial Analysis Query Expansion."""
 
 import dspy
-from typing import List, Dict, Any
-from axiom.config.settings import settings
+
 from axiom.ai_client_integrations import provider_factory
+from axiom.config.settings import settings
 
 
 class InvestmentBankingQueryExpansion(dspy.Signature):
@@ -66,7 +66,7 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
         analysis_type: str = "financial_analysis",
         company_context: str = "",
         **kwargs,
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate investment banking focused queries from input query."""
 
         try:
@@ -85,8 +85,8 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
             return self._fallback_queries(query)
 
     def _expand_ma_query(
-        self, query: str, company_context: str, kwargs: Dict
-    ) -> List[str]:
+        self, query: str, company_context: str, kwargs: dict
+    ) -> list[str]:
         """Expand M&A-specific queries."""
 
         result = self.ma_expand(
@@ -101,7 +101,7 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
 
         return self._fallback_ma_queries(query)
 
-    def _expand_financial_query(self, query: str, kwargs: Dict) -> List[str]:
+    def _expand_financial_query(self, query: str, kwargs: dict) -> list[str]:
         """Expand financial metrics queries."""
 
         result = self.financial_expand(
@@ -117,7 +117,7 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
 
     def _expand_general_ib_query(
         self, query: str, analysis_type: str, company_context: str
-    ) -> List[str]:
+    ) -> list[str]:
         """Expand general investment banking queries."""
 
         result = self.ib_expand(
@@ -131,7 +131,7 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
 
         return self._fallback_queries(query)
 
-    def _parse_queries(self, raw_queries: str) -> List[str]:
+    def _parse_queries(self, raw_queries: str) -> list[str]:
         """Parse and clean expanded queries."""
 
         queries = []
@@ -177,7 +177,7 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
         ]
         return any(term in query.lower() for term in metrics_terms)
 
-    def _fallback_ma_queries(self, query: str) -> List[str]:
+    def _fallback_ma_queries(self, query: str) -> list[str]:
         """Fallback M&A queries if DSPy fails."""
         base_company = self._extract_company_name(query)
 
@@ -189,7 +189,7 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
             f"{base_company} acquisition risks regulatory compliance integration challenges",
         ]
 
-    def _fallback_financial_queries(self, query: str) -> List[str]:
+    def _fallback_financial_queries(self, query: str) -> list[str]:
         """Fallback financial queries if DSPy fails."""
         company = self._extract_company_name(query)
 
@@ -200,7 +200,7 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
             f"{company} peer comparison industry benchmarks valuation multiples",
         ]
 
-    def _fallback_queries(self, query: str) -> List[str]:
+    def _fallback_queries(self, query: str) -> list[str]:
         """General fallback queries."""
         return [
             f"{query} financial analysis",
@@ -228,7 +228,7 @@ class SectorMultiQueryModule(dspy.Module):
         super().__init__()
         self.sector_expand = dspy.ChainOfThought(SectorAnalysisExpansion)
 
-    def forward(self, sector: str, analysis_focus: str = "comprehensive") -> List[str]:
+    def forward(self, sector: str, analysis_focus: str = "comprehensive") -> list[str]:
         """Generate sector-specific analysis queries."""
 
         try:
@@ -243,7 +243,7 @@ class SectorMultiQueryModule(dspy.Module):
             print(f"Sector multi-query error: {e}")
             return self._fallback_sector_queries(sector)
 
-    def _parse_queries(self, raw_queries: str) -> List[str]:
+    def _parse_queries(self, raw_queries: str) -> list[str]:
         """Parse sector analysis queries."""
         queries = []
         raw_splits = raw_queries.replace("\n", "|").split("|")
@@ -255,7 +255,7 @@ class SectorMultiQueryModule(dspy.Module):
 
         return queries[:5]
 
-    def _fallback_sector_queries(self, sector: str) -> List[str]:
+    def _fallback_sector_queries(self, sector: str) -> list[str]:
         """Fallback sector queries."""
         return [
             f"{sector} industry market size growth trends outlook",

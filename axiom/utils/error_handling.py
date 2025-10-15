@@ -2,11 +2,10 @@
 
 import functools
 import logging
-import traceback
-from typing import Any, Callable, Dict, List, Optional, Type, Union
-from enum import Enum
+from collections.abc import Callable
 from datetime import datetime
-from pydantic import BaseModel, ValidationError
+from enum import Enum
+from typing import Any
 
 
 class ErrorSeverity(Enum):
@@ -38,8 +37,8 @@ class AxiomError(Exception):
         message: str,
         category: ErrorCategory = ErrorCategory.PROCESSING,
         severity: ErrorSeverity = ErrorSeverity.MEDIUM,
-        context: Optional[Dict[str, Any]] = None,
-        original_error: Optional[Exception] = None,
+        context: dict[str, Any] | None = None,
+        original_error: Exception | None = None,
     ):
         self.message = message
         self.category = category
@@ -50,7 +49,7 @@ class AxiomError(Exception):
 
         super().__init__(self.message)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert error to dictionary for logging/reporting."""
         return {
             "error_type": self.__class__.__name__,
@@ -128,15 +127,15 @@ class ErrorHandler:
 
     def __init__(self, logger_name: str = "axiom"):
         self.logger = logging.getLogger(logger_name)
-        self.error_history: List[Dict[str, Any]] = []
+        self.error_history: list[dict[str, Any]] = []
         self.max_history = 1000
 
     def handle_error(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
         reraise: bool = True,
-    ) -> Optional[AxiomError]:
+    ) -> AxiomError | None:
         """Handle and log errors with context."""
 
         # Convert to AxiomError if needed
@@ -182,7 +181,7 @@ class ErrorHandler:
         if len(self.error_history) > self.max_history:
             self.error_history = self.error_history[-self.max_history :]
 
-    def get_error_summary(self) -> Dict[str, Any]:
+    def get_error_summary(self) -> dict[str, Any]:
         """Get summary of recent errors."""
 
         if not self.error_history:
@@ -213,7 +212,7 @@ global_error_handler = ErrorHandler()
 
 
 def handle_errors(
-    error_types: Union[Type[Exception], tuple] = Exception,
+    error_types: type[Exception] | tuple = Exception,
     category: ErrorCategory = ErrorCategory.PROCESSING,
     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
     reraise: bool = True,
@@ -253,7 +252,7 @@ def handle_errors(
 
 
 def validate_investment_banking_data(
-    data: Dict[str, Any], required_fields: List[str]
+    data: dict[str, Any], required_fields: list[str]
 ) -> bool:
     """Validate investment banking data has required fields."""
 
@@ -273,7 +272,7 @@ def validate_investment_banking_data(
     return True
 
 
-def validate_financial_metrics(metrics: Dict[str, float]) -> bool:
+def validate_financial_metrics(metrics: dict[str, float]) -> bool:
     """Validate financial metrics are reasonable."""
 
     validation_rules = {
@@ -301,7 +300,7 @@ def validate_financial_metrics(metrics: Dict[str, float]) -> bool:
     return True
 
 
-def setup_logging(log_level: str = "INFO", log_file: Optional[str] = None):
+def setup_logging(log_level: str = "INFO", log_file: str | None = None):
     """Setup logging for investment banking operations."""
 
     # Configure root logger
@@ -335,7 +334,7 @@ class HealthChecker:
         """Register a health check function."""
         self.checks[name] = {"function": check_func, "description": description}
 
-    def run_health_checks(self) -> Dict[str, Any]:
+    def run_health_checks(self) -> dict[str, Any]:
         """Run all registered health checks."""
 
         results = {

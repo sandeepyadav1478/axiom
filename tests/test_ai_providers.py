@@ -1,18 +1,19 @@
 """Tests for AI provider classes and factory."""
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+
 from axiom.ai_client_integrations import (
-    BaseAIProvider,
-    OpenAIProvider,
-    ClaudeProvider,
-    SGLangProvider,
     AIMessage,
-    AIResponse,
     AIProviderError,
+    AIResponse,
+    BaseAIProvider,
+    ClaudeProvider,
+    OpenAIProvider,
+    SGLangProvider,
     provider_factory,
 )
-from axiom.config.settings import settings
 
 
 class TestBaseAIProvider:
@@ -251,8 +252,8 @@ class TestProviderFactory:
 
         results = provider_factory.test_all_providers()
 
-        assert results["working_provider"] == True
-        assert results["broken_provider"] == False
+        assert results["working_provider"]
+        assert not results["broken_provider"]
 
         # Clean up
         del provider_factory._providers["working_provider"]

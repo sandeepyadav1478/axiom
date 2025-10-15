@@ -3,9 +3,8 @@ Simple demonstration of Axiom Investment Banking Analytics structure
 Works without external dependencies - just tests core logic
 """
 
-import sys
 import os
-from pathlib import Path
+import sys
 
 
 def test_basic_structure():

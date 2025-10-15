@@ -1,23 +1,23 @@
 """Investment Banking MCP (Model Context Protocol) Adapter - Financial Tool Integration."""
 
 import asyncio
-from typing import Dict, Any, List, Optional
 from abc import ABC, abstractmethod
+from typing import Any
 
-from axiom.tools.tavily_client import TavilyClient
 from axiom.tools.firecrawl_client import FirecrawlClient
+from axiom.tools.tavily_client import TavilyClient
 
 
 class MCPTool(ABC):
     """Abstract base class for MCP-compatible investment banking tools."""
 
     @abstractmethod
-    async def execute(self, **kwargs) -> Dict[str, Any]:
+    async def execute(self, **kwargs) -> dict[str, Any]:
         """Execute the tool with given parameters."""
         pass
 
     @abstractmethod
-    def get_schema(self) -> Dict[str, Any]:
+    def get_schema(self) -> dict[str, Any]:
         """Get the tool schema for MCP."""
         pass
 
@@ -30,7 +30,7 @@ class InvestmentBankingSearchTool(MCPTool):
 
     async def execute(
         self, query: str, max_results: int = 10, search_type: str = "general", **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute investment banking search with financial optimization."""
 
         try:
@@ -75,7 +75,7 @@ class InvestmentBankingSearchTool(MCPTool):
                 "query": query,
             }
 
-    def get_schema(self) -> Dict[str, Any]:
+    def get_schema(self) -> dict[str, Any]:
         """Get MCP schema for investment banking search."""
 
         return {
@@ -147,7 +147,7 @@ class FinancialDocumentTool(MCPTool):
 
     async def execute(
         self, url: str, document_type: str = "financial", **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute financial document processing."""
 
         try:
@@ -193,7 +193,7 @@ class FinancialDocumentTool(MCPTool):
                 "url": url,
             }
 
-    def get_schema(self) -> Dict[str, Any]:
+    def get_schema(self) -> dict[str, Any]:
         """Get MCP schema for financial document processing."""
 
         return {
@@ -250,7 +250,7 @@ class FinancialQATool(MCPTool):
 
     async def execute(
         self, question: str, context: str = "", **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute financial Q&A search."""
 
         try:
@@ -280,7 +280,7 @@ class FinancialQATool(MCPTool):
                 "question": question,
             }
 
-    def get_schema(self) -> Dict[str, Any]:
+    def get_schema(self) -> dict[str, Any]:
         """Get MCP schema for financial Q&A."""
 
         return {
@@ -314,11 +314,11 @@ class InvestmentBankingMCPAdapter:
             "financial_qa": FinancialQATool(),
         }
 
-    def get_available_tools(self) -> List[Dict[str, Any]]:
+    def get_available_tools(self) -> list[dict[str, Any]]:
         """Get schemas for all available investment banking tools."""
         return [tool.get_schema() for tool in self.tools.values()]
 
-    async def execute_tool(self, tool_name: str, **parameters) -> Dict[str, Any]:
+    async def execute_tool(self, tool_name: str, **parameters) -> dict[str, Any]:
         """Execute an investment banking tool by name with parameters."""
 
         if tool_name not in self.tools:
@@ -347,8 +347,8 @@ class InvestmentBankingMCPAdapter:
             }
 
     def validate_parameters(
-        self, tool_name: str, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, tool_name: str, parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Validate parameters against investment banking tool schema."""
 
         if tool_name not in self.tools:
@@ -391,7 +391,7 @@ class InvestmentBankingMCPAdapter:
 
         return {"valid": True}
 
-    def get_tool_capabilities(self) -> Dict[str, Any]:
+    def get_tool_capabilities(self) -> dict[str, Any]:
         """Get capabilities of all investment banking tools."""
 
         capabilities = {}

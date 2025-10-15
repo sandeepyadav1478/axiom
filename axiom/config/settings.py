@@ -1,9 +1,9 @@
 """Configuration settings for Axiom Investment Banking Analytics Platform."""
 
-import os
-from pydantic_settings import BaseSettings
+from typing import Any
+
 from pydantic import Field
-from typing import Optional, List, Dict, Any
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -17,17 +17,17 @@ class Settings(BaseSettings):
     # Users configure only the providers they want to use
 
     # OpenAI Configuration (optional)
-    openai_api_key: Optional[str] = Field(None, env="OPENAI_API_KEY")
+    openai_api_key: str | None = Field(None, env="OPENAI_API_KEY")
     openai_base_url: str = Field("https://api.openai.com/v1", env="OPENAI_BASE_URL")
     openai_model_name: str = Field("gpt-4o-mini", env="OPENAI_MODEL_NAME")
 
     # Claude Configuration (optional)
-    claude_api_key: Optional[str] = Field(None, env="CLAUDE_API_KEY")
+    claude_api_key: str | None = Field(None, env="CLAUDE_API_KEY")
     claude_base_url: str = Field("https://api.anthropic.com", env="CLAUDE_BASE_URL")
     claude_model_name: str = Field("claude-3-sonnet-20240229", env="CLAUDE_MODEL_NAME")
 
     # SGLang Configuration (optional - for local inference)
-    sglang_api_key: Optional[str] = Field(
+    sglang_api_key: str | None = Field(
         None, env="SGLANG_API_KEY"
     )  # Usually None for local
     sglang_base_url: str = Field("http://localhost:30000/v1", env="SGLANG_BASE_URL")
@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     )
 
     # Hugging Face Configuration (optional)
-    huggingface_api_key: Optional[str] = Field(None, env="HUGGINGFACE_API_KEY")
+    huggingface_api_key: str | None = Field(None, env="HUGGINGFACE_API_KEY")
     huggingface_base_url: str = Field(
         "https://api-inference.huggingface.co", env="HUGGINGFACE_BASE_URL"
     )
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     )
 
     # Google Gemini Configuration (optional)
-    gemini_api_key: Optional[str] = Field(None, env="GEMINI_API_KEY")
+    gemini_api_key: str | None = Field(None, env="GEMINI_API_KEY")
     gemini_base_url: str = Field(
         "https://generativelanguage.googleapis.com/v1beta", env="GEMINI_BASE_URL"
     )
@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     langchain_endpoint: str = Field(
         "https://api.smith.langchain.com", env="LANGCHAIN_ENDPOINT"
     )
-    langchain_api_key: Optional[str] = Field(None, env="LANGCHAIN_API_KEY")
+    langchain_api_key: str | None = Field(None, env="LANGCHAIN_API_KEY")
     langchain_project: str = Field("axiom-investment-banking", env="LANGCHAIN_PROJECT")
 
     # Investment Banking Application settings
@@ -76,12 +76,12 @@ class Settings(BaseSettings):
     market_volatility_assessment: bool = Field(True, env="MARKET_VOLATILITY_ASSESSMENT")
 
     # Financial Data API Keys (Optional)
-    alpha_vantage_api_key: Optional[str] = Field(None, env="ALPHA_VANTAGE_API_KEY")
-    financial_modeling_prep_api_key: Optional[str] = Field(
+    alpha_vantage_api_key: str | None = Field(None, env="ALPHA_VANTAGE_API_KEY")
+    financial_modeling_prep_api_key: str | None = Field(
         None, env="FINANCIAL_MODELING_PREP_API_KEY"
     )
-    polygon_api_key: Optional[str] = Field(None, env="POLYGON_API_KEY")
-    sec_edgar_user_agent: Optional[str] = Field(None, env="SEC_EDGAR_USER_AGENT")
+    polygon_api_key: str | None = Field(None, env="POLYGON_API_KEY")
+    sec_edgar_user_agent: str | None = Field(None, env="SEC_EDGAR_USER_AGENT")
 
     # Legacy settings (for backward compatibility)
     max_parallel_tasks: int = Field(5, env="MAX_PARALLEL_TASKS")
@@ -92,7 +92,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
-    def get_configured_providers(self) -> List[str]:
+    def get_configured_providers(self) -> list[str]:
         """Get list of providers that have valid API keys configured"""
         providers = []
 
@@ -115,7 +115,7 @@ class Settings(BaseSettings):
 
         return providers
 
-    def get_provider_config(self, provider: str) -> Dict[str, Any]:
+    def get_provider_config(self, provider: str) -> dict[str, Any]:
         """Get configuration for specific AI provider (only if configured)"""
         provider = provider.lower()
         configured_providers = self.get_configured_providers()
@@ -155,7 +155,7 @@ class Settings(BaseSettings):
 
         return configs.get(provider, {})
 
-    def get_all_available_configs(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_available_configs(self) -> dict[str, dict[str, Any]]:
         """Get configurations for all available providers"""
         return {
             provider: self.get_provider_config(provider)

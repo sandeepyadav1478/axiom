@@ -1,11 +1,10 @@
 """SGLang provider implementation for local inference in Investment Banking Analytics."""
 
-import asyncio
-from typing import List, Optional, Dict, Any
-import openai
-from openai import OpenAI, AsyncOpenAI
+from typing import Any
 
-from .base_ai_provider import BaseAIProvider, AIMessage, AIResponse, AIProviderError
+from openai import AsyncOpenAI, OpenAI
+
+from .base_ai_provider import AIMessage, AIProviderError, AIResponse, BaseAIProvider
 
 
 class SGLangProvider(BaseAIProvider):
@@ -27,7 +26,7 @@ class SGLangProvider(BaseAIProvider):
 
     def generate_response(
         self,
-        messages: List[AIMessage],
+        messages: list[AIMessage],
         max_tokens: int = 2000,
         temperature: float = 0.1,
         **kwargs,
@@ -65,7 +64,7 @@ class SGLangProvider(BaseAIProvider):
 
     async def generate_response_async(
         self,
-        messages: List[AIMessage],
+        messages: list[AIMessage],
         max_tokens: int = 2000,
         temperature: float = 0.1,
         **kwargs,
@@ -107,7 +106,7 @@ class SGLangProvider(BaseAIProvider):
         """Check if SGLang server is running and available."""
         try:
             # Test connection with a simple request
-            response = self.client.chat.completions.create(
+            self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[{"role": "user", "content": "test"}],
                 max_tokens=1,
@@ -116,7 +115,7 @@ class SGLangProvider(BaseAIProvider):
         except Exception:
             return False
 
-    def get_investment_banking_config(self) -> Dict[str, Any]:
+    def get_investment_banking_config(self) -> dict[str, Any]:
         """Get investment banking optimized configuration for SGLang."""
         return {
             "temperature": 0.1,  # Conservative for financial analysis
@@ -127,8 +126,8 @@ class SGLangProvider(BaseAIProvider):
         }
 
     def financial_analysis_prompt(
-        self, analysis_type: str, company_info: Dict[str, Any], context: str = ""
-    ) -> List[AIMessage]:
+        self, analysis_type: str, company_info: dict[str, Any], context: str = ""
+    ) -> list[AIMessage]:
         """
         Override base class with SGLang-optimized prompts.
         Local models benefit from clearer, more structured prompts.
@@ -139,7 +138,7 @@ class SGLangProvider(BaseAIProvider):
 
 EXPERTISE AREAS:
 - M&A due diligence and valuation
-- Financial modeling and risk assessment  
+- Financial modeling and risk assessment
 - Market analysis and competitive intelligence
 - Regulatory compliance and strategic evaluation
 
@@ -178,7 +177,7 @@ Be precise, professional, and conservative in assessments."""
             AIMessage(role="user", content=user_prompt),
         ]
 
-    def check_server_status(self) -> Dict[str, Any]:
+    def check_server_status(self) -> dict[str, Any]:
         """Check SGLang server status and model information."""
         try:
             # Try to get model information

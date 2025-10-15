@@ -36,8 +36,10 @@ class Settings(BaseSettings):
     huggingface_base_url: str = Field("https://api-inference.huggingface.co", env="HUGGINGFACE_BASE_URL")
     huggingface_model_name: str = Field("microsoft/DialoGPT-medium", env="HUGGINGFACE_MODEL_NAME")
     
-    # Add more providers as needed - just follow same pattern
-    # provider_name_api_key: Optional[str] = Field(None, env="PROVIDER_NAME_API_KEY")
+    # Google Gemini Configuration (optional)
+    gemini_api_key: Optional[str] = Field(None, env="GEMINI_API_KEY")
+    gemini_base_url: str = Field("https://generativelanguage.googleapis.com/v1beta", env="GEMINI_BASE_URL")
+    gemini_model_name: str = Field("gemini-1.5-pro", env="GEMINI_MODEL_NAME")
 
     # LangSmith tracing
     langchain_tracing_v2: bool = Field(True, env="LANGCHAIN_TRACING_V2")
@@ -73,75 +75,6 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         
     def get_configured_providers(self) -> List[str]:
-        """Dynamically detect which AI providers have valid credentials"""
-        providers = []
-        
-        # Check each provider for valid configuration
-        if self.openai_api_key and self.openai_api_key.startswith('sk-'):
-            providers.append("openai")
-            
-        if self.claude_api_key and self.claude_api_key.startswith('sk-ant-'):
-            providers.append("claude")
-            
-        # SGLang: Check if local server is potentially available
-        if self.sglang_base_url and 'localhost' in self.sglang_base_url:
-            providers.append("sglang")
-            
-        if self.huggingface_api_key and self.huggingface_api_key.startswith('hf_'):
-            providers.append("huggingface")
-            
-        if self.gemini_api_key and len(self.gemini_api_key) > 10:  # Basic validation
-            providers.append("gemini")
-            
-        return providers
-        
-    def get_provider_config(self, provider: str) -> Dict[str, Any]:
-        """Get configuration for specific AI provider"""
-        provider = provider.lower()
-        
-        provider_configs = {
-            "openai": {
-                "api_key": self.openai_api_key,
-                "base_url": self.openai_base_url,
-                "model_name": self.openai_model_name,
-                "available": bool(self.openai_api_key and self.openai_api_key.startswith('sk-'))
-            },
-            "claude": {
-                "api_key": self.claude_api_key,
-                "base_url": self.claude_base_url,
-                "model_name": self.claude_model_name,
-                "available": bool(self.claude_api_key and self.claude_api_key.startswith('sk-ant-'))
-            },
-            "sglang": {
-                "api_key": self.sglang_api_key or "local-inference",
-                "base_url": self.sglang_base_url,
-                "model_name": self.sglang_model_name,
-                "available": bool(self.sglang_base_url)
-            },
-            "huggingface": {
-                "api_key": self.huggingface_api_key,
-                "base_url": self.huggingface_base_url,
-                "model_name": self.huggingface_model_name,
-                "available": bool(self.huggingface_api_key)
-            },
-            "gemini": {
-                "api_key": self.gemini_api_key,
-                "base_url": self.gemini_base_url,
-                "model_name": self.gemini_model_name,
-                "available": bool(self.gemini_api_key)
-            }
-        }
-        
-        return provider_configs.get(provider, {})
-        
-    def get_all_available_configs(self) -> Dict[str, Dict[str, Any]]:
-        """Get configurations for all available providers"""
-        return {
-            provider: self.get_provider_config(provider)
-            for provider in self.get_configured_providers()
-        }
-        
-    def get_configured_providers(self) -> List[str]:
         """Get list of providers that have valid API keys configured"""
         providers = []
         
@@ -158,6 +91,9 @@ class Settings(BaseSettings):
             
         if self.huggingface_api_key and self.huggingface_api_key != "hf_placeholder":
             providers.append("huggingface")
+            
+        if self.gemini_api_key and self.gemini_api_key != "gemini_placeholder":
+            providers.append("gemini")
             
         return providers
         
@@ -189,10 +125,22 @@ class Settings(BaseSettings):
                 "api_key": self.huggingface_api_key,
                 "base_url": self.huggingface_base_url,
                 "model_name": self.huggingface_model_name
+            },
+            "gemini": {
+                "api_key": self.gemini_api_key,
+                "base_url": self.gemini_base_url,
+                "model_name": self.gemini_model_name
             }
         }
         
         return configs.get(provider, {})
+        
+    def get_all_available_configs(self) -> Dict[str, Dict[str, Any]]:
+        """Get configurations for all available providers"""
+        return {
+            provider: self.get_provider_config(provider)
+            for provider in self.get_configured_providers()
+        }
         
     def has_multiple_providers(self) -> bool:
         """Check if multiple AI providers are configured"""

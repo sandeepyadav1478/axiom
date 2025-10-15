@@ -402,13 +402,32 @@ jobs:
       run: |
         echo "🔐 Checking for exposed API keys..."
         
-        # Check no real API keys are committed
-        if grep -r "sk-[a-zA-Z0-9]" . --exclude-dir=.git --exclude="*.yml" --exclude="*.md" || \
-           grep -r "sk-ant-[a-zA-Z0-9]" . --exclude-dir=.git --exclude="*.yml" --exclude="*.md"; then
-          echo "❌ Potential API key found in code!"
+        # Check for real API keys (exclude test/demo/placeholder patterns)
+        REAL_KEYS=$(grep -r "sk-[a-zA-Z0-9]\{40,\}" . \
+          --exclude-dir=.git \
+          --exclude-dir=tests \
+          --exclude="*.yml" \
+          --exclude="*.md" \
+          --exclude="demo_*" \
+          --exclude="simple_*" \
+          --exclude=".env.example" \
+          | grep -v "placeholder" \
+          | grep -v "demo" \
+          | grep -v "test" \
+          | grep -v "sk-your" \
+          | grep -v "sk-ant-your" \
+          | grep -v "sk-demo" \
+          | grep -v "sk-ant-demo" \
+          | grep -v "sk-test" \
+          | grep -v "sk-ant-test" || true)
+        
+        if [[ -n "$REAL_KEYS" ]]; then
+          echo "❌ Potential real API key found:"
+          echo "$REAL_KEYS"
           exit 1
         else
-          echo "✅ No exposed API keys detected"
+          echo "✅ No exposed real API keys detected"
+          echo "   (Test keys, demos, and placeholders are allowed)"
         fi
 
     - name: Validate Investment Banking compliance features

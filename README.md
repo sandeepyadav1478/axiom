@@ -84,14 +84,42 @@ Key environment variables:
 - `OPENAI_MODEL_NAME`: Financial analysis model (default: gpt-4o-mini)
 - `LANGCHAIN_API_KEY`: For audit trails and compliance tracing (recommended)
 
+## 📚 Comprehensive Documentation
+
+### **Complete M&A Workflow System**
+- 📋 **[M&A Workflows Documentation](docs/README.md)** - Complete documentation index and navigation
+- 🎯 **[M&A Workflow Guide](docs/ma-workflows/M&A_WORKFLOW_GUIDE.md)** - Usage examples and API documentation
+- 🏗️ **[M&A System Architecture](docs/ma-workflows/M&A_SYSTEM_OVERVIEW.md)** - Technical architecture and deployment
+- 💼 **[Business Rationale](docs/ma-workflows/M&A_WORKFLOWS_BUSINESS_RATIONALE.md)** - Why each M&A workflow is essential
+
+### **GitHub Actions for M&A Operations**
+- 🚀 **[M&A Workflow Execution Guide](docs/ma-workflows/M&A_WORKFLOW_EXECUTION_GUIDE.md)** - How to trigger M&A workflows
+- ⚙️ **[GitHub Actions Architecture](docs/architecture/WHY_GITHUB_ACTIONS_FOR_MA.md)** - Strategic rationale for GitHub-based M&A automation
+
+### **🔮 Future Deployment (AWS Free Tier)**
+- 💡 **[AWS Deployment Planning](docs/deployment/README.md)** - Cost-free AWS Lambda/EC2 migration guide (planned implementation)
+
 ## Investment Banking Platform Structure
 
 ```
 axiom/
-├── graph/          # Financial analysis workflows and decision trees
-├── tools/          # Market data, SEC filings, and financial news integration
-├── dspy_modules/   # Financial query optimization and valuation models
-├── tracing/        # Audit trails and compliance tracking
-├── config/         # Financial data sources and analysis parameters
-└── eval/           # Investment decision accuracy and performance metrics
+├── workflows/      # 🎯 M&A lifecycle workflows (target screening, DD, valuation)
+├── graph/          # 🔄 Financial analysis workflows and decision trees
+├── tools/          # 🔍 Market data, SEC filings, and financial news integration
+├── dspy_modules/   # 🤖 Financial query optimization and valuation models
+├── tracing/        # 📋 Audit trails and compliance tracking
+├── config/         # ⚙️ Financial data sources and analysis parameters
+├── utils/          # 🛠️ Validation, error handling, compliance frameworks
+└── eval/           # 📊 Investment decision accuracy and performance metrics
+
+docs/
+├── ma-workflows/   # 💼 M&A workflow documentation and guides
+├── architecture/   # 🏗️ System architecture and design rationale
+└── deployment/     # 🚀 Deployment guides and AWS planning
+
+.github/workflows/
+├── ma-deal-pipeline.yml         # 🏦 Complete M&A deal execution automation
+├── ma-risk-assessment.yml       # ⚠️ Risk management and regulatory compliance
+├── ma-valuation-validation.yml  # 💎 Financial model validation and stress testing
+└── ma-deal-management.yml       # 📊 Executive portfolio oversight and coordination
 ```

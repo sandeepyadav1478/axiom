@@ -1,7 +1,8 @@
-"""AI Provider Factory for Investment Banking Analytics."""
+"""AI Provider Factory for Investment Banking Analytics with API Key Failover."""
 
 from axiom.config.ai_layer_config import AnalysisLayer, ai_layer_mapping
 from axiom.config.settings import settings
+from axiom.core.api_management.failover_key_manager import failover_manager
 
 from .base_ai_provider import AIProviderError, BaseAIProvider
 from .claude_provider import ClaudeProvider
@@ -24,22 +25,37 @@ class AIProviderFactory:
         self._initialize_providers()
 
     def _initialize_providers(self):
-        """Initialize all configured AI providers."""
+        """Initialize all configured AI providers with failover support."""
         configured_providers = settings.get_configured_providers()
 
         for provider_name in configured_providers:
             try:
+                # Configure failover keys for this provider
+                provider_keys = settings.get_provider_keys(provider_name)
+                if provider_keys:
+                    failover_manager.configure_provider(
+                        provider_name,
+                        provider_keys,
+                        enable_rotation=settings.is_rotation_enabled(provider_name)
+                    )
+
                 config = settings.get_provider_config(provider_name)
                 provider_class = self.PROVIDER_CLASSES.get(provider_name)
 
                 if provider_class:
+                    # Use current active key from failover manager
+                    current_key = failover_manager.get_active_key(provider_name) or config["api_key"]
+                    
                     provider = provider_class(
-                        api_key=config["api_key"],
+                        api_key=current_key,
                         base_url=config.get("base_url"),
                         model_name=config["model_name"],
                     )
                     self._providers[provider_name] = provider
-                    print(f"✅ Initialized {provider_name} provider")
+                    
+                    key_count = len(provider_keys) if provider_keys else 1
+                    rotation_status = "with failover" if settings.is_rotation_enabled(provider_name) else "single key"
+                    print(f"✅ Initialized {provider_name} provider ({key_count} keys, {rotation_status})")
                 else:
                     print(f"⚠️  Unknown provider type: {provider_name}")
 

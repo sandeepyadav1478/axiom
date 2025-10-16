@@ -4,7 +4,7 @@ import asyncio
 import sys
 
 from axiom.config.settings import settings
-from axiom.graph.graph import run_research
+from axiom.core.orchestration.graph import run_research
 from axiom.tracing.langsmith_tracer import create_trace_id, get_trace_url
 
 

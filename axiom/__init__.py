@@ -6,8 +6,8 @@ __description__ = "Investment Banking Analytics Platform — AI-Powered Due Dili
 
 from axiom.config.schemas import Citation, Evidence, ResearchBrief
 from axiom.config.settings import settings
-from axiom.graph.graph import create_research_graph, run_research
-from axiom.workflows.due_diligence import (
+from axiom.core.orchestration.graph import create_research_graph, run_research
+from axiom.core.analysis_engines.due_diligence import (
     CommercialDDResult,
     ComprehensiveDDResult,
     FinancialDDResult,
@@ -18,14 +18,14 @@ from axiom.workflows.due_diligence import (
 )
 
 # M&A Workflow Imports
-from axiom.workflows.target_screening import (
+from axiom.core.analysis_engines.target_screening import (
     MATargetScreeningWorkflow,
     ScreeningResult,
     TargetCriteria,
     TargetProfile,
     run_target_screening,
 )
-from axiom.workflows.valuation import (
+from axiom.core.analysis_engines.valuation import (
     ComparableAnalysis,
     DCFAnalysis,
     MAValuationWorkflow,

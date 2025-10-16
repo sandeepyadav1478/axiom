@@ -18,27 +18,29 @@ jobs:
           
       - name: Update PR Description
         run: |
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          # Get branch from triggering workflow
+          BRANCH_NAME="${{ github.event.workflow_run.head_branch }}"
           FEATURE_NAME=$(echo "$BRANCH_NAME" | sed 's/feature\///' | sed 's/-/ /g')
           
-          # Check if PR exists for this branch
+          echo "Updating PR description for branch: $BRANCH_NAME"
+          
+          # Get ALL commit messages from branch
+          COMMIT_MESSAGES=$(git log --format="- %s" origin/main..origin/$BRANCH_NAME --reverse)
+          
+          # Create PR description with all commit messages
+          echo "## $FEATURE_NAME" > pr_description.txt
+          echo "" >> pr_description.txt
+          echo "### All Commit Messages:" >> pr_description.txt
+          echo "$COMMIT_MESSAGES" >> pr_description.txt
+          
+          # Find and update the PR (always update, don't check if exists)
           EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "null")
           
           if [ "$EXISTING_PR" != "null" ]; then
-            # Get ALL commit messages from branch
-            COMMIT_MESSAGES=$(git log --format="- %s" origin/main..HEAD --reverse)
-            
-            # Create PR description file
-            echo "## $FEATURE_NAME" > pr_description.txt
-            echo "" >> pr_description.txt
-            echo "### All Commit Messages:" >> pr_description.txt
-            echo "$COMMIT_MESSAGES" >> pr_description.txt
-            
-            # Update PR description
             gh pr edit "$EXISTING_PR" --body-file pr_description.txt
-            echo "Updated PR #$EXISTING_PR with all commit messages"
+            echo "✅ Updated PR #$EXISTING_PR with all commit messages"
           else
-            echo "No PR exists for branch $BRANCH_NAME"
+            echo "⚠️ No PR found for branch $BRANCH_NAME"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -328,9 +328,65 @@ mkdir -p dir1 dir2 dir3 && cp -r source/* dest/ && chmod 644 dest/*.py
 #### **MANDATORY EFFICIENCY RULES**
 1. **Git Operations**: ALWAYS use `git add -A && git commit && git push`
 2. **File Operations**: Use `cp -r source/* dest/` for bulk copying
-3. **Directory Creation**: Use `mkdir -p {dir1,dir2,dir3}` for multiple directories  
+3. **Directory Creation**: Use `mkdir -p {dir1,dir2,dir3}` for multiple directories
 4. **Code Updates**: Update multiple files in single `apply_diff` operation
 5. **Testing**: Combine validation steps: `source .venv/bin/activate && python tests/validate_system.py && python demo_ma_analysis.py`
+
+### 🔍 **LIBRARY-FIRST DEVELOPMENT APPROACH**
+
+#### **ALWAYS CHECK FOR EXISTING PACKAGES FIRST**
+```bash
+# ❌ WRONG: Implementing complex functionality from scratch
+# Writing custom API rate limiting, retry logic, financial calculations
+
+# ✅ CORRECT: Search for existing packages first
+pip search "api rate limiting"
+# Find: tenacity, backoff, ratelimit packages
+
+# ✅ CORRECT: Use well-maintained existing libraries
+pip install tenacity  # For retry logic
+pip install ratelimit  # For rate limiting
+pip install yfinance  # For financial data instead of custom scraping
+```
+
+#### **PACKAGE EVALUATION CRITERIA**
+```python
+# Check these before implementing custom code:
+EVALUATION_CHECKLIST = [
+    "Package actively maintained (commits within 6 months)",
+    "Good documentation and examples",
+    "Reasonable number of stars/downloads",
+    "Compatible with Python 3.10+",
+    "No security vulnerabilities",
+    "Reasonable dependencies (not bloated)",
+    "Production-ready (not alpha/beta)"
+]
+
+# Examples of good packages to prefer over custom implementation:
+RECOMMENDED_PACKAGES = {
+    "retry_logic": "tenacity",           # Instead of custom retry
+    "rate_limiting": "ratelimit",        # Instead of custom rate limiting
+    "financial_data": "yfinance",        # Instead of custom Yahoo Finance scraping
+    "http_client": "httpx",              # Instead of requests/urllib
+    "async_tasks": "asyncio",            # Built-in, no custom task runners
+    "validation": "pydantic",            # Instead of custom validators
+    "config": "pydantic-settings",       # Instead of custom config
+    "cli": "typer",                      # Instead of custom CLI parsing
+    "logging": "structlog",              # Better than custom logging
+}
+```
+
+#### **IMPLEMENTATION PRIORITY**
+1. **Search PyPI first**: Use `pip search` or check PyPI.org
+2. **Evaluate package quality**: Check GitHub activity, documentation
+3. **Test integration**: Quick POC with the package
+4. **Only implement custom**: If no suitable package exists or packages are outdated/insecure
+
+#### **TIME SAVINGS IMPACT**
+- **80% less custom code** by using existing packages
+- **50% faster development** by not reinventing wheels
+- **Better reliability** from battle-tested packages
+- **Easier maintenance** with community-supported libraries
 
 #### **PERFORMANCE IMPACT**
 - **60-80% reduction in terminal operations**

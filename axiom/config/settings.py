@@ -13,18 +13,22 @@ class Settings(BaseSettings):
     tavily_api_key: str = Field("test_tavily_key", env="TAVILY_API_KEY")
     firecrawl_api_key: str = Field("test_firecrawl_key", env="FIRECRAWL_API_KEY")
 
-    # Multi-AI Provider Support - Dynamic Configuration
-    # Users configure only the providers they want to use
+    # Multi-AI Provider Support - Dynamic Configuration with Failover
+    # Users can configure multiple keys per provider for quota failover
 
-    # OpenAI Configuration (optional)
+    # OpenAI Configuration (supports multiple keys)
     openai_api_key: str | None = Field(None, env="OPENAI_API_KEY")
+    openai_api_keys: str | None = Field(None, env="OPENAI_API_KEYS")  # Comma-separated multiple keys
     openai_base_url: str = Field("https://api.openai.com/v1", env="OPENAI_BASE_URL")
     openai_model_name: str = Field("gpt-4o-mini", env="OPENAI_MODEL_NAME")
+    openai_rotation_enabled: bool = Field(True, env="OPENAI_ROTATION_ENABLED")
 
-    # Claude Configuration (optional)
+    # Claude Configuration (supports multiple keys)
     claude_api_key: str | None = Field(None, env="CLAUDE_API_KEY")
+    claude_api_keys: str | None = Field(None, env="CLAUDE_API_KEYS")  # Comma-separated multiple keys
     claude_base_url: str = Field("https://api.anthropic.com", env="CLAUDE_BASE_URL")
     claude_model_name: str = Field("claude-3-sonnet-20240229", env="CLAUDE_MODEL_NAME")
+    claude_rotation_enabled: bool = Field(True, env="CLAUDE_ROTATION_ENABLED")
 
     # SGLang Configuration (optional - for local inference)
     sglang_api_key: str | None = Field(
@@ -50,6 +54,18 @@ class Settings(BaseSettings):
         "https://generativelanguage.googleapis.com/v1beta", env="GEMINI_BASE_URL"
     )
     gemini_model_name: str = Field("gemini-1.5-pro", env="GEMINI_MODEL_NAME")
+
+    # Data Provider APIs (supports multiple keys)
+    tavily_api_key: str = Field("test_tavily_key", env="TAVILY_API_KEY")
+    tavily_api_keys: str | None = Field(None, env="TAVILY_API_KEYS")  # Multiple Tavily keys
+    tavily_rotation_enabled: bool = Field(True, env="TAVILY_ROTATION_ENABLED")
+    
+    firecrawl_api_key: str = Field("test_firecrawl_key", env="FIRECRAWL_API_KEY")
+    firecrawl_api_keys: str | None = Field(None, env="FIRECRAWL_API_KEYS")  # Multiple Firecrawl keys
+    firecrawl_rotation_enabled: bool = Field(True, env="FIRECRAWL_ROTATION_ENABLED")
+
+    # Global API Rotation Setting
+    api_key_rotation_enabled: bool = Field(True, env="API_KEY_ROTATION_ENABLED")
 
     # LangSmith tracing
     langchain_tracing_v2: bool = Field(True, env="LANGCHAIN_TRACING_V2")
@@ -96,11 +112,11 @@ class Settings(BaseSettings):
         """Get list of providers that have valid API keys configured"""
         providers = []
 
-        # Check each provider for valid credentials
-        if self.openai_api_key and self.openai_api_key != "sk-placeholder":
+        # Check each provider for valid credentials (single or multiple keys)
+        if self._has_valid_keys("openai"):
             providers.append("openai")
 
-        if self.claude_api_key and self.claude_api_key != "sk-placeholder":
+        if self._has_valid_keys("claude"):
             providers.append("claude")
 
         # SGLang doesn't need API key for local inference
@@ -114,6 +130,69 @@ class Settings(BaseSettings):
             providers.append("gemini")
 
         return providers
+    
+    def _has_valid_keys(self, provider: str) -> bool:
+        """Check if provider has valid API keys (single or multiple)."""
+        
+        if provider == "openai":
+            single_key = self.openai_api_key and self.openai_api_key not in ["sk-placeholder", "test_key"]
+            multiple_keys = self.openai_api_keys and self.openai_api_keys.strip()
+            return single_key or multiple_keys
+            
+        elif provider == "claude":
+            single_key = self.claude_api_key and self.claude_api_key not in ["sk-placeholder", "test_key"]
+            multiple_keys = self.claude_api_keys and self.claude_api_keys.strip()
+            return single_key or multiple_keys
+        
+        return False
+    
+    def get_provider_keys(self, provider: str) -> list[str]:
+        """Get all API keys for a provider (single or multiple)."""
+        
+        if provider == "openai":
+            # Check for multiple keys first, then single key
+            if self.openai_api_keys and self.openai_api_keys.strip():
+                return [k.strip() for k in self.openai_api_keys.split(",") if k.strip()]
+            elif self.openai_api_key and self.openai_api_key not in ["sk-placeholder", "test_key"]:
+                return [self.openai_api_key]
+            
+        elif provider == "claude":
+            # Check for multiple keys first, then single key
+            if self.claude_api_keys and self.claude_api_keys.strip():
+                return [k.strip() for k in self.claude_api_keys.split(",") if k.strip()]
+            elif self.claude_api_key and self.claude_api_key not in ["sk-placeholder", "test_key"]:
+                return [self.claude_api_key]
+        
+        elif provider == "tavily":
+            if self.tavily_api_keys and self.tavily_api_keys.strip():
+                return [k.strip() for k in self.tavily_api_keys.split(",") if k.strip()]
+            elif self.tavily_api_key and self.tavily_api_key not in ["test_tavily_key", "placeholder"]:
+                return [self.tavily_api_key]
+        
+        elif provider == "firecrawl":
+            if self.firecrawl_api_keys and self.firecrawl_api_keys.strip():
+                return [k.strip() for k in self.firecrawl_api_keys.split(",") if k.strip()]
+            elif self.firecrawl_api_key and self.firecrawl_api_key not in ["test_firecrawl_key", "placeholder"]:
+                return [self.firecrawl_api_key]
+        
+        return []
+    
+    def is_rotation_enabled(self, provider: str) -> bool:
+        """Check if rotation is enabled for specific provider."""
+        
+        if not self.api_key_rotation_enabled:
+            return False
+        
+        if provider == "openai":
+            return self.openai_rotation_enabled
+        elif provider == "claude":
+            return self.claude_rotation_enabled
+        elif provider == "tavily":
+            return self.tavily_rotation_enabled
+        elif provider == "firecrawl":
+            return self.firecrawl_rotation_enabled
+        
+        return True  # Default to enabled
 
     def get_provider_config(self, provider: str) -> dict[str, Any]:
         """Get configuration for specific AI provider (only if configured)"""

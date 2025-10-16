@@ -13,9 +13,13 @@ AI-Powered Investment Banking Platform — M&A Due Diligence, Company Valuation,
 
 ## 🚀 Quick Start
 
-### 1. Activate Virtual Environment & Install
+### 1. Quick Setup (Auto-Activation ⚡)
 ```bash
-# IMPORTANT: Activate the virtual environment first
+# Option 1: Automatic setup with pyenv + direnv (Recommended)
+./scripts/setup-development-environment.sh
+# Sets up Python 3.13, auto-activation, and dependencies
+
+# Option 2: Manual setup
 source .venv/bin/activate
 
 # Verify installation
@@ -25,6 +29,14 @@ python tests/validate_system.py
 # Test core M&A functionality
 python demo_ma_analysis.py
 # Expected: 5/5 demos successful ✅
+```
+
+### 🐍 Auto-Activation Features
+```bash
+# After setup, environment auto-activates when entering directory
+cd axiom/  # Automatically activates Python 3.13 + dependencies
+python --version  # Shows: Python 3.13.7
+# No more manual: source .venv/bin/activate
 ```
 
 ### 2. Environment Setup

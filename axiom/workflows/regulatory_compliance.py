@@ -11,11 +11,11 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from axiom.ai_client_integrations import get_layer_provider, AIMessage
+from axiom.ai_client_integrations import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
-from axiom.config.schemas import Evidence, Citation
-from axiom.tools.tavily_client import TavilyClient
+from axiom.config.schemas import Citation, Evidence
 from axiom.tools.firecrawl_client import FirecrawlClient
+from axiom.tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.utils.error_handling import FinancialDataError
 
@@ -26,26 +26,26 @@ class HSRAnalysis(BaseModel):
     filing_required: bool = Field(..., description="Whether HSR filing is required")
     filing_threshold: str = Field(..., description="HSR threshold analysis")
     transaction_size: float | None = Field(None, description="Transaction value for HSR calculation")
-    
+
     # Filing Requirements
     filing_deadline: datetime | None = Field(None, description="HSR filing deadline")
     waiting_period: int = Field(default=30, description="HSR waiting period (days)")
     second_request_risk: float = Field(default=0.15, description="Probability of second request")
-    
+
     # Competitive Analysis
     market_share_analysis: str = Field(default="", description="Combined market share analysis")
     competitive_overlap: str = Field(default="minimal", description="Business overlap assessment")
     antitrust_risk_level: str = Field(default="LOW", description="Antitrust risk assessment")
-    
+
     # Timeline and Strategy
     estimated_approval_timeline: str = Field(default="45-75 days", description="Expected approval timeline")
     regulatory_strategy: list[str] = Field(default=[], description="Regulatory approval strategy")
     potential_remedies: list[str] = Field(default=[], description="Potential required remedies")
-    
+
     # Documentation Requirements
     required_documents: list[str] = Field(default=[], description="Required HSR documentation")
     notification_forms: list[str] = Field(default=[], description="Required notification forms")
-    
+
     # Analysis Quality
     analysis_confidence: float = Field(default=0.0, description="HSR analysis confidence")
 
@@ -56,12 +56,12 @@ class InternationalClearance(BaseModel):
     jurisdiction: str = Field(..., description="Regulatory jurisdiction")
     filing_required: bool = Field(..., description="Whether filing is required")
     filing_threshold_analysis: str = Field(..., description="Threshold analysis")
-    
+
     # Timeline and Requirements
     expected_timeline: str = Field(..., description="Expected approval timeline")
     filing_fee: str = Field(..., description="Regulatory filing fee")
     required_documents: list[str] = Field(default=[], description="Required documentation")
-    
+
     # Risk Assessment
     approval_probability: float = Field(default=0.90, description="Approval probability")
     potential_conditions: list[str] = Field(default=[], description="Potential approval conditions")
@@ -75,43 +75,43 @@ class RegulatoryComplianceResult(BaseModel):
     acquirer_company: str = Field(default="Acquiring Entity", description="Acquiring company name")
     transaction_value: float | None = Field(None, description="Transaction value")
     analysis_date: datetime = Field(default_factory=datetime.now)
-    
+
     # HSR Analysis
     hsr_analysis: HSRAnalysis = Field(..., description="HSR filing analysis")
-    
+
     # International Clearances
     international_clearances: list[InternationalClearance] = Field(
         default=[], description="International regulatory clearances"
     )
-    
+
     # Industry-Specific Approvals
     industry_specific_approvals: dict[str, Any] = Field(
         default={}, description="Industry-specific regulatory requirements"
     )
-    
+
     # Overall Assessment
     overall_regulatory_risk: str = Field(..., description="Overall regulatory risk level")
     total_approval_timeline: str = Field(..., description="Total regulatory approval timeline")
     approval_probability: float = Field(..., description="Overall approval probability")
-    
+
     # Regulatory Strategy
     regulatory_strategy: list[str] = Field(default=[], description="Regulatory approval strategy")
     key_regulatory_risks: list[str] = Field(default=[], description="Key regulatory risks")
     mitigation_strategies: list[str] = Field(default=[], description="Risk mitigation strategies")
-    
+
     # Critical Path
     critical_path_items: list[str] = Field(default=[], description="Critical path regulatory items")
     potential_delays: list[str] = Field(default=[], description="Potential regulatory delays")
     contingency_plans: list[str] = Field(default=[], description="Delay contingency plans")
-    
+
     # Compliance Requirements
     required_filings: list[str] = Field(default=[], description="All required regulatory filings")
     estimated_costs: dict[str, float] = Field(default={}, description="Estimated regulatory costs")
-    
+
     # Supporting Evidence
     evidence: list[Evidence] = Field(default=[], description="Supporting regulatory evidence")
     citations: list[Citation] = Field(default=[], description="Regulatory source citations")
-    
+
     # Metadata
     analysis_confidence: float = Field(default=0.0, description="Analysis confidence level")
     analysis_duration: float = Field(default=0.0, description="Analysis execution time")
@@ -126,9 +126,9 @@ class MARegulatoryComplianceWorkflow:
 
     @trace_node("ma_regulatory_compliance")
     async def execute_comprehensive_regulatory_analysis(
-        self, 
+        self,
         target_company: str,
-        acquirer_company: str = "Acquiring Entity", 
+        acquirer_company: str = "Acquiring Entity",
         transaction_value: float | None = None,
         transaction_structure: dict[str, Any] = None
     ) -> RegulatoryComplianceResult:
@@ -136,13 +136,13 @@ class MARegulatoryComplianceWorkflow:
 
         start_time = datetime.now()
         print(f"📜 Starting Regulatory Compliance Analysis for {target_company}")
-        
+
         try:
             # Execute regulatory analyses in parallel
             hsr_task = self._analyze_hsr_requirements(target_company, acquirer_company, transaction_value)
             international_task = self._analyze_international_clearances(target_company, transaction_value)
             industry_task = self._analyze_industry_specific_approvals(target_company, transaction_structure)
-            
+
             # Wait for all regulatory analyses
             hsr_analysis, international_clearances, industry_approvals = await asyncio.gather(
                 hsr_task, international_task, industry_task,
@@ -153,11 +153,11 @@ class MARegulatoryComplianceWorkflow:
             if isinstance(hsr_analysis, Exception):
                 print(f"⚠️ HSR analysis failed: {str(hsr_analysis)}")
                 hsr_analysis = self._create_default_hsr_analysis(transaction_value)
-                
+
             if isinstance(international_clearances, Exception):
                 print(f"⚠️ International clearance analysis failed: {str(international_clearances)}")
                 international_clearances = []
-                
+
             if isinstance(industry_approvals, Exception):
                 print(f"⚠️ Industry approval analysis failed: {str(industry_approvals)}")
                 industry_approvals = {}
@@ -174,21 +174,21 @@ class MARegulatoryComplianceWorkflow:
 
             # Calculate overall regulatory assessment
             result = await self._calculate_overall_regulatory_risk(result)
-            
+
             # Generate regulatory strategy and timeline
             result = await self._develop_regulatory_strategy(result)
-            
+
             # Create executive regulatory summary
             result = await self._synthesize_regulatory_summary(result)
-            
+
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
-            
+
             print(f"✅ Regulatory Analysis completed in {execution_time:.1f}s")
             print(f"📜 Overall Risk: {result.overall_regulatory_risk}")
             print(f"⏰ Timeline: {result.total_approval_timeline}")
             print(f"📊 Approval Probability: {result.approval_probability:.0%}")
-            
+
             return result
 
         except Exception as e:
@@ -202,11 +202,11 @@ class MARegulatoryComplianceWorkflow:
         """Analyze Hart-Scott-Rodino filing requirements."""
 
         print(f"📋 Analyzing HSR Requirements for {target}")
-        
+
         # HSR threshold analysis (2024 thresholds)
         hsr_size_threshold = 101_000_000  # $101M size-of-transaction threshold
         hsr_required = transaction_value and transaction_value > hsr_size_threshold
-        
+
         # Calculate filing deadline (if deal announced)
         filing_deadline = None
         if hsr_required:
@@ -214,10 +214,10 @@ class MARegulatoryComplianceWorkflow:
 
         # Gather competitive intelligence for antitrust analysis
         competitive_data = await self._gather_competitive_intelligence(target, acquirer)
-        
+
         # AI-powered antitrust risk analysis
         antitrust_analysis = await self._analyze_antitrust_risk(target, acquirer, competitive_data)
-        
+
         return HSRAnalysis(
             filing_required=hsr_required,
             filing_threshold=f"Transaction value ${transaction_value/1e6:.0f}M {'exceeds' if hsr_required else 'below'} $101M HSR threshold",
@@ -231,7 +231,7 @@ class MARegulatoryComplianceWorkflow:
             estimated_approval_timeline=antitrust_analysis.get("timeline", "45-75 days"),
             regulatory_strategy=antitrust_analysis.get("strategy", [
                 "Engage experienced antitrust counsel",
-                "Prepare comprehensive economic analysis", 
+                "Prepare comprehensive economic analysis",
                 "Develop proactive DOJ/FTC communication strategy"
             ]),
             required_documents=[
@@ -249,15 +249,14 @@ class MARegulatoryComplianceWorkflow:
         """Analyze international merger control requirements."""
 
         print(f"🌍 Analyzing International Clearances for {target}")
-        
+
         clearances = []
-        
+
         # EU Merger Regulation thresholds
-        eu_threshold_1 = 5_000_000_000  # €5B worldwide turnover
         eu_threshold_2 = 250_000_000    # €250M EU turnover
-        
+
         eu_required = transaction_value and transaction_value > eu_threshold_2
-        
+
         clearances.append(InternationalClearance(
             jurisdiction="European Union",
             filing_required=eu_required,
@@ -272,12 +271,12 @@ class MARegulatoryComplianceWorkflow:
         # UK Merger Control
         uk_threshold = 70_000_000  # £70M turnover threshold
         uk_required = transaction_value and transaction_value > uk_threshold
-        
+
         clearances.append(InternationalClearance(
             jurisdiction="United Kingdom",
             filing_required=uk_required,
             filing_threshold_analysis=f"UK thresholds: {'Met' if uk_required else 'Not met'} - £70M UK turnover",
-            expected_timeline="40-90 days" if uk_required else "N/A", 
+            expected_timeline="40-90 days" if uk_required else "N/A",
             filing_fee="£40,000-£160,000" if uk_required else "N/A",
             approval_probability=0.92 if uk_required else 1.0
         ))
@@ -285,7 +284,7 @@ class MARegulatoryComplianceWorkflow:
         # Canada Competition Act
         canada_threshold = 93_000_000  # CAD $93M threshold (2024)
         canada_required = transaction_value and transaction_value > canada_threshold
-        
+
         clearances.append(InternationalClearance(
             jurisdiction="Canada",
             filing_required=canada_required,
@@ -302,13 +301,13 @@ class MARegulatoryComplianceWorkflow:
         """Analyze industry-specific regulatory approvals."""
 
         print(f"🏭 Analyzing Industry-Specific Approvals for {target}")
-        
+
         # Gather industry intelligence
         industry_data = await self._identify_target_industry(target)
         industry = industry_data.get("primary_industry", "technology")
-        
+
         approvals = {}
-        
+
         # Technology/AI sector approvals
         if "technology" in industry.lower() or "ai" in industry.lower():
             approvals["technology_review"] = {
@@ -319,7 +318,7 @@ class MARegulatoryComplianceWorkflow:
                 "timeline": "30-60 days",
                 "risk_level": "MEDIUM"
             }
-        
+
         # Financial services approvals
         if "financial" in industry.lower() or "fintech" in industry.lower():
             approvals["financial_services"] = {
@@ -330,7 +329,7 @@ class MARegulatoryComplianceWorkflow:
                 "timeline": "90-180 days",
                 "risk_level": "HIGH"
             }
-        
+
         # Healthcare approvals
         if "health" in industry.lower() or "pharma" in industry.lower():
             approvals["healthcare"] = {
@@ -348,7 +347,7 @@ class MARegulatoryComplianceWorkflow:
         """Calculate overall regulatory risk assessment."""
 
         risk_factors = []
-        
+
         # HSR risk contribution
         if result.hsr_analysis.filing_required:
             if result.hsr_analysis.antitrust_risk_level == "HIGH":
@@ -378,7 +377,7 @@ class MARegulatoryComplianceWorkflow:
 
         # Calculate weighted overall risk
         overall_score = sum(risk_factors) / len(risk_factors)
-        
+
         if overall_score >= 0.6:
             result.overall_regulatory_risk = "HIGH"
             result.approval_probability = 0.70
@@ -406,10 +405,10 @@ class MARegulatoryComplianceWorkflow:
 
         # Timeline calculation
         max_timeline_days = 45  # Base case
-        
+
         if result.hsr_analysis.filing_required:
             max_timeline_days = max(max_timeline_days, 75)  # HSR standard timeline
-            
+
         for clearance in result.international_clearances:
             if "90-180" in clearance.expected_timeline:
                 max_timeline_days = max(max_timeline_days, 180)
@@ -499,11 +498,11 @@ Provide:
         if "regulatory strategy" in content.lower():
             strategy_section = content.split("regulatory strategy")[1].split("\n")[:5]
             result.regulatory_strategy = [s.strip("- ").strip() for s in strategy_section if s.strip()]
-        
+
         if not result.regulatory_strategy:
             result.regulatory_strategy = [
                 "Engage experienced antitrust counsel",
-                "Begin regulatory filing preparation immediately", 
+                "Begin regulatory filing preparation immediately",
                 "Develop government relations strategy",
                 "Prepare economic analysis and supporting documentation",
                 "Create regulatory approval timeline and milestones"
@@ -544,7 +543,7 @@ Provide:
         """Gather competitive intelligence for antitrust analysis."""
 
         competitive_data = {"evidence": []}
-        
+
         try:
             # Search for market share and competitive positioning
             competitive_queries = [
@@ -602,7 +601,7 @@ Provide:
                 3. Historical precedent for similar transactions
                 4. DOJ/FTC enforcement priorities and recent actions
                 5. Probability of second request or challenge
-                
+
                 Provide conservative risk assessment for investment banking planning."""
             ),
             AIMessage(
@@ -641,7 +640,7 @@ Focus on factors that could trigger extended regulatory review or deal challenge
         """Parse AI antitrust risk analysis."""
 
         import re
-        
+
         # Extract antitrust risk level
         antitrust_risk = "MEDIUM"
         if "high" in content.lower() or "significant" in content.lower():
@@ -686,7 +685,7 @@ Focus on factors that could trigger extended regulatory review or deal challenge
 
             if industry_search and industry_search.get("results"):
                 content = industry_search["results"][0].get("content", "").lower()
-                
+
                 # Industry classification logic
                 if any(term in content for term in ["ai", "artificial intelligence", "machine learning"]):
                     return {"primary_industry": "artificial intelligence"}
@@ -696,7 +695,7 @@ Focus on factors that could trigger extended regulatory review or deal challenge
                     return {"primary_industry": "healthcare"}
                 else:
                     return {"primary_industry": "technology"}
-            
+
         except Exception:
             pass
 
@@ -706,10 +705,10 @@ Focus on factors that could trigger extended regulatory review or deal challenge
         """Create default HSR analysis when detailed analysis fails."""
 
         hsr_required = transaction_value and transaction_value > 101_000_000
-        
+
         return HSRAnalysis(
             filing_required=hsr_required,
-            filing_threshold=f"Transaction value requires HSR filing" if hsr_required else "Below HSR threshold",
+            filing_threshold="Transaction value requires HSR filing" if hsr_required else "Below HSR threshold",
             transaction_size=transaction_value,
             waiting_period=30,
             second_request_risk=0.15,
@@ -726,7 +725,7 @@ async def run_regulatory_compliance_analysis(
     transaction_value: float | None = None
 ) -> RegulatoryComplianceResult:
     """Run comprehensive regulatory compliance analysis."""
-    
+
     workflow = MARegulatoryComplianceWorkflow()
     return await workflow.execute_comprehensive_regulatory_analysis(
         target_company, acquirer_company, transaction_value
@@ -735,6 +734,6 @@ async def run_regulatory_compliance_analysis(
 
 async def run_hsr_analysis(target_company: str, transaction_value: float) -> HSRAnalysis:
     """Run focused HSR filing analysis."""
-    
+
     workflow = MARegulatoryComplianceWorkflow()
     return await workflow._analyze_hsr_requirements(target_company, "Acquirer", transaction_value)

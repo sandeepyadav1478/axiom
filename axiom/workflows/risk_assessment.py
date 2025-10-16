@@ -6,16 +6,16 @@ regulatory, and integration risks with AI-powered mitigation strategies.
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-from axiom.ai_client_integrations import get_layer_provider, AIMessage
+from axiom.ai_client_integrations import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
-from axiom.config.schemas import Evidence, Citation
-from axiom.tools.tavily_client import TavilyClient
+from axiom.config.schemas import Evidence
 from axiom.tools.firecrawl_client import FirecrawlClient
+from axiom.tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.utils.error_handling import FinancialDataError
 
@@ -28,21 +28,21 @@ class RiskCategory(BaseModel):
     risk_score: float = Field(..., description="Quantitative risk score (0.0-1.0)")
     probability: float = Field(..., description="Risk occurrence probability (0.0-1.0)")
     impact: str = Field(..., description="Potential impact description")
-    
+
     # Risk Details
     key_risks: list[str] = Field(default=[], description="Specific risks identified")
     risk_drivers: list[str] = Field(default=[], description="Primary risk drivers")
     early_warning_indicators: list[str] = Field(default=[], description="KPIs to monitor")
-    
+
     # Mitigation
     mitigation_strategies: list[str] = Field(default=[], description="Risk mitigation approaches")
     contingency_plans: list[str] = Field(default=[], description="Contingency planning")
     responsible_parties: list[str] = Field(default=[], description="Risk owners")
-    
+
     # Timeline
     risk_timeline: str = Field(default="ongoing", description="When risk materializes")
     mitigation_timeline: str = Field(default="immediate", description="Mitigation timeline")
-    
+
     # Supporting Evidence
     evidence: list[Evidence] = Field(default=[], description="Supporting risk evidence")
     confidence_level: float = Field(default=0.0, description="Risk assessment confidence")
@@ -54,38 +54,38 @@ class RiskAssessmentResult(BaseModel):
     target_company: str = Field(..., description="Target company name")
     deal_value: float | None = Field(None, description="Deal value for context")
     assessment_date: datetime = Field(default_factory=datetime.now)
-    
+
     # Overall Risk Assessment
     overall_risk_rating: str = Field(..., description="LOW, MEDIUM, HIGH, CRITICAL")
     overall_risk_score: float = Field(..., description="Composite risk score (0.0-1.0)")
     deal_probability: float = Field(..., description="Probability of successful completion")
-    
+
     # Risk Categories
     financial_risk: RiskCategory = Field(..., description="Financial risk assessment")
     operational_risk: RiskCategory = Field(..., description="Operational risk assessment")
     market_risk: RiskCategory = Field(..., description="Market risk assessment")
     regulatory_risk: RiskCategory = Field(..., description="Regulatory risk assessment")
     integration_risk: RiskCategory = Field(..., description="Integration risk assessment")
-    
+
     # Critical Risk Summary
     critical_risks: list[str] = Field(default=[], description="Deal-breaking risks")
     high_priority_risks: list[str] = Field(default=[], description="High-priority risks")
     manageable_risks: list[str] = Field(default=[], description="Manageable risks")
-    
+
     # Risk Management Plan
     immediate_actions: list[str] = Field(default=[], description="Immediate risk actions")
     short_term_actions: list[str] = Field(default=[], description="30-day risk actions")
     long_term_actions: list[str] = Field(default=[], description="Long-term risk management")
-    
+
     # Monitoring Framework
     risk_monitoring_kpis: list[str] = Field(default=[], description="Risk monitoring KPIs")
     review_frequency: str = Field(default="weekly", description="Risk review frequency")
     escalation_triggers: list[str] = Field(default=[], description="Escalation criteria")
-    
+
     # Executive Summary
     executive_summary: str = Field(default="", description="Executive risk summary")
     investment_recommendation: str = Field(default="proceed_with_caution", description="Investment recommendation")
-    
+
     # Metadata
     analysis_confidence: float = Field(default=0.0, description="Overall analysis confidence")
     analysis_duration: float = Field(default=0.0, description="Analysis execution time")
@@ -100,8 +100,8 @@ class MAAdvancedRiskAssessment:
 
     @trace_node("ma_advanced_risk_assessment")
     async def execute_comprehensive_risk_analysis(
-        self, 
-        target_company: str, 
+        self,
+        target_company: str,
         deal_value: float | None = None,
         deal_context: dict[str, Any] = None
     ) -> RiskAssessmentResult:
@@ -109,7 +109,7 @@ class MAAdvancedRiskAssessment:
 
         start_time = datetime.now()
         print(f"⚠️ Starting Advanced Risk Assessment for {target_company}")
-        
+
         try:
             # Execute all risk assessments in parallel
             financial_task = self._assess_financial_risks(target_company, deal_value)
@@ -117,7 +117,7 @@ class MAAdvancedRiskAssessment:
             market_task = self._assess_market_risks(target_company, deal_context)
             regulatory_task = self._assess_regulatory_risks(target_company, deal_value)
             integration_task = self._assess_integration_risks(target_company, deal_context)
-            
+
             # Wait for all risk assessments
             financial_risk, operational_risk, market_risk, regulatory_risk, integration_risk = await asyncio.gather(
                 financial_task, operational_task, market_task, regulatory_task, integration_task,
@@ -128,19 +128,19 @@ class MAAdvancedRiskAssessment:
             if isinstance(financial_risk, Exception):
                 print(f"⚠️ Financial risk assessment failed: {str(financial_risk)}")
                 financial_risk = self._create_default_risk_category("financial", "MEDIUM")
-            
+
             if isinstance(operational_risk, Exception):
                 print(f"⚠️ Operational risk assessment failed: {str(operational_risk)}")
                 operational_risk = self._create_default_risk_category("operational", "MEDIUM")
-                
+
             if isinstance(market_risk, Exception):
                 print(f"⚠️ Market risk assessment failed: {str(market_risk)}")
                 market_risk = self._create_default_risk_category("market", "MEDIUM")
-                
+
             if isinstance(regulatory_risk, Exception):
                 print(f"⚠️ Regulatory risk assessment failed: {str(regulatory_risk)}")
                 regulatory_risk = self._create_default_risk_category("regulatory", "LOW")
-                
+
             if isinstance(integration_risk, Exception):
                 print(f"⚠️ Integration risk assessment failed: {str(integration_risk)}")
                 integration_risk = self._create_default_risk_category("integration", "HIGH")
@@ -158,20 +158,20 @@ class MAAdvancedRiskAssessment:
 
             # Calculate overall risk assessment
             result = await self._calculate_overall_risk_assessment(result)
-            
+
             # Generate risk management plan
             result = await self._generate_risk_management_plan(result)
-            
+
             # Create executive synthesis
             result = await self._synthesize_executive_risk_summary(result)
-            
+
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
-            
+
             print(f"✅ Advanced Risk Assessment completed in {execution_time:.1f}s")
             print(f"⚠️ Overall Risk: {result.overall_risk_rating} | Score: {result.overall_risk_score:.2f}")
             print(f"🎯 Deal Probability: {result.deal_probability:.0%} | Recommendation: {result.investment_recommendation}")
-            
+
             return result
 
         except Exception as e:
@@ -185,13 +185,13 @@ class MAAdvancedRiskAssessment:
         """Assess comprehensive financial risks."""
 
         print(f"💰 Analyzing Financial Risks for {company}")
-        
+
         # Gather financial risk intelligence
         financial_data = await self._gather_financial_risk_data(company)
-        
+
         # AI-powered financial risk analysis
         financial_analysis = await self._analyze_financial_risk_with_ai(company, financial_data, deal_value)
-        
+
         return RiskCategory(
             category="Financial Risk",
             risk_level=financial_analysis.get("risk_level", "MEDIUM"),
@@ -225,7 +225,7 @@ class MAAdvancedRiskAssessment:
         """Assess operational and management risks."""
 
         print(f"⚙️ Analyzing Operational Risks for {company}")
-        
+
         return RiskCategory(
             category="Operational Risk",
             risk_level="MEDIUM",
@@ -260,7 +260,7 @@ class MAAdvancedRiskAssessment:
         """Assess market and competitive risks."""
 
         print(f"📊 Analyzing Market Risks for {company}")
-        
+
         return RiskCategory(
             category="Market Risk",
             risk_level="MEDIUM",
@@ -295,13 +295,13 @@ class MAAdvancedRiskAssessment:
         """Assess regulatory and compliance risks."""
 
         print(f"📜 Analyzing Regulatory Risks for {company}")
-        
+
         # Determine HSR filing requirements
         hsr_required = deal_value and deal_value > 101_000_000  # $101M HSR threshold
-        
+
         regulatory_level = "LOW" if not hsr_required else "MEDIUM"
         regulatory_score = 0.20 if not hsr_required else 0.35
-        
+
         return RiskCategory(
             category="Regulatory Risk",
             risk_level=regulatory_level,
@@ -324,19 +324,19 @@ class MAAdvancedRiskAssessment:
             ],
             early_warning_indicators=[
                 "Regulatory inquiry or investigation",
-                "Industry regulatory policy changes", 
+                "Industry regulatory policy changes",
                 "Political or public scrutiny",
                 "Competitor regulatory challenges"
             ],
             confidence_level=0.90
         )
 
-    @trace_node("integration_risk_analysis")  
+    @trace_node("integration_risk_analysis")
     async def _assess_integration_risks(self, company: str, context: dict) -> RiskCategory:
         """Assess post-merger integration risks."""
 
         print(f"🤝 Analyzing Integration Risks for {company}")
-        
+
         return RiskCategory(
             category="Integration Risk",
             risk_level="HIGH",
@@ -374,7 +374,7 @@ class MAAdvancedRiskAssessment:
         # Calculate weighted risk score
         risk_weights = {
             "financial": 0.25,
-            "operational": 0.20, 
+            "operational": 0.20,
             "market": 0.15,
             "regulatory": 0.15,
             "integration": 0.25
@@ -395,7 +395,7 @@ class MAAdvancedRiskAssessment:
             result.overall_risk_rating = "HIGH"
             result.deal_probability = 0.60
         elif weighted_score >= 0.5:
-            result.overall_risk_rating = "MEDIUM"  
+            result.overall_risk_rating = "MEDIUM"
             result.deal_probability = 0.75
         elif weighted_score >= 0.3:
             result.overall_risk_rating = "MEDIUM-LOW"
@@ -409,7 +409,7 @@ class MAAdvancedRiskAssessment:
             result.financial_risk,
             result.operational_risk,
             result.market_risk,
-            result.regulatory_risk, 
+            result.regulatory_risk,
             result.integration_risk
         ]
 
@@ -450,7 +450,7 @@ class MAAdvancedRiskAssessment:
         # Short-term actions (30 days)
         result.short_term_actions = [
             "Execute key person retention agreements",
-            "Begin integration planning and timeline development", 
+            "Begin integration planning and timeline development",
             "Implement customer retention programs",
             "Establish synergy tracking mechanisms",
             "Create risk monitoring and reporting processes"
@@ -530,7 +530,7 @@ Provide:
 
         try:
             response = await provider.generate_response_async(messages, max_tokens=1000, temperature=0.03)
-            
+
             # Parse investment recommendation
             content_lower = response.content.lower()
             if "proceed" in content_lower and "stop" not in content_lower:
@@ -546,7 +546,7 @@ Provide:
             # Extract executive summary (simplified)
             sentences = response.content.split('.')[:3]
             result.executive_summary = '. '.join(sentences).strip() + '.'
-            
+
         except Exception as e:
             print(f"⚠️ Executive synthesis failed: {str(e)}")
             result.investment_recommendation = "proceed_with_caution"
@@ -558,11 +558,11 @@ Provide:
         """Gather financial risk intelligence."""
 
         financial_data = {"evidence": []}
-        
+
         # Search for financial risk indicators
         risk_queries = [
             f"{company} financial risk debt covenant compliance",
-            f"{company} customer concentration revenue risk", 
+            f"{company} customer concentration revenue risk",
             f"{company} cash flow volatility seasonal patterns",
             f"{company} working capital management efficiency"
         ]
@@ -615,11 +615,11 @@ Provide:
                 content="""You are a senior investment banking risk analyst specializing in financial risk assessment for M&A transactions.
                 Analyze financial risks focusing on:
                 1. Revenue sustainability and customer concentration
-                2. Profitability stability and margin pressures  
+                2. Profitability stability and margin pressures
                 3. Cash flow predictability and seasonality
                 4. Debt structure and covenant compliance
                 5. Working capital management efficiency
-                
+
                 Provide conservative risk assessment with quantitative scoring."""
             ),
             AIMessage(
@@ -661,7 +661,7 @@ Focus on deal-breaking financial risks that could jeopardize transaction success
         """Parse AI financial risk analysis response."""
 
         import re
-        
+
         # Extract risk level
         risk_level = "MEDIUM"
         if "high" in content.lower() or "critical" in content.lower():
@@ -684,7 +684,7 @@ Focus on deal-breaking financial risks that could jeopardize transaction success
             "impact": f"{risk_level.lower()} financial impact potential",
             "key_risks": [
                 "Revenue concentration and sustainability",
-                "Debt structure and covenant compliance", 
+                "Debt structure and covenant compliance",
                 "Cash flow volatility and predictability",
                 "Working capital management efficiency"
             ],
@@ -700,7 +700,7 @@ Focus on deal-breaking financial risks that could jeopardize transaction success
         """Create default risk category when analysis fails."""
 
         risk_scores = {"LOW": 0.2, "MEDIUM": 0.5, "HIGH": 0.7, "CRITICAL": 0.9}
-        
+
         return RiskCategory(
             category=f"{category.title()} Risk",
             risk_level=level,
@@ -715,11 +715,11 @@ Focus on deal-breaking financial risks that could jeopardize transaction success
 
 # Convenience function for risk assessment execution
 async def run_advanced_risk_assessment(
-    target_company: str, 
+    target_company: str,
     deal_value: float | None = None,
     deal_context: dict[str, Any] = None
 ) -> RiskAssessmentResult:
     """Run comprehensive M&A risk assessment."""
-    
+
     workflow = MAAdvancedRiskAssessment()
     return await workflow.execute_comprehensive_risk_analysis(target_company, deal_value, deal_context)

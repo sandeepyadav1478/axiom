@@ -1,4 +1,4 @@
-"""Configuration settings for Axiom Investment Banking Analytics Platform."""
+"""Configuration settings for Axiom Analytics Platform."""
 
 from typing import Any
 

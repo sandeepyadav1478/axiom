@@ -1,8 +1,8 @@
-"""Axiom Investment Banking Analytics Platform."""
+"""Axiom Analytics Platform."""
 
 __version__ = "0.1.0"
 __author__ = "Axiom Team"
-__description__ = "Investment Banking Analytics Platform — AI-Powered Due Diligence, M&A Analysis, and Financial Intelligence"
+__description__ = "AI-Powered Analytics Platform — Due Diligence, M&A Analysis, and Financial Intelligence"
 
 from axiom.config.schemas import Citation, Evidence, ResearchBrief
 from axiom.config.settings import settings

@@ -1,4 +1,4 @@
-"""Pydantic schemas for Axiom Investment Banking Analytics Platform."""
+"""Pydantic schemas for Axiom Analytics Platform."""
 
 from datetime import datetime
 from typing import Any, Literal

@@ -1,5 +1,5 @@
 """
-AI Layer Configuration for Investment Banking Analytics
+AI Layer Configuration for Analytics Platform
 Determines which AI providers to use at different analysis layers
 """
 

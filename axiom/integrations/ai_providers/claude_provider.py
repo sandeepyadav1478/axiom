@@ -1,4 +1,4 @@
-"""Claude provider implementation for Investment Banking Analytics."""
+"""Claude provider implementation for Axiom Analytics Platform."""
 
 from typing import Any
 

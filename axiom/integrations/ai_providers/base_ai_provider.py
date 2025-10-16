@@ -1,5 +1,5 @@
 """
-Base AI Provider Abstract Class for Investment Banking Analytics
+Base AI Provider Abstract Class for Axiom Analytics Platform
 Multi-provider AI integration supporting OpenAI, Claude, SGLang, and others
 """
 

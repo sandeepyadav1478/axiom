@@ -39,12 +39,14 @@ jobs:
         run: |
           BRANCH="${{ steps.branch.outputs.branch }}"
           
-          # Get full commit messages with titles and bodies
-          COMMIT_MESSAGES=$(git log origin/main..$BRANCH --pretty=format:"## %s (%h)%n%n%b%n%n---" --reverse)
+          # Get full commit messages with titles, bodies, and timestamps
+          COMMIT_MESSAGES=$(git log origin/main..$BRANCH --pretty=format:"## %s (%h) - %ad%n%n%b%n%n---" --date=format:'%Y-%m-%d %H:%M:%S' --reverse)
           
           # Create PR description with all commit messages
           cat > pr_body.txt << EOF
           This pull request was automatically created when branch $BRANCH was pushed.
+
+          **Generated:** $(date '+%Y-%m-%d %H:%M:%S UTC')
 
           ## All Commits in this PR:
           $COMMIT_MESSAGES

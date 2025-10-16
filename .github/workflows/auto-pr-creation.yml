@@ -1,0 +1,50 @@
+name: Auto PR Creation
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Create PR with commit aggregation
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          FEATURE_NAME=$(echo "$BRANCH_NAME" | sed 's/feature\///' | sed 's/-/ /g')
+          
+          # Get all commit messages
+          COMMIT_MESSAGES=$(git log --format="- %s" origin/main..HEAD --reverse)
+          COMMIT_HISTORY=$(git log --oneline origin/main..HEAD --reverse)
+          
+          # Create PR body with all commits
+          cat > pr_body.txt << EOF
+## $FEATURE_NAME
+
+### All Commit Messages:
+$COMMIT_MESSAGES
+
+### Commit History:
+\`\`\`
+$COMMIT_HISTORY
+\`\`\`
+EOF
+          
+          # Check if PR exists
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "null")
+          
+          if [ "$EXISTING_PR" = "null" ]; then
+            gh pr create --title "$FEATURE_NAME" --body-file pr_body.txt
+            echo "Created PR with commit messages"
+          else
+            echo "PR already exists: #$EXISTING_PR"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

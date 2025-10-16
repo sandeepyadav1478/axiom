@@ -30,8 +30,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BRANCH="${{ steps.branch.outputs.branch }}"
-          PR_EXISTS=$(gh pr list --head "$BRANCH" --base main --json number --jq 'length')
-          echo "exists=$PR_EXISTS" >> $GITHUB_OUTPUT
+          # Better PR detection - get actual PR number or empty
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --base main --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null" ]; then
+            echo "exists=1" >> $GITHUB_OUTPUT
+            echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+          else
+            echo "exists=0" >> $GITHUB_OUTPUT
+          fi
       
       - name: Create or Update PR
         env:

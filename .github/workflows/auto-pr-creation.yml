@@ -40,18 +40,26 @@ jobs:
         run: |
           BRANCH="${{ steps.branch.outputs.branch }}"
           
-          echo "🔄 DEBUG: Creating PR for branch $BRANCH"
-          echo "🔄 DEBUG: Workflow name: Auto Create Pull Request"
-          echo "🔄 DEBUG: Job status will be: success (if no errors)"
+          echo "🔄 Creating PR for branch $BRANCH"
+          
+          # Get all commit messages for PR description
+          COMMIT_MESSAGES=$(git log main..$BRANCH --pretty=format:"- %s (%h)" --reverse)
+          
+          # Create PR with commit messages included
+          cat > pr_body.txt << EOF
+          This pull request was automatically created when branch $BRANCH was pushed.
+
+          ## All Commits in this PR:
+          $COMMIT_MESSAGES
+          EOF
           
           gh pr create \
             --title "Auto PR: Merge $BRANCH into main" \
-            --body "This pull request was automatically created when branch $BRANCH was pushed." \
+            --body-file pr_body.txt \
             --base main \
             --head "$BRANCH"
           
-          echo "🔄 DEBUG: PR creation completed successfully"
-          echo "🔄 DEBUG: This should trigger Update PR Description workflow"
+          echo "✅ Created PR with all commit messages included"
       
       - name: Workflow Completion Debug
         if: always()

@@ -39,8 +39,8 @@ jobs:
         run: |
           BRANCH="${{ steps.branch.outputs.branch }}"
           
-          # Get all commit messages (use origin/main for GitHub Actions)
-          COMMIT_MESSAGES=$(git log origin/main..$BRANCH --pretty=format:"- %s (%h)" --reverse)
+          # Get full commit messages with titles and bodies
+          COMMIT_MESSAGES=$(git log origin/main..$BRANCH --pretty=format:"## %s (%h)%n%n%b%n%n---" --reverse)
           
           # Create PR description with all commit messages
           cat > pr_body.txt << EOF

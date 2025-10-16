@@ -4,8 +4,6 @@ on:
   workflow_run:
     workflows: ["Auto Create Pull Request"]
     types: [completed]
-    branches:
-      - 'feature/**'
 
 jobs:
   update-pr:

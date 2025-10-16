@@ -1,7 +1,9 @@
 # Axiom M&A Platform Enhancement Roadmap
-## Advanced Investment Banking Analytics Capabilities
+## Advanced Analytics Capabilities - Updated Status
 
-### 🚀 Phase 1: Advanced Risk Assessment & Compliance (Priority: HIGH)
+**Note**: Phase 1 Infrastructure completed. See main [`ENHANCEMENT_ROADMAP.md`](../ENHANCEMENT_ROADMAP.md) for current status.
+
+### 🚀 Phase 2: Advanced Risk Assessment & Compliance (Next Priority)
 
 #### 1.1 Comprehensive Risk Assessment Framework
 - **Multi-Dimensional Risk Scoring**: Financial, operational, market, regulatory, integration risks

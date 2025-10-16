@@ -6,6 +6,7 @@ on:
       - main
 jobs:
   create-pull-request:
+    name: "🔄 Create PR for ${{ github.ref_name }}"
     if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

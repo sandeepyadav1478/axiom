@@ -7,6 +7,7 @@ on:
 
 jobs:
   update-pr:
+    name: "📝 Update PR desc for ${{ github.event.workflow_run.head_branch }}"
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     

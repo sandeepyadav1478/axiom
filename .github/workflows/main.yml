@@ -1,11 +1,9 @@
 name: Auto Create Pull Request
-
 on:
   create:
   push:
     branches-ignore:
       - main
-
 jobs:
   create-pull-request:
     if: github.ref != 'refs/heads/main'
@@ -34,14 +32,31 @@ jobs:
           PR_EXISTS=$(gh pr list --head "$BRANCH" --base main --json number --jq 'length')
           echo "exists=$PR_EXISTS" >> $GITHUB_OUTPUT
       
+      - name: Get commit messages
+        id: commits
+        if: steps.check_pr.outputs.exists == '0'
+        run: |
+          BRANCH="${{ steps.branch.outputs.branch }}"
+          COMMITS=$(git log main..$BRANCH --pretty=format:"- %s (%h)" --reverse)
+          echo "messages<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
       - name: Create Pull Request
         if: steps.check_pr.outputs.exists == '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BRANCH="${{ steps.branch.outputs.branch }}"
+          COMMIT_MESSAGES="${{ steps.commits.outputs.messages }}"
+          
+          PR_BODY="This pull request was automatically created when branch $BRANCH was pushed.
+          
+## Commits in this PR:
+$COMMIT_MESSAGES"
+          
           gh pr create \
             --title "Auto PR: Merge $BRANCH into main" \
-            --body "This pull request was automatically created when branch $BRANCH was pushed." \
+            --body "$PR_BODY" \
             --base main \
             --head "$BRANCH"

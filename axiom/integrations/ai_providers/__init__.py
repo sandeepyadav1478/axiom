@@ -1,6 +1,6 @@
 """
 AI Provider Integrations Module
-Multi-provider AI integration for Investment Banking Analytics
+Multi-provider AI integration for Axiom Analytics Platform
 """
 
 from .base_ai_provider import AIMessage, AIProviderError, AIResponse, BaseAIProvider

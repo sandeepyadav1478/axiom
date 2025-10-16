@@ -1,4 +1,4 @@
-"""Main entry point for Axiom Investment Banking Analytics Platform."""
+"""Main entry point for Axiom Analytics Platform."""
 
 import asyncio
 import sys

@@ -567,3 +567,101 @@ __all__ = [
 **🚨 CRITICAL REMINDER FOR FUTURE AI ASSISTANTS:**
 These technical guidelines are based on ACTUAL issues encountered during comprehensive M&A platform development. Following these practices prevents common pitfalls and ensures professional-grade development standards.
 These guidelines ensure consistent, professional development practices while maintaining cost optimization and proper git workflow management for the Axiom M&A Investment Banking Analytics platform.
+
+---
+
+### 📅 **BRANCH NAMING STANDARDS WITH TIMESTAMPS**
+
+#### **INCLUDE DATE/TIME FOR EASY DISTINCTION**
+```bash
+# ❌ CONFUSING: Generic branch names
+git checkout -b feature/api-key-rotation
+git checkout -b feature/uv-migration  
+git checkout -b feature/code-cleanup
+
+# ✅ CLEAR: Branch names with timestamps
+git checkout -b feature/api-key-rotation-2025-10-16
+git checkout -b feature/uv-migration-20251016-1430
+git checkout -b feature/code-cleanup-$(date +%Y%m%d-%H%M)
+```
+
+#### **BRANCH NAMING PATTERNS**
+```bash
+# Feature branches
+feature/{description}-{YYYY-MM-DD}
+feature/{description}-{YYYYMMDD-HHMM}
+
+# Examples from this project:
+feature/code-quality-cleanup-2025-10-16
+feature/api-key-rotation-system-20251016
+feature/uv-migration-proper-workflow-20251016-1430
+
+# Benefits:
+- Easy chronological identification
+- Avoid confusion with multiple similar branches
+- Clear timeline for feature development
+- Automated cleanup of old branches
+```
+
+### 🔍 **CRITICAL LESSONS FROM RECENT DEVELOPMENT**
+
+#### **GITHUB WORKFLOW AUTOMATION**
+```yaml
+# ✅ CRITICAL: Proper PR detection to avoid false failures
+EXISTING_PR=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number // empty')
+
+# ❌ CAUSES FAILURES: length returns 0 even when PR exists
+PR_EXISTS=$(gh pr list --head "$BRANCH" --json number --jq 'length')
+
+# ✅ COMMIT MESSAGE ENHANCEMENT: Include timestamps and full context
+COMMIT_MESSAGES=$(git log origin/main..$BRANCH --pretty=format:"## %s (%h) - %ad%n%n%b%n%n---" --date=format:'%Y-%m-%d %H:%M:%S' --reverse)
+```
+
+#### **CUSTOM LOGGING SYSTEM IMPLEMENTATION**
+```python
+# ✅ ALWAYS: Create custom logger wrapper for consistency
+class AxiomLogger:
+    def __init__(self, name: str = "axiom", debug_enabled: bool = False):
+        # Structured output: 2025-10-16 20:42:12 | axiom.providers | INFO | message
+        # Debug mode control from settings
+        # Context injection: key_count=1 | failover_enabled=True
+
+# ✅ USAGE: Module-specific loggers
+provider_logger = AxiomLogger("axiom.providers") 
+workflow_logger = AxiomLogger("axiom.workflows")
+
+# ❌ AVOID: Direct print statements in production code
+```
+
+#### **CIRCULAR IMPORT PREVENTION**  
+```python
+# ✅ CORRECT: Direct import to avoid circular dependencies
+from axiom.core.logging.axiom_logger import AxiomLogger
+logger = AxiomLogger("module.name")
+
+# ❌ CAUSES CIRCULAR IMPORTS: Importing through __init__.py
+from axiom.core.logging import provider_logger  # Can fail during initialization
+```
+
+#### **SYSTEMATIC NAMING CLEANUP**
+```bash
+# ✅ EFFICIENT: Search for excessive naming patterns
+search_files path="axiom" regex="Investment Banking|InvestmentBanking"
+
+# ✅ STRATEGY: Clean naming conventions
+# Remove from: Module headers, class names, technical identifiers
+# Keep in: Business descriptions, documentation, context explanations  
+# Result: Cleaner, more professional code
+```
+
+---
+
+**🚨 MANDATORY PRACTICES FOR FUTURE AI ASSISTANTS:**
+
+1. **Timestamped Branches**: Always include date in branch names
+2. **Custom Logging**: Use project-specific logger wrapper, avoid print statements
+3. **Proper PR Detection**: Use reliable GitHub CLI commands in workflows
+4. **Clean Naming**: Remove excessive business context from technical identifiers
+5. **Circular Import Awareness**: Import directly, avoid complex dependency chains
+
+These practices ensure professional-grade development standards and prevent common pitfalls encountered during enterprise platform development.

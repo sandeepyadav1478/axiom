@@ -1,4 +1,4 @@
-"""OpenAI provider implementation for Investment Banking Analytics."""
+"""OpenAI provider implementation for Axiom Analytics Platform."""
 
 from typing import Any
 

@@ -1,13 +1,17 @@
-"""AI Provider Factory for Investment Banking Analytics with API Key Failover."""
+"""AI Provider Factory with API Key Failover."""
 
 from axiom.config.ai_layer_config import AnalysisLayer, ai_layer_mapping
 from axiom.config.settings import settings
 from axiom.core.api_management.failover_key_manager import failover_manager
+from axiom.core.logging.axiom_logger import AxiomLogger
 
 from .base_ai_provider import AIProviderError, BaseAIProvider
 from .claude_provider import ClaudeProvider
 from .openai_provider import OpenAIProvider
 from .sglang_provider import SGLangProvider
+
+# Create provider logger instance
+provider_logger = AxiomLogger("axiom.providers")
 
 
 class AIProviderFactory:
@@ -54,13 +58,17 @@ class AIProviderFactory:
                     self._providers[provider_name] = provider
                     
                     key_count = len(provider_keys) if provider_keys else 1
-                    rotation_status = "with failover" if settings.is_rotation_enabled(provider_name) else "single key"
-                    print(f"✅ Initialized {provider_name} provider ({key_count} keys, {rotation_status})")
+                    has_failover = settings.is_rotation_enabled(provider_name)
+                    provider_logger.provider_status(
+                        provider_name, "initialized",
+                        key_count=key_count,
+                        failover_enabled=has_failover
+                    )
                 else:
-                    print(f"⚠️  Unknown provider type: {provider_name}")
+                    provider_logger.warning(f"Unknown provider type: {provider_name}")
 
             except Exception as e:
-                print(f"❌ Failed to initialize {provider_name}: {str(e)}")
+                provider_logger.error(f"Failed to initialize {provider_name}: {str(e)}")
 
     def get_provider(self, provider_name: str) -> BaseAIProvider | None:
         """Get a specific AI provider by name."""
@@ -83,14 +91,14 @@ class AIProviderFactory:
         for fallback in layer_config.fallback_providers:
             provider = self.get_provider(fallback.value)
             if provider and provider.is_available():
-                print(f"🔄 Using fallback provider {fallback.value} for {layer.value}")
+                provider_logger.info(f"Using fallback provider {fallback.value} for {layer.value}")
                 return provider
 
         # Last resort: any available provider
         for provider in self._providers.values():
             if provider.is_available():
-                print(
-                    f"⚠️  Using last resort provider {provider.provider_name} for {layer.value}"
+                provider_logger.warning(
+                    f"Using last resort provider {provider.provider_name} for {layer.value}"
                 )
                 return provider
 

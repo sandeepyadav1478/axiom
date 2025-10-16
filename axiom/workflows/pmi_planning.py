@@ -11,9 +11,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from axiom.ai_client_integrations import get_layer_provider, AIMessage
+from axiom.ai_client_integrations import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
-from axiom.config.schemas import Evidence, Citation
 from axiom.tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.utils.error_handling import FinancialDataError
@@ -25,22 +24,22 @@ class IntegrationWorkstream(BaseModel):
     workstream_name: str = Field(..., description="Integration workstream name")
     pmo_lead: str = Field(..., description="PMO workstream lead")
     duration_months: int = Field(..., description="Integration duration in months")
-    
+
     # Key Milestones
     phase1_milestones: list[str] = Field(default=[], description="Phase 1 milestones (0-3 months)")
     phase2_milestones: list[str] = Field(default=[], description="Phase 2 milestones (3-6 months)")
     phase3_milestones: list[str] = Field(default=[], description="Phase 3 milestones (6-12 months)")
-    
+
     # Success Metrics
     success_kpis: list[str] = Field(default=[], description="Key performance indicators")
     completion_criteria: list[str] = Field(default=[], description="Completion criteria")
     risk_mitigation: list[str] = Field(default=[], description="Workstream risk mitigation")
-    
+
     # Resource Requirements
     team_size: int = Field(default=5, description="Required team size")
     budget_allocation: float = Field(default=1000000, description="Budget allocation ($)")
     external_support: bool = Field(default=False, description="External consultant required")
-    
+
     # Dependencies
     critical_dependencies: list[str] = Field(default=[], description="Critical workstream dependencies")
     integration_complexity: str = Field(default="medium", description="Integration complexity level")
@@ -55,15 +54,15 @@ class Day1ReadinessPlan(BaseModel):
     customer_notifications: list[str] = Field(default=[], description="Customer notification requirements")
     vendor_communications: list[str] = Field(default=[], description="Vendor and supplier notifications")
     regulatory_notifications: list[str] = Field(default=[], description="Regulatory notification requirements")
-    
+
     # Day 1 Success Metrics
     success_metrics: dict[str, str] = Field(default={}, description="Day 1 success criteria")
     contingency_plans: list[str] = Field(default=[], description="Day 1 contingency plans")
-    
+
     # Communication Plan
     stakeholder_communications: dict[str, str] = Field(default={}, description="Stakeholder communication plan")
     press_release_timeline: str = Field(default="Day 1 morning", description="Press release timing")
-    
+
     # Operational Readiness
     business_continuity_plan: list[str] = Field(default=[], description="Business continuity requirements")
     day1_leadership_structure: dict[str, str] = Field(default={}, description="Day 1 leadership assignments")
@@ -76,18 +75,18 @@ class SynergyRealizationPlan(BaseModel):
     revenue_synergies_timeline: dict[str, float] = Field(default={}, description="Revenue synergy realization timeline")
     cross_selling_plan: list[str] = Field(default=[], description="Cross-selling implementation plan")
     market_expansion_strategy: list[str] = Field(default=[], description="Market expansion approach")
-    
-    # Cost Synergies  
+
+    # Cost Synergies
     cost_synergies_timeline: dict[str, float] = Field(default={}, description="Cost synergy realization timeline")
     headcount_optimization: dict[str, Any] = Field(default={}, description="Headcount optimization plan")
     overhead_elimination: list[str] = Field(default=[], description="Overhead elimination initiatives")
     procurement_synergies: list[str] = Field(default=[], description="Procurement optimization plan")
-    
+
     # Synergy Tracking
     synergy_kpis: list[str] = Field(default=[], description="Synergy realization KPIs")
     tracking_frequency: str = Field(default="monthly", description="Synergy tracking frequency")
     variance_thresholds: dict[str, float] = Field(default={}, description="Synergy variance alert thresholds")
-    
+
     # Risk Management
     synergy_risks: list[str] = Field(default=[], description="Synergy realization risks")
     mitigation_strategies: list[str] = Field(default=[], description="Synergy risk mitigation")
@@ -98,42 +97,42 @@ class PMIExecutionPlan(BaseModel):
     """Comprehensive Post-Merger Integration execution plan."""
 
     target_company: str = Field(..., description="Target company name")
-    acquirer_company: str = Field(..., description="Acquiring company name") 
+    acquirer_company: str = Field(..., description="Acquiring company name")
     integration_start_date: datetime = Field(..., description="Integration start date")
     integration_duration: int = Field(default=12, description="Integration duration (months)")
-    
+
     # Integration Governance
     pmo_structure: dict[str, Any] = Field(default={}, description="PMO organizational structure")
     steering_committee: list[str] = Field(default=[], description="Integration steering committee")
     escalation_procedures: list[str] = Field(default=[], description="Issue escalation procedures")
-    
+
     # Day 1 Readiness
     day1_plan: Day1ReadinessPlan = Field(..., description="Day 1 readiness plan")
-    
+
     # Integration Workstreams
     technology_integration: IntegrationWorkstream = Field(..., description="Technology integration workstream")
     human_capital_integration: IntegrationWorkstream = Field(..., description="HR integration workstream")
     commercial_integration: IntegrationWorkstream = Field(..., description="Commercial integration workstream")
     financial_integration: IntegrationWorkstream = Field(..., description="Financial integration workstream")
     legal_compliance_integration: IntegrationWorkstream = Field(..., description="Legal/compliance workstream")
-    
+
     # Synergy Realization
     synergy_plan: SynergyRealizationPlan = Field(..., description="Synergy realization plan")
-    
+
     # Risk Management
     integration_risks: list[str] = Field(default=[], description="Integration risks")
     risk_mitigation_plan: dict[str, str] = Field(default={}, description="Integration risk mitigation")
     success_probability: float = Field(default=0.80, description="Integration success probability")
-    
+
     # Budget and Resources
     total_integration_budget: float = Field(default=25000000, description="Total integration budget")
     budget_allocation: dict[str, float] = Field(default={}, description="Budget allocation by workstream")
     resource_requirements: dict[str, int] = Field(default={}, description="Resource requirements")
-    
+
     # Success Metrics
     integration_kpis: list[str] = Field(default=[], description="Integration success KPIs")
     milestone_tracking: dict[str, str] = Field(default={}, description="Milestone tracking system")
-    
+
     # Metadata
     plan_confidence: float = Field(default=0.0, description="Integration plan confidence")
     plan_creation_date: datetime = Field(default_factory=datetime.now)
@@ -157,16 +156,16 @@ class MAPMIPlanningWorkflow:
 
         start_time = datetime.now()
         integration_start = start_time + timedelta(days=60)  # Typical 60-day close to integration
-        
+
         print(f"🤝 Starting PMI Planning for {target_company}")
-        
+
         try:
             # Execute PMI planning components in parallel
             day1_task = self._develop_day1_readiness_plan(target_company, acquirer_company)
             workstreams_task = self._design_integration_workstreams(target_company, deal_value)
             synergy_task = self._develop_synergy_realization_plan(target_company, deal_value)
             governance_task = self._design_pmo_governance_structure(target_company, acquirer_company)
-            
+
             # Wait for all planning components
             day1_plan, workstreams, synergy_plan, governance = await asyncio.gather(
                 day1_task, workstreams_task, synergy_task, governance_task,
@@ -177,15 +176,15 @@ class MAPMIPlanningWorkflow:
             if isinstance(day1_plan, Exception):
                 print(f"⚠️ Day 1 planning failed: {str(day1_plan)}")
                 day1_plan = self._create_default_day1_plan()
-                
+
             if isinstance(workstreams, Exception):
                 print(f"⚠️ Workstream planning failed: {str(workstreams)}")
                 workstreams = self._create_default_workstreams()
-                
+
             if isinstance(synergy_plan, Exception):
                 print(f"⚠️ Synergy planning failed: {str(synergy_plan)}")
                 synergy_plan = self._create_default_synergy_plan()
-                
+
             if isinstance(governance, Exception):
                 print(f"⚠️ Governance planning failed: {str(governance)}")
                 governance = self._create_default_governance()
@@ -207,20 +206,20 @@ class MAPMIPlanningWorkflow:
 
             # Calculate budget allocation
             pmi_plan = self._calculate_integration_budget(pmi_plan, deal_value)
-            
+
             # Define success metrics and KPIs
             pmi_plan = self._define_integration_success_metrics(pmi_plan)
-            
+
             # AI-powered integration optimization
             pmi_plan = await self._optimize_integration_plan_with_ai(pmi_plan)
-            
+
             execution_time = (datetime.now() - start_time).total_seconds()
-            
+
             print(f"✅ PMI Planning completed in {execution_time:.1f}s")
             print(f"🎯 Integration Duration: {pmi_plan.integration_duration} months")
             print(f"💰 Total Budget: ${pmi_plan.total_integration_budget/1e6:.1f}M")
             print(f"📊 Success Probability: {pmi_plan.success_probability:.0%}")
-            
+
             return pmi_plan
 
         except Exception as e:
@@ -277,7 +276,7 @@ class MAPMIPlanningWorkflow:
             },
             stakeholder_communications={
                 "employees": "Town hall meeting Day 1 at 10 AM",
-                "customers": "Email announcement Day 1 at 8 AM", 
+                "customers": "Email announcement Day 1 at 8 AM",
                 "investors": "Press release Day 1 at 6 AM",
                 "media": "Press conference Day 1 at 9 AM",
                 "regulators": "Filing submissions Day 1 by 5 PM"
@@ -297,7 +296,7 @@ class MAPMIPlanningWorkflow:
         # Scale workstream complexity based on deal size
         complexity_factor = "high" if deal_value and deal_value > 2_000_000_000 else "medium"
         duration_months = 12 if complexity_factor == "high" else 9
-        
+
         return {
             "technology": IntegrationWorkstream(
                 workstream_name="Technology Systems Integration",
@@ -329,9 +328,9 @@ class MAPMIPlanningWorkflow:
                 external_support=True,
                 integration_complexity=complexity_factor
             ),
-            
+
             "human_capital": IntegrationWorkstream(
-                workstream_name="Human Capital & Cultural Integration", 
+                workstream_name="Human Capital & Cultural Integration",
                 pmo_lead="CHRO Integration Team",
                 duration_months=8,
                 phase1_milestones=[
@@ -360,7 +359,7 @@ class MAPMIPlanningWorkflow:
                 external_support=True,
                 integration_complexity=complexity_factor
             ),
-            
+
             "commercial": IntegrationWorkstream(
                 workstream_name="Commercial & Market Integration",
                 pmo_lead="Chief Commercial Officer",
@@ -390,10 +389,10 @@ class MAPMIPlanningWorkflow:
                 budget_allocation=2500000,  # $2.5M for commercial integration
                 integration_complexity=complexity_factor
             ),
-            
+
             "financial": IntegrationWorkstream(
                 workstream_name="Financial Systems & Reporting Integration",
-                pmo_lead="CFO Integration Team", 
+                pmo_lead="CFO Integration Team",
                 duration_months=6,
                 phase1_milestones=[
                     "Financial reporting consolidation and chart of accounts harmonization",
@@ -420,7 +419,7 @@ class MAPMIPlanningWorkflow:
                 budget_allocation=2000000,  # $2M for financial integration
                 integration_complexity="medium"
             ),
-            
+
             "legal_compliance": IntegrationWorkstream(
                 workstream_name="Legal & Regulatory Compliance Integration",
                 pmo_lead="General Counsel Integration",
@@ -457,7 +456,7 @@ class MAPMIPlanningWorkflow:
 
         estimated_revenue_synergies = (deal_value * 0.08) if deal_value else 100_000_000
         estimated_cost_synergies = (deal_value * 0.05) if deal_value else 75_000_000
-        
+
         return SynergyRealizationPlan(
             revenue_synergies_timeline={
                 "month_3": estimated_revenue_synergies * 0.10,
@@ -539,7 +538,7 @@ class MAPMIPlanningWorkflow:
             "Customer retention rate >95% throughout integration",
             "Employee retention rate >90% for key talent",
             "Revenue synergy realization >75% by month 12",
-            "Cost synergy achievement >85% by month 18", 
+            "Cost synergy achievement >85% by month 18",
             "Integration milestone completion >90% on time",
             "System integration uptime >99.9%",
             "Cultural integration score >8/10 by month 6",
@@ -583,7 +582,7 @@ INTEGRATION SCOPE:
 
 INTEGRATION WORKSTREAMS:
 - Technology: {plan.technology_integration.duration_months} months
-- Human Capital: {plan.human_capital_integration.duration_months} months  
+- Human Capital: {plan.human_capital_integration.duration_months} months
 - Commercial: {plan.commercial_integration.duration_months} months
 - Financial: {plan.financial_integration.duration_months} months
 
@@ -598,7 +597,7 @@ Provide optimization recommendations:
 
         try:
             response = await provider.generate_response_async(messages, max_tokens=1200, temperature=0.1)
-            
+
             # Parse success probability
             import re
             prob_match = re.search(r"success probability:?\s*([0-9.]+)", response.content.lower())
@@ -606,7 +605,7 @@ Provide optimization recommendations:
                 plan.success_probability = min(max(float(prob_match.group(1)), 0.0), 1.0)
             else:
                 plan.success_probability = 0.80  # Default conservative estimate
-                
+
             plan.plan_confidence = 0.85
 
         except Exception as e:
@@ -637,7 +636,7 @@ Provide optimization recommendations:
             ),
             "human_capital": IntegrationWorkstream(
                 workstream_name="Human Capital Integration",
-                pmo_lead="HR Integration Team", 
+                pmo_lead="HR Integration Team",
                 duration_months=6,
                 success_kpis=["Employee retention >90%"],
                 budget_allocation=2000000
@@ -684,11 +683,11 @@ Provide optimization recommendations:
 # Convenience functions
 async def run_pmi_planning(
     target_company: str,
-    acquirer_company: str = "Acquiring Company", 
+    acquirer_company: str = "Acquiring Company",
     deal_value: float | None = None
 ) -> PMIExecutionPlan:
     """Run comprehensive post-merger integration planning."""
-    
+
     workflow = MAPMIPlanningWorkflow()
     return await workflow.execute_comprehensive_pmi_planning(
         target_company, acquirer_company, deal_value
@@ -697,6 +696,6 @@ async def run_pmi_planning(
 
 async def run_day1_planning(target_company: str, acquirer_company: str) -> Day1ReadinessPlan:
     """Run focused Day 1 readiness planning."""
-    
+
     workflow = MAPMIPlanningWorkflow()
     return await workflow._develop_day1_readiness_plan(target_company, acquirer_company)

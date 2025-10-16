@@ -2,7 +2,11 @@
 
 from typing import Any
 
-from .base_financial_provider import BaseFinancialProvider, FinancialDataResponse, FinancialProviderError
+from .base_financial_provider import (
+    BaseFinancialProvider,
+    FinancialDataResponse,
+    FinancialProviderError,
+)
 
 
 class BloombergProvider(BaseFinancialProvider):
@@ -17,7 +21,7 @@ class BloombergProvider(BaseFinancialProvider):
     ):
         super().__init__(api_key, base_url, subscription_level, **kwargs)
         self.terminal_available = False  # Set to True if Bloomberg Terminal installed
-        
+
         # Bloomberg-specific configuration
         self.data_license = subscription_level
         self.rate_limit = 1000  # Queries per hour for professional tier
@@ -30,14 +34,14 @@ class BloombergProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get Bloomberg fundamental financial data."""
-        
+
         try:
             # In production, this would connect to Bloomberg API
             # For demo, return simulated professional-grade data
-            
+
             default_metrics = [
                 "SALES_REV_TURN",  # Revenue
-                "EBITDA",          # EBITDA  
+                "EBITDA",          # EBITDA
                 "FREE_CASH_FLOW",  # Free Cash Flow
                 "TOT_DEBT_TO_TOT_EQY",  # Debt-to-Equity
                 "RETURN_ON_EQUITY",     # ROE
@@ -45,9 +49,9 @@ class BloombergProvider(BaseFinancialProvider):
                 "EV_TO_T12M_SALES", # EV/Sales
                 "CURRENT_RATIO"    # Current Ratio
             ]
-            
+
             requested_metrics = metrics or default_metrics
-            
+
             # Simulate Bloomberg Terminal quality data
             fundamental_data = {
                 "company_name": company_identifier,
@@ -56,7 +60,7 @@ class BloombergProvider(BaseFinancialProvider):
                 "data_source": "Bloomberg Professional",
                 "metrics": {}
             }
-            
+
             # Simulate high-quality financial metrics
             for metric in requested_metrics:
                 if "SALES" in metric or "REV" in metric:
@@ -73,7 +77,7 @@ class BloombergProvider(BaseFinancialProvider):
                     fundamental_data["metrics"][metric] = 8.2          # 8.2x EV/Sales
                 else:
                     fundamental_data["metrics"][metric] = 1.0          # Default value
-            
+
             return FinancialDataResponse(
                 data_type="fundamental",
                 provider="Bloomberg",
@@ -88,7 +92,7 @@ class BloombergProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.95
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("Bloomberg", f"Fundamental data query failed: {str(e)}", e)
 
@@ -100,7 +104,7 @@ class BloombergProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get Bloomberg comparable companies analysis."""
-        
+
         try:
             # Simulate Bloomberg's professional comparable screening
             comparable_companies = [
@@ -119,7 +123,7 @@ class BloombergProvider(BaseFinancialProvider):
                 },
                 {
                     "name": "Snowflake Inc",
-                    "ticker": "SNOW", 
+                    "ticker": "SNOW",
                     "market_cap": 35_600_000_000,
                     "enterprise_value": 34_100_000_000,
                     "revenue_ttm": 2_750_000_000,
@@ -144,7 +148,7 @@ class BloombergProvider(BaseFinancialProvider):
                     "bloomberg_comp_score": 0.77
                 }
             ]
-            
+
             return FinancialDataResponse(
                 data_type="comparable",
                 provider="Bloomberg",
@@ -173,7 +177,7 @@ class BloombergProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.92
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("Bloomberg", f"Comparable companies query failed: {str(e)}", e)
 
@@ -185,7 +189,7 @@ class BloombergProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get Bloomberg M&A transaction database comparables."""
-        
+
         try:
             # Simulate Bloomberg's M&A transaction database
             transaction_comparables = [
@@ -203,7 +207,7 @@ class BloombergProvider(BaseFinancialProvider):
                 },
                 {
                     "target": "Collibra (Data Intelligence)",
-                    "acquirer": "Strategic Technology Buyer", 
+                    "acquirer": "Strategic Technology Buyer",
                     "announce_date": "2023-09-20",
                     "transaction_value": 5_200_000_000,
                     "target_revenue": 650_000_000,
@@ -215,7 +219,7 @@ class BloombergProvider(BaseFinancialProvider):
                     "bloomberg_deal_id": "MA2023087"
                 }
             ]
-            
+
             return FinancialDataResponse(
                 data_type="transaction",
                 provider="Bloomberg",
@@ -241,7 +245,7 @@ class BloombergProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.90
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("Bloomberg", f"Transaction comparables query failed: {str(e)}", e)
 
@@ -252,7 +256,7 @@ class BloombergProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get Bloomberg real-time market data."""
-        
+
         try:
             default_fields = [
                 "LAST_PRICE",      # Current price
@@ -262,12 +266,12 @@ class BloombergProvider(BaseFinancialProvider):
                 "PE_RATIO",        # P/E ratio
                 "BETA_ADJUSTED"    # Beta coefficient
             ]
-            
+
             fields = data_fields or default_fields
-            
+
             # Simulate Bloomberg Terminal quality market data
             market_data = {}
-            
+
             for symbol in symbols:
                 market_data[symbol] = {
                     "LAST_PRICE": 42.50,
@@ -280,7 +284,7 @@ class BloombergProvider(BaseFinancialProvider):
                     "exchange": "NASDAQ",
                     "currency": "USD"
                 }
-            
+
             return FinancialDataResponse(
                 data_type="market_data",
                 provider="Bloomberg",
@@ -300,29 +304,29 @@ class BloombergProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T20:59:59Z",
                 confidence=0.98
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("Bloomberg", f"Market data query failed: {str(e)}", e)
 
     def is_available(self) -> bool:
         """Check Bloomberg API/Terminal availability."""
-        
+
         try:
             # In production, test actual Bloomberg connection
             # For demo, return simulated availability
-            
+
             # Check if Bloomberg Terminal is installed and running
             # Check if Bloomberg API credentials are valid
             # Check if subscription is active
-            
+
             return True  # Simulated availability
-            
+
         except Exception:
             return False
 
     def get_capabilities(self) -> dict[str, bool]:
         """Get Bloomberg-specific capabilities."""
-        
+
         return {
             "real_time_market_data": True,
             "historical_data": True,
@@ -339,7 +343,7 @@ class BloombergProvider(BaseFinancialProvider):
 
     def estimate_query_cost(self, query_type: str, query_count: int = 1) -> float:
         """Bloomberg-specific cost estimation."""
-        
+
         # Bloomberg Terminal/API cost estimates
         bloomberg_costs = {
             "fundamental": 2.50,     # Premium for Bloomberg quality
@@ -350,12 +354,12 @@ class BloombergProvider(BaseFinancialProvider):
             "news": 1.50,           # Bloomberg news
             "analytics": 3.50       # Bloomberg analytics
         }
-        
+
         return bloomberg_costs.get(query_type, 3.00) * query_count
 
     def get_ma_specific_data(self, target_company: str, analysis_type: str = "comprehensive") -> dict[str, Any]:
         """Get M&A-specific Bloomberg data and analytics."""
-        
+
         if analysis_type == "comprehensive":
             return {
                 "ma_intelligence": {
@@ -385,7 +389,7 @@ class BloombergProvider(BaseFinancialProvider):
 
     def get_institutional_sentiment(self, symbol: str) -> dict[str, Any]:
         """Get Bloomberg institutional investor sentiment data."""
-        
+
         return {
             "institutional_ownership_pct": 0.78,
             "13f_holdings_change": 0.12,  # 12% increase in institutional holdings
@@ -398,7 +402,7 @@ class BloombergProvider(BaseFinancialProvider):
             },
             "smart_money_flows": {
                 "hedge_fund_activity": "Accumulating",
-                "pension_fund_activity": "Neutral", 
+                "pension_fund_activity": "Neutral",
                 "sovereign_wealth_activity": "Small positions",
                 "insider_activity": "No material changes"
             },

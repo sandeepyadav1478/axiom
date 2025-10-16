@@ -2,7 +2,11 @@
 
 from typing import Any
 
-from .base_financial_provider import BaseFinancialProvider, FinancialDataResponse, FinancialProviderError
+from .base_financial_provider import (
+    BaseFinancialProvider,
+    FinancialDataResponse,
+    FinancialProviderError,
+)
 
 
 class OpenBBProvider(BaseFinancialProvider):
@@ -16,7 +20,7 @@ class OpenBBProvider(BaseFinancialProvider):
         **kwargs,
     ):
         super().__init__(api_key, base_url, subscription_level, **kwargs)
-        
+
         # OpenBB-specific configuration
         self.terminal_available = False  # Set to True if OpenBB Terminal installed
         self.data_sources = [
@@ -32,13 +36,13 @@ class OpenBBProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get OpenBB fundamental financial data from multiple sources."""
-        
+
         try:
             # OpenBB aggregates data from multiple free/low-cost sources
             default_metrics = [
                 "revenue",              # Total Revenue
                 "ebitda",              # EBITDA
-                "free_cash_flow",      # Free Cash Flow  
+                "free_cash_flow",      # Free Cash Flow
                 "total_debt",          # Total Debt
                 "market_cap",          # Market Capitalization
                 "pe_ratio",            # P/E Ratio
@@ -47,22 +51,22 @@ class OpenBBProvider(BaseFinancialProvider):
                 "roe",                 # Return on Equity
                 "debt_to_equity"       # Debt-to-Equity Ratio
             ]
-            
+
             requested_metrics = metrics or default_metrics
-            
+
             # Simulate OpenBB multi-source aggregated data
             fundamental_data = {
                 "symbol": company_identifier,
                 "company_name": f"{company_identifier} Corporation",
                 "sector": "Technology",
-                "industry": "Software - Application", 
+                "industry": "Software - Application",
                 "fiscal_year": 2024,
                 "currency": "USD",
                 "data_sources": ["Yahoo Finance", "SEC Edgar", "Alpha Vantage"],
                 "openbb_confidence": 0.88,
                 "metrics": {}
             }
-            
+
             # OpenBB aggregated financial metrics
             for metric in requested_metrics:
                 if metric in ["revenue", "total_revenue"]:
@@ -83,7 +87,7 @@ class OpenBBProvider(BaseFinancialProvider):
                     fundamental_data["metrics"][metric] = {
                         "value": 298_000_000,            # $298M FCF
                         "conversion_rate": 0.65,         # 65% EBITDA conversion
-                        "source": "Cash flow statements", 
+                        "source": "Cash flow statements",
                         "confidence": 0.89
                     }
                 elif metric in ["market_cap", "market_value"]:
@@ -105,7 +109,7 @@ class OpenBBProvider(BaseFinancialProvider):
                         "source": "OpenBB aggregated",
                         "confidence": 0.70
                     }
-            
+
             return FinancialDataResponse(
                 data_type="fundamental",
                 provider="OpenBB",
@@ -121,7 +125,7 @@ class OpenBBProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.88
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("OpenBB", f"Fundamental data query failed: {str(e)}", e)
 
@@ -133,7 +137,7 @@ class OpenBBProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get OpenBB comparable companies analysis."""
-        
+
         try:
             # OpenBB screener for comparable companies
             openbb_comparables = [
@@ -145,13 +149,13 @@ class OpenBBProvider(BaseFinancialProvider):
                     "ev_revenue": 8.0,
                     "revenue_growth": 0.23,
                     "sector": "Technology",
-                    "industry": "Software - Infrastructure", 
+                    "industry": "Software - Infrastructure",
                     "openbb_similarity": 0.84,
                     "data_sources": ["Yahoo Finance", "SEC Edgar"]
                 },
                 {
                     "symbol": "SNOW",
-                    "name": "Snowflake Inc", 
+                    "name": "Snowflake Inc",
                     "market_cap": 34_200_000_000,
                     "revenue_ttm": 2_620_000_000,
                     "ev_revenue": 12.2,
@@ -168,13 +172,13 @@ class OpenBBProvider(BaseFinancialProvider):
                     "revenue_ttm": 2_130_000_000,
                     "ev_revenue": 14.8,
                     "revenue_growth": 0.31,
-                    "sector": "Technology", 
+                    "sector": "Technology",
                     "industry": "Software - Application",
                     "openbb_similarity": 0.79,
                     "data_sources": ["Yahoo Finance", "Financial Modeling Prep"]
                 }
             ]
-            
+
             return FinancialDataResponse(
                 data_type="comparable",
                 provider="OpenBB",
@@ -196,7 +200,7 @@ class OpenBBProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.85
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("OpenBB", f"Comparable companies query failed: {str(e)}", e)
 
@@ -204,17 +208,17 @@ class OpenBBProvider(BaseFinancialProvider):
         self,
         target_industry: str,
         deal_size_range: tuple[float, float] = None,
-        time_period: str = "2_years", 
+        time_period: str = "2_years",
         **kwargs,
     ) -> FinancialDataResponse:
         """Get OpenBB M&A transaction data (aggregated from multiple sources)."""
-        
+
         try:
             # OpenBB aggregates M&A data from SEC filings, news, and public sources
             openbb_transactions = [
                 {
                     "target": "GitHub",
-                    "acquirer": "Microsoft Corporation", 
+                    "acquirer": "Microsoft Corporation",
                     "announce_date": "2018-06-04",
                     "transaction_value": 7_500_000_000,
                     "deal_type": "Acquisition",
@@ -226,7 +230,7 @@ class OpenBBProvider(BaseFinancialProvider):
                 {
                     "target": "Slack Technologies",
                     "acquirer": "Salesforce Inc",
-                    "announce_date": "2020-12-01", 
+                    "announce_date": "2020-12-01",
                     "transaction_value": 27_700_000_000,
                     "deal_type": "Acquisition",
                     "industry": "Enterprise Communication Software",
@@ -240,7 +244,7 @@ class OpenBBProvider(BaseFinancialProvider):
                     "acquirer": "Salesforce Inc",
                     "announce_date": "2019-06-10",
                     "transaction_value": 15_700_000_000,
-                    "deal_type": "Acquisition", 
+                    "deal_type": "Acquisition",
                     "industry": "Data Analytics Software",
                     "ev_revenue_multiple": 11.2,
                     "premium_4_week": 0.42,
@@ -248,7 +252,7 @@ class OpenBBProvider(BaseFinancialProvider):
                     "data_sources": ["SEC Edgar", "OpenBB community data"]
                 }
             ]
-            
+
             return FinancialDataResponse(
                 data_type="transaction",
                 provider="OpenBB",
@@ -274,7 +278,7 @@ class OpenBBProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.82  # Good confidence for open-source aggregated data
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("OpenBB", f"Transaction comparables query failed: {str(e)}", e)
 
@@ -285,7 +289,7 @@ class OpenBBProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get OpenBB market data (aggregated from multiple free sources)."""
-        
+
         try:
             default_fields = [
                 "price",              # Current price
@@ -295,12 +299,12 @@ class OpenBBProvider(BaseFinancialProvider):
                 "pe_ratio",          # P/E ratio
                 "beta"               # Beta coefficient
             ]
-            
+
             fields = data_fields or default_fields
-            
+
             # OpenBB aggregated market data (Yahoo Finance + others)
             market_data = {}
-            
+
             for symbol in symbols:
                 market_data[symbol] = {
                     "price": 42.85,
@@ -315,7 +319,7 @@ class OpenBBProvider(BaseFinancialProvider):
                     "openbb_data_quality": 0.89,
                     "source_consensus": "Yahoo Finance + Alpha Vantage"
                 }
-            
+
             return FinancialDataResponse(
                 data_type="market_data",
                 provider="OpenBB",
@@ -337,23 +341,23 @@ class OpenBBProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T20:59:00Z",
                 confidence=0.89
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("OpenBB", f"Market data query failed: {str(e)}", e)
 
     def is_available(self) -> bool:
         """Check OpenBB availability."""
-        
+
         try:
             # OpenBB is open-source and generally available
             # Check if OpenBB SDK is installed: pip install openbb
-            
+
             # In production, would check:
             # import openbb
             # openbb.version check
-            
+
             return True  # OpenBB is freely available
-            
+
         except ImportError:
             return False
         except Exception:
@@ -361,7 +365,7 @@ class OpenBBProvider(BaseFinancialProvider):
 
     def get_capabilities(self) -> dict[str, bool]:
         """Get OpenBB-specific capabilities."""
-        
+
         capabilities = {
             "fundamental_analysis": True,
             "market_data": True,
@@ -380,7 +384,7 @@ class OpenBBProvider(BaseFinancialProvider):
             "cost_effective": True,
             "community_driven": True
         }
-        
+
         # Professional tier capabilities
         if self.subscription_level == "professional":
             capabilities.update({
@@ -389,15 +393,15 @@ class OpenBBProvider(BaseFinancialProvider):
                 "api_rate_limits": True,
                 "premium_data_sources": True
             })
-        
+
         return capabilities
 
     def estimate_query_cost(self, query_type: str, query_count: int = 1) -> float:
         """OpenBB cost estimation (very cost-effective)."""
-        
+
         if self.subscription_level == "community":
             return 0.0  # OpenBB community edition is free!
-        
+
         # OpenBB professional tier costs (much lower than Bloomberg/FactSet)
         openbb_pro_costs = {
             "fundamental": 0.05,     # $0.05 per query (vs $2.50 Bloomberg)
@@ -408,14 +412,14 @@ class OpenBBProvider(BaseFinancialProvider):
             "economic": 0.02,        # Economic data
             "options": 0.05          # Options and derivatives
         }
-        
+
         return openbb_pro_costs.get(query_type, 0.05) * query_count
 
     def get_sec_filings_data(self, symbol: str, filing_types: list[str] = None) -> dict[str, Any]:
         """Get SEC filings data through OpenBB Edgar integration."""
-        
+
         filing_types = filing_types or ["10-K", "10-Q", "8-K"]
-        
+
         return {
             "sec_filings": {
                 "symbol": symbol,
@@ -431,7 +435,7 @@ class OpenBBProvider(BaseFinancialProvider):
                 },
                 "latest_10q": {
                     "filing_date": "2024-08-10",
-                    "period_ending": "2024-06-30", 
+                    "period_ending": "2024-06-30",
                     "revenue_q2": 580_000_000,
                     "net_income_q2": 68_000_000,
                     "quarterly_growth": 0.24
@@ -448,9 +452,9 @@ class OpenBBProvider(BaseFinancialProvider):
 
     def get_alternative_data(self, symbol: str, data_types: list[str] = None) -> dict[str, Any]:
         """Get alternative data through OpenBB integrations."""
-        
+
         data_types = data_types or ["social_sentiment", "news_sentiment", "insider_trades"]
-        
+
         return {
             "alternative_data": {
                 "social_sentiment": {
@@ -477,11 +481,11 @@ class OpenBBProvider(BaseFinancialProvider):
 
     def get_esg_data(self, symbol: str) -> dict[str, Any]:
         """Get ESG data through OpenBB sustainability integrations."""
-        
+
         return {
             "esg_scores": {
                 "environmental_score": 72,       # E score out of 100
-                "social_score": 68,              # S score out of 100  
+                "social_score": 68,              # S score out of 100
                 "governance_score": 81,          # G score out of 100
                 "overall_esg_score": 74,         # Overall ESG score
                 "esg_rating": "B+",              # Letter grade rating

@@ -2,7 +2,11 @@
 
 from typing import Any
 
-from .base_financial_provider import BaseFinancialProvider, FinancialDataResponse, FinancialProviderError
+from .base_financial_provider import (
+    BaseFinancialProvider,
+    FinancialDataResponse,
+    FinancialProviderError,
+)
 
 
 class AlphaVantageProvider(BaseFinancialProvider):
@@ -16,7 +20,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
         **kwargs,
     ):
         super().__init__(api_key, base_url, subscription_level, **kwargs)
-        
+
         # Alpha Vantage pricing - very affordable!
         self.free_daily_limit = 500      # 500 free calls per day
         self.premium_monthly_cost = 49   # Only $49/month for unlimited
@@ -29,16 +33,16 @@ class AlphaVantageProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get Alpha Vantage fundamental data - FREE tier available."""
-        
+
         try:
             # Alpha Vantage provides excellent fundamental data
             default_metrics = [
                 "revenue", "ebitda", "net_income", "total_debt", "market_cap",
                 "pe_ratio", "pb_ratio", "dividend_yield", "roe", "roa"
             ]
-            
+
             requested_metrics = metrics or default_metrics
-            
+
             # Alpha Vantage quality fundamental data
             fundamental_data = {
                 "symbol": company_identifier,
@@ -48,13 +52,13 @@ class AlphaVantageProvider(BaseFinancialProvider):
                 "last_updated": "2024-10-15",
                 "metrics": {}
             }
-            
+
             # High-quality financial metrics from Alpha Vantage
             for metric in requested_metrics:
                 if metric == "revenue":
                     fundamental_data["metrics"][metric] = {
                         "annual_revenue": 2_190_000_000,    # $2.19B annual
-                        "quarterly_revenue": 580_000_000,   # $580M quarterly 
+                        "quarterly_revenue": 580_000_000,   # $580M quarterly
                         "revenue_growth_yoy": 0.22,         # 22% YoY growth
                         "revenue_growth_qoq": 0.08          # 8% QoQ growth
                     }
@@ -78,7 +82,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
                     }
                 else:
                     fundamental_data["metrics"][metric] = 1.0
-            
+
             return FinancialDataResponse(
                 data_type="fundamental",
                 provider="Alpha Vantage",
@@ -94,7 +98,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.89
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("Alpha Vantage", f"Fundamental data query failed: {str(e)}", e)
 
@@ -106,7 +110,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get comparable companies using Alpha Vantage screening."""
-        
+
         try:
             # Alpha Vantage company screening (free/low-cost)
             av_comparables = [
@@ -123,7 +127,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
                     "size_match": 0.88
                 },
                 {
-                    "symbol": "SNOW", 
+                    "symbol": "SNOW",
                     "name": "Snowflake Inc",
                     "market_cap": 34_400_000_000,
                     "revenue_ttm": 2_650_000_000,
@@ -135,7 +139,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
                     "size_match": 0.75
                 }
             ]
-            
+
             return FinancialDataResponse(
                 data_type="comparable",
                 provider="Alpha Vantage",
@@ -154,7 +158,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.84
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("Alpha Vantage", f"Comparable companies query failed: {str(e)}", e)
 
@@ -166,7 +170,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get M&A transaction data from Alpha Vantage news and announcements."""
-        
+
         try:
             # Alpha Vantage news aggregation for M&A intelligence
             av_transactions = [
@@ -187,11 +191,11 @@ class AlphaVantageProvider(BaseFinancialProvider):
                     "value": 5_200_000_000,
                     "ev_revenue": 8.0,
                     "industry": "Data Intelligence",
-                    "deal_status": "Completed", 
+                    "deal_status": "Completed",
                     "data_source": "Alpha Vantage market intelligence"
                 }
             ]
-            
+
             return FinancialDataResponse(
                 data_type="transaction",
                 provider="Alpha Vantage",
@@ -210,7 +214,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.78
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("Alpha Vantage", f"Transaction comparables query failed: {str(e)}", e)
 
@@ -221,11 +225,11 @@ class AlphaVantageProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get Alpha Vantage market data - excellent free/affordable option."""
-        
+
         try:
             # Alpha Vantage provides excellent market data
             market_data = {}
-            
+
             for symbol in symbols:
                 market_data[symbol] = {
                     "price": 42.95,              # Current price
@@ -240,7 +244,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
                     "data_timestamp": "2024-10-15T20:59:00Z",
                     "alpha_vantage_quality": "High"
                 }
-            
+
             return FinancialDataResponse(
                 data_type="market_data",
                 provider="Alpha Vantage",
@@ -259,7 +263,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T20:59:00Z",
                 confidence=0.90
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("Alpha Vantage", f"Market data query failed: {str(e)}", e)
 
@@ -273,7 +277,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
 
     def get_capabilities(self) -> dict[str, bool]:
         """Alpha Vantage capabilities - excellent value."""
-        
+
         return {
             "fundamental_analysis": True,
             "real_time_market_data": True,
@@ -290,25 +294,25 @@ class AlphaVantageProvider(BaseFinancialProvider):
 
     def estimate_query_cost(self, query_type: str, query_count: int = 1) -> float:
         """Alpha Vantage cost - very affordable."""
-        
+
         if self.subscription_level == "free":
             return 0.0  # FREE tier!
-        
+
         # Premium tier costs (much cheaper than Bloomberg/FactSet)
         av_premium_costs = {
             "fundamental": 0.08,     # $0.08 vs $2.50 Bloomberg
-            "market_data": 0.05,     # $0.05 vs $2.00 Bloomberg  
+            "market_data": 0.05,     # $0.05 vs $2.00 Bloomberg
             "comparable": 0.15,      # $0.15 vs $4.00 Bloomberg
             "transaction": 0.20,     # $0.20 vs $5.00 Bloomberg
             "news": 0.05,           # News and sentiment
             "technical": 0.05       # Technical indicators
         }
-        
+
         return av_premium_costs.get(query_type, 0.08) * query_count
 
     def get_earnings_data(self, symbol: str) -> dict[str, Any]:
         """Get comprehensive earnings data from Alpha Vantage."""
-        
+
         return {
             "earnings_history": {
                 "q4_2023": {"revenue": 570_000_000, "eps": 0.68, "surprise": 0.08},
@@ -331,7 +335,7 @@ class AlphaVantageProvider(BaseFinancialProvider):
 
     def get_financial_ratios(self, symbol: str) -> dict[str, Any]:
         """Get comprehensive financial ratios from Alpha Vantage."""
-        
+
         return {
             "profitability_ratios": {
                 "gross_margin": 0.82,              # 82% gross margin
@@ -371,7 +375,7 @@ class PolygonProvider(BaseFinancialProvider):
         **kwargs,
     ):
         super().__init__(api_key, base_url, subscription_level, **kwargs)
-        
+
         # Polygon.io pricing - very reasonable
         self.free_monthly_limit = 1000    # 1000 free calls per month
         self.starter_monthly_cost = 25    # $25/month for 100K calls
@@ -379,7 +383,7 @@ class PolygonProvider(BaseFinancialProvider):
 
     def get_company_fundamentals(self, company_identifier: str, **kwargs) -> FinancialDataResponse:
         """Get Polygon.io fundamental data."""
-        
+
         return FinancialDataResponse(
             data_type="fundamental",
             provider="Polygon.io",
@@ -427,11 +431,11 @@ class YahooFinanceProvider(BaseFinancialProvider):
 
     def get_company_fundamentals(self, company_identifier: str, **kwargs) -> FinancialDataResponse:
         """100% FREE Yahoo Finance fundamental data."""
-        
+
         return FinancialDataResponse(
             data_type="fundamental",
             provider="Yahoo Finance (FREE)",
-            symbol_or_entity=company_identifier, 
+            symbol_or_entity=company_identifier,
             data_payload={
                 "market_cap": 8_650_000_000,
                 "revenue_ttm": 2_200_000_000,
@@ -465,7 +469,7 @@ class YahooFinanceProvider(BaseFinancialProvider):
 # Summary of cost-effective financial providers
 def get_cost_effective_provider_summary():
     """Summary of legitimate, cost-effective financial data providers."""
-    
+
     return {
         "🥇 TOP RECOMMENDATION - OpenBB": {
             "cost": "100% FREE (Open Source)",
@@ -474,28 +478,28 @@ def get_cost_effective_provider_summary():
             "installation": "pip install openbb",
             "why_best": "Professional-grade platform, completely free, extensive capabilities"
         },
-        
+
         "🥈 EXCELLENT FREE OPTION - Yahoo Finance": {
             "cost": "100% FREE",
             "data_quality": "Very high reliability and accuracy",
             "coverage": "Global markets, real-time data, fundamentals",
             "why_good": "Reliable, fast, comprehensive, zero cost"
         },
-        
+
         "🥉 GOVERNMENT DATA - SEC Edgar": {
-            "cost": "100% FREE (US Government)", 
+            "cost": "100% FREE (US Government)",
             "data_quality": "Highest (Official audited statements)",
             "coverage": "All US public companies",
             "why_valuable": "Most reliable source - actual company filings"
         },
-        
+
         "💡 AFFORDABLE PREMIUM - Alpha Vantage": {
             "cost": "FREE tier (500 calls/day) OR $49/month unlimited",
             "data_quality": "Professional grade",
             "coverage": "Global markets + fundamentals + news",
             "why_consider": "Professional features at very low cost"
         },
-        
+
         "🚀 MODERN OPTION - Polygon.io": {
             "cost": "FREE tier (1K calls/month) OR $25/month",
             "data_quality": "High",

@@ -2,6 +2,35 @@
 ## Critical Development Practices for Future AI Assistants
 
 ### 🚨 **CRITICAL GIT WORKFLOW RULES**
+### 🚨 **MOST CRITICAL RULE: ALWAYS ACTIVATE VIRTUAL ENVIRONMENT FIRST**
+
+#### **NEVER RUN ANY COMMAND WITHOUT VENV**
+```bash
+# ❌ CRITICAL ERROR: Running without virtual environment
+ruff check .
+python -c "import axiom"
+pip install package
+
+# ✅ ALWAYS DO THIS FIRST:
+source .venv/bin/activate
+# THEN run any commands:
+ruff check .
+python -c "import axiom"
+pip install package
+```
+
+#### **Virtual Environment Checklist**
+- [ ] **FIRST STEP**: Always `source .venv/bin/activate`
+- [ ] **Verify**: Check prompt shows `(.venv)` 
+- [ ] **Then**: Run any Python/pip/ruff/black commands
+- [ ] **Never**: Run Python commands without venv activated
+
+**This prevents:**
+- Wrong Python version usage
+- Missing dependencies errors
+- Import path issues
+- Inconsistent behavior
+
 
 #### **NEVER PUSH TO MAIN BRANCH**
 ```bash

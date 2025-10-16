@@ -2,7 +2,11 @@
 
 from typing import Any
 
-from .base_financial_provider import BaseFinancialProvider, FinancialDataResponse, FinancialProviderError
+from .base_financial_provider import (
+    BaseFinancialProvider,
+    FinancialDataResponse,
+    FinancialProviderError,
+)
 
 
 class SECEdgarProvider(BaseFinancialProvider):
@@ -25,7 +29,7 @@ class SECEdgarProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get SEC Edgar official financial data - MOST RELIABLE SOURCE."""
-        
+
         try:
             # SEC Edgar provides the MOST RELIABLE financial data (audited statements)
             sec_fundamental_data = {
@@ -37,13 +41,13 @@ class SECEdgarProvider(BaseFinancialProvider):
                 "audit_firm": "Big 4 Accounting Firm",
                 "financial_statements": {}
             }
-            
+
             # Direct from SEC 10-K and 10-Q filings (AUDITED DATA)
             sec_fundamental_data["financial_statements"] = {
                 "income_statement": {
                     "revenue_annual": 2_180_000_000,      # From 10-K (AUDITED)
                     "gross_profit": 1_790_000_000,       # From 10-K (AUDITED)
-                    "operating_income": 412_000_000,     # From 10-K (AUDITED) 
+                    "operating_income": 412_000_000,     # From 10-K (AUDITED)
                     "net_income": 240_000_000,           # From 10-K (AUDITED)
                     "ebitda_calculated": 468_000_000,    # Calculated from filings
                     "filing_source": "Form 10-K filed 2024-03-15"
@@ -67,7 +71,7 @@ class SECEdgarProvider(BaseFinancialProvider):
                     "filing_source": "Form 10-Q filed 2024-11-10"
                 }
             }
-            
+
             return FinancialDataResponse(
                 data_type="fundamental",
                 provider="SEC Edgar (FREE)",
@@ -84,20 +88,20 @@ class SECEdgarProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.98  # HIGHEST confidence - official audited data!
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("SEC Edgar", f"SEC filing data query failed: {str(e)}", e)
 
     def get_recent_filings(self, company_identifier: str, filing_types: list[str] = None) -> dict[str, Any]:
         """Get recent SEC filings - 100% FREE and most reliable."""
-        
+
         filing_types = filing_types or ["10-K", "10-Q", "8-K", "DEF 14A"]
-        
+
         return {
             "recent_filings": {
                 "10-K_Annual": {
                     "filing_date": "2024-03-15",
-                    "period_ending": "2023-12-31", 
+                    "period_ending": "2023-12-31",
                     "key_metrics": {
                         "revenue": 2_180_000_000,
                         "net_income": 240_000_000,
@@ -133,7 +137,7 @@ class SECEdgarProvider(BaseFinancialProvider):
 
     def get_capabilities(self) -> dict[str, bool]:
         """SEC Edgar capabilities - highest reliability."""
-        
+
         return {
             "official_filings": True,
             "audited_financials": True,
@@ -153,20 +157,20 @@ class FinancialModelingPrepProvider(BaseFinancialProvider):
 
     def __init__(
         self,
-        api_key: str = "demo", 
+        api_key: str = "demo",
         base_url: str = "https://financialmodelingprep.com/api/v3",
         subscription_level: str = "free",
         **kwargs,
     ):
         super().__init__(api_key, base_url, subscription_level, **kwargs)
-        
+
         # Financial Modeling Prep pricing - very affordable
         self.free_daily_limit = 250      # 250 free calls per day
         self.premium_monthly_cost = 15   # Only $15/month for unlimited!
 
     def get_company_fundamentals(self, company_identifier: str, **kwargs) -> FinancialDataResponse:
         """Financial Modeling Prep fundamental data - FREE tier + affordable premium."""
-        
+
         try:
             # FMP provides excellent fundamental data with DCF models
             fmp_data = {
@@ -181,7 +185,7 @@ class FinancialModelingPrepProvider(BaseFinancialProvider):
                     "gross_profit": 1_812_000_000,      # Gross profit
                     "gross_margin": 0.82,               # 82% gross margin
                     "operating_income": 420_000_000,     # Operating income
-                    "operating_margin": 0.19,           # 19% operating margin  
+                    "operating_margin": 0.19,           # 19% operating margin
                     "net_income": 243_000_000,          # Net income
                     "net_margin": 0.11,                 # 11% net margin
                     "ebitda": 465_000_000,              # EBITDA
@@ -207,7 +211,7 @@ class FinancialModelingPrepProvider(BaseFinancialProvider):
                     "asset_turnover": 0.69               # Asset turnover
                 }
             }
-            
+
             return FinancialDataResponse(
                 data_type="fundamental",
                 provider="Financial Modeling Prep",
@@ -224,13 +228,13 @@ class FinancialModelingPrepProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.87
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("Financial Modeling Prep", f"Fundamental data query failed: {str(e)}", e)
 
     def get_dcf_model(self, symbol: str) -> dict[str, Any]:
         """Get built-in DCF model from Financial Modeling Prep."""
-        
+
         return {
             "dcf_valuation": {
                 "dcf_value": 2_650_000_000,         # FMP DCF valuation
@@ -251,7 +255,7 @@ class FinancialModelingPrepProvider(BaseFinancialProvider):
                 },
                 "growth_sensitivity": {
                     "2.0%": 2_520_000_000,
-                    "2.5%": 2_650_000_000,  
+                    "2.5%": 2_650_000_000,
                     "3.0%": 2_790_000_000
                 }
             },
@@ -284,14 +288,14 @@ class IEXCloudProvider(BaseFinancialProvider):
         **kwargs,
     ):
         super().__init__(api_key, base_url, subscription_level, **kwargs)
-        
+
         # IEX Cloud pricing - very affordable
         self.free_monthly_limit = 500     # 500 free calls per month
         self.premium_monthly_cost = 9     # Only $9/month!
 
     def get_company_fundamentals(self, company_identifier: str, **kwargs) -> FinancialDataResponse:
         """Get IEX Cloud fundamental data - affordable and reliable."""
-        
+
         try:
             # IEX provides solid fundamental data
             iex_data = {
@@ -302,7 +306,7 @@ class IEXCloudProvider(BaseFinancialProvider):
                 "industry": "Software",
                 "fundamentals": {
                     "market_cap": 8_650_000_000,        # Market cap
-                    "revenue": 2_200_000_000,           # TTM revenue  
+                    "revenue": 2_200_000_000,           # TTM revenue
                     "gross_profit": 1_804_000_000,      # Gross profit
                     "operating_income": 418_000_000,     # Operating income
                     "net_income": 242_000_000,          # Net income
@@ -327,7 +331,7 @@ class IEXCloudProvider(BaseFinancialProvider):
                     "profit_margin": 0.11               # Profit margin
                 }
             }
-            
+
             return FinancialDataResponse(
                 data_type="fundamental",
                 provider="IEX Cloud",
@@ -344,17 +348,17 @@ class IEXCloudProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.88
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("IEX Cloud", f"Fundamental data query failed: {str(e)}", e)
 
     def get_market_data(self, symbols: list[str], **kwargs) -> FinancialDataResponse:
         """Get IEX Cloud real-time market data."""
-        
+
         try:
             # IEX provides excellent real-time market data
             market_data = {}
-            
+
             for symbol in symbols:
                 market_data[symbol] = {
                     "latest_price": 42.68,              # Real-time price
@@ -369,7 +373,7 @@ class IEXCloudProvider(BaseFinancialProvider):
                     "ytd_change": 0.28,                 # 28% YTD gain
                     "iex_quality": "Exchange-direct data"
                 }
-            
+
             return FinancialDataResponse(
                 data_type="market_data",
                 provider="IEX Cloud",
@@ -389,7 +393,7 @@ class IEXCloudProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T20:59:59Z",
                 confidence=0.91
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("IEX Cloud", f"Market data query failed: {str(e)}", e)
 
@@ -410,18 +414,18 @@ class IEXCloudProvider(BaseFinancialProvider):
 
 def compare_affordable_financial_providers():
     """Compare all affordable financial data providers for M&A analytics."""
-    
+
     return {
         "💰 COST COMPARISON": {
             "OpenBB": "$0/month (FREE, open source)",
             "Yahoo Finance": "$0/month (FREE)",
             "SEC Edgar": "$0/month (FREE government data)",
             "Alpha Vantage": "$0/month (FREE tier) or $49/month",
-            "Financial Modeling Prep": "$0/month (FREE tier) or $15/month", 
+            "Financial Modeling Prep": "$0/month (FREE tier) or $15/month",
             "IEX Cloud": "$0/month (FREE tier) or $9/month",
             "Polygon.io": "$0/month (FREE tier) or $25/month"
         },
-        
+
         "📊 DATA QUALITY COMPARISON": {
             "SEC Edgar": "99% (Official audited statements)",
             "OpenBB": "88% (Multi-source aggregated)",
@@ -430,7 +434,7 @@ def compare_affordable_financial_providers():
             "Financial Modeling Prep": "87% (Good for modeling)",
             "IEX Cloud": "88% (Exchange-direct data)"
         },
-        
+
         "🎯 RECOMMENDED SETUP FOR M&A": {
             "Primary": "OpenBB (FREE, comprehensive M&A capabilities)",
             "Government_Data": "SEC Edgar (FREE, highest reliability for US companies)",
@@ -439,7 +443,7 @@ def compare_affordable_financial_providers():
             "Optional_Upgrade": "Financial Modeling Prep ($15/month for DCF models)",
             "TOTAL_COST": "$0-15/month vs $4,250/month Bloomberg/FactSet"
         },
-        
+
         "💡 VALUE PROPOSITION": {
             "Cost_Savings": "99.7% savings vs professional platforms",
             "Data_Quality": "Professional grade from affordable sources",

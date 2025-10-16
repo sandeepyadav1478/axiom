@@ -2,7 +2,11 @@
 
 from typing import Any
 
-from .base_financial_provider import BaseFinancialProvider, FinancialDataResponse, FinancialProviderError
+from .base_financial_provider import (
+    BaseFinancialProvider,
+    FinancialDataResponse,
+    FinancialProviderError,
+)
 
 
 class FactSetProvider(BaseFinancialProvider):
@@ -17,7 +21,7 @@ class FactSetProvider(BaseFinancialProvider):
     ):
         super().__init__(api_key, base_url, subscription_level, **kwargs)
         self.workstation_available = False  # Set to True if FactSet Workstation available
-        
+
         # FactSet-specific configuration
         self.data_feeds = ["equity", "fixed_income", "derivatives", "alternatives"]
         self.rate_limit = 500  # Queries per hour for professional tier
@@ -30,7 +34,7 @@ class FactSetProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get FactSet fundamental financial data."""
-        
+
         try:
             # FactSet financial metrics mapping
             default_metrics = [
@@ -44,9 +48,9 @@ class FactSetProvider(BaseFinancialProvider):
                 "FF_EV_TO_SALES",     # Enterprise Value to Sales
                 "FF_CURR_RATIO"       # Current Ratio
             ]
-            
+
             requested_metrics = metrics or default_metrics
-            
+
             # Simulate FactSet institutional-grade data
             fundamental_data = {
                 "factset_entity_id": f"FS_{company_identifier}",
@@ -57,7 +61,7 @@ class FactSetProvider(BaseFinancialProvider):
                 "consensus_estimates": True,
                 "metrics": {}
             }
-            
+
             # FactSet quality financial metrics with estimates
             for metric in requested_metrics:
                 if "SALES" in metric:
@@ -69,7 +73,7 @@ class FactSetProvider(BaseFinancialProvider):
                 elif "EBITDA" in metric:
                     fundamental_data["metrics"][metric] = {
                         "actual": 470_000_000,        # $470M actual
-                        "estimate": 485_000_000,      # $485M estimate  
+                        "estimate": 485_000_000,      # $485M estimate
                         "variance": 0.032             # 3.2% variance
                     }
                 elif "CASH" in metric:
@@ -86,7 +90,7 @@ class FactSetProvider(BaseFinancialProvider):
                     }
                 else:
                     fundamental_data["metrics"][metric] = 1.0
-            
+
             return FinancialDataResponse(
                 data_type="fundamental",
                 provider="FactSet",
@@ -102,7 +106,7 @@ class FactSetProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.94
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("FactSet", f"Fundamental data query failed: {str(e)}", e)
 
@@ -114,7 +118,7 @@ class FactSetProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get FactSet comparable companies with advanced screening."""
-        
+
         try:
             # FactSet advanced screening capabilities
             screening_criteria = {
@@ -131,7 +135,7 @@ class FactSetProvider(BaseFinancialProvider):
                     "financial_reporting": "Clean audits"
                 }
             }
-            
+
             # FactSet institutional-quality comparable analysis
             factset_comparables = [
                 {
@@ -148,7 +152,7 @@ class FactSetProvider(BaseFinancialProvider):
                     "rbics_industry": "Software - Enterprise Applications"
                 },
                 {
-                    "factset_entity_id": "SNOW-US", 
+                    "factset_entity_id": "SNOW-US",
                     "company_name": "Snowflake Inc",
                     "ticker": "SNOW",
                     "market_cap": 34_800_000_000,
@@ -162,10 +166,10 @@ class FactSetProvider(BaseFinancialProvider):
                     "rbics_industry": "Software - Infrastructure"
                 }
             ]
-            
+
             return FinancialDataResponse(
                 data_type="comparable",
-                provider="FactSet", 
+                provider="FactSet",
                 symbol_or_entity=target_company,
                 data_payload={
                     "screening_universe": "FactSet Global Equity Universe",
@@ -187,7 +191,7 @@ class FactSetProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.94
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("FactSet", f"Comparable companies query failed: {str(e)}", e)
 
@@ -199,7 +203,7 @@ class FactSetProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get FactSet M&A transaction database comparables."""
-        
+
         try:
             # FactSet Mergers & Acquisitions database
             transaction_data = [
@@ -216,7 +220,7 @@ class FactSetProvider(BaseFinancialProvider):
                     "premium_1_day": 0.15,
                     "premium_1_week": 0.22,
                     "premium_4_week": 0.28,
-                    "deal_type": "Acquisition", 
+                    "deal_type": "Acquisition",
                     "payment_method": "Cash",
                     "factset_deal_status": "Completed"
                 },
@@ -225,7 +229,7 @@ class FactSetProvider(BaseFinancialProvider):
                     "target_name": "Collibra NV",
                     "target_ticker": "Private",
                     "acquirer_name": "Strategic Technology Acquirer",
-                    "announce_date": "2023-09-20", 
+                    "announce_date": "2023-09-20",
                     "transaction_value": 5_200_000_000,
                     "target_revenue_ltm": 650_000_000,
                     "target_ebitda_ltm": 95_000_000,
@@ -237,7 +241,7 @@ class FactSetProvider(BaseFinancialProvider):
                     "factset_deal_status": "Completed"
                 }
             ]
-            
+
             return FinancialDataResponse(
                 data_type="transaction",
                 provider="FactSet",
@@ -269,7 +273,7 @@ class FactSetProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T14:30:00Z",
                 confidence=0.91
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("FactSet", f"Transaction comparables query failed: {str(e)}", e)
 
@@ -280,7 +284,7 @@ class FactSetProvider(BaseFinancialProvider):
         **kwargs,
     ) -> FinancialDataResponse:
         """Get FactSet market data and analytics."""
-        
+
         try:
             default_fields = [
                 "FDS_PRICE_CLOSE",     # Closing price
@@ -290,12 +294,12 @@ class FactSetProvider(BaseFinancialProvider):
                 "FDS_PE_CURR",         # Current P/E
                 "FDS_BETA_60M"         # 60-month beta
             ]
-            
+
             fields = data_fields or default_fields
-            
+
             # FactSet institutional market data
             market_data = {}
-            
+
             for symbol in symbols:
                 market_data[symbol] = {
                     "FDS_PRICE_CLOSE": 43.25,
@@ -309,7 +313,7 @@ class FactSetProvider(BaseFinancialProvider):
                     "exchange_code": "NASDAQ",
                     "currency_iso": "USD"
                 }
-            
+
             return FinancialDataResponse(
                 data_type="market_data",
                 provider="FactSet",
@@ -329,26 +333,26 @@ class FactSetProvider(BaseFinancialProvider):
                 timestamp="2024-10-15T20:59:59Z",
                 confidence=0.96
             )
-            
+
         except Exception as e:
             raise FinancialProviderError("FactSet", f"Market data query failed: {str(e)}", e)
 
     def is_available(self) -> bool:
         """Check FactSet API/Workstation availability."""
-        
+
         try:
             # In production, test actual FactSet connection
             # Check FactSet Workstation installation
             # Validate API credentials and subscription
-            
+
             return True  # Simulated availability for demo
-            
+
         except Exception:
             return False
 
     def get_capabilities(self) -> dict[str, bool]:
         """Get FactSet-specific capabilities."""
-        
+
         return {
             "fundamental_analysis": True,
             "consensus_estimates": True,
@@ -366,7 +370,7 @@ class FactSetProvider(BaseFinancialProvider):
 
     def estimate_query_cost(self, query_type: str, query_count: int = 1) -> float:
         """FactSet-specific cost estimation."""
-        
+
         # FactSet institutional pricing
         factset_costs = {
             "fundamental": 1.80,     # FactSet fundamental data
@@ -378,12 +382,12 @@ class FactSetProvider(BaseFinancialProvider):
             "ownership": 2.80,       # Institutional ownership
             "credit": 3.60          # Credit analysis
         }
-        
+
         return factset_costs.get(query_type, 2.50) * query_count
 
     def get_consensus_estimates(self, symbol: str) -> dict[str, Any]:
         """Get FactSet consensus estimates and analyst coverage."""
-        
+
         return {
             "consensus_estimates": {
                 "revenue_fy1": 2_680_000_000,      # Next FY revenue estimate
@@ -396,7 +400,7 @@ class FactSetProvider(BaseFinancialProvider):
             "analyst_coverage": {
                 "analyst_count": 18,
                 "buy_ratings": 11,
-                "hold_ratings": 6, 
+                "hold_ratings": 6,
                 "sell_ratings": 1,
                 "price_target_mean": 47.80,
                 "price_target_high": 58.00,
@@ -413,7 +417,7 @@ class FactSetProvider(BaseFinancialProvider):
 
     def get_institutional_ownership(self, symbol: str) -> dict[str, Any]:
         """Get FactSet institutional ownership and holding analysis."""
-        
+
         return {
             "ownership_summary": {
                 "institutional_ownership_pct": 0.82,

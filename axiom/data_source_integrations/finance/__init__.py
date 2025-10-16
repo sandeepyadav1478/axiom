@@ -12,34 +12,42 @@ Cost-effective financial data providers for M&A analytics including:
 - FactSet Professional (reference - expensive)
 """
 
+from .alpha_vantage_provider import (
+    AlphaVantageProvider,
+    PolygonProvider,
+    YahooFinanceProvider,
+)
 from .base_financial_provider import (
     BaseFinancialProvider,
     FinancialDataResponse,
     FinancialProviderError,
 )
-from .openbb_provider import OpenBBProvider
-from .sec_edgar_provider import SECEdgarProvider, FinancialModelingPrepProvider, IEXCloudProvider
-from .alpha_vantage_provider import AlphaVantageProvider, PolygonProvider, YahooFinanceProvider
 from .bloomberg_provider import BloombergProvider
 from .factset_provider import FactSetProvider
+from .openbb_provider import OpenBBProvider
+from .sec_edgar_provider import (
+    FinancialModelingPrepProvider,
+    IEXCloudProvider,
+    SECEdgarProvider,
+)
 
 __all__ = [
     # Base Classes
     "BaseFinancialProvider",
-    "FinancialDataResponse", 
+    "FinancialDataResponse",
     "FinancialProviderError",
-    
+
     # FREE Data Providers (Recommended)
     "OpenBBProvider",           # 100% FREE, comprehensive
     "SECEdgarProvider",         # 100% FREE, government data (highest reliability)
     "YahooFinanceProvider",     # 100% FREE, excellent coverage
-    
+
     # Affordable Premium Providers
     "AlphaVantageProvider",     # FREE tier or $49/month
     "FinancialModelingPrepProvider",  # FREE tier or $15/month
     "IEXCloudProvider",         # FREE tier or $9/month
     "PolygonProvider",          # FREE tier or $25/month
-    
+
     # Professional Platforms (Expensive - for reference)
     "BloombergProvider",        # $24K/year (too expensive)
     "FactSetProvider",          # $15K/year (too expensive)
@@ -58,7 +66,7 @@ RECOMMENDED_FREE_SETUP = {
 
 AFFORDABLE_UPGRADE_OPTIONS = {
     "alpha_vantage_premium": "$49/month unlimited",
-    "financial_modeling_prep": "$15/month for DCF models", 
+    "financial_modeling_prep": "$15/month for DCF models",
     "iex_cloud_premium": "$9/month for enhanced data",
     "polygon_starter": "$25/month for comprehensive data",
     "total_max_cost": "$98/month (still 97% cheaper than Bloomberg)"

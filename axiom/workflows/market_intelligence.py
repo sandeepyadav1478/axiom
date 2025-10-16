@@ -6,14 +6,14 @@ industry trends, disruption assessment, and strategic market positioning.
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-from axiom.ai_client_integrations import get_layer_provider, AIMessage
+from axiom.ai_client_integrations import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
-from axiom.config.schemas import Evidence, Citation
+from axiom.config.schemas import Evidence
 from axiom.tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.utils.error_handling import FinancialDataError
@@ -25,26 +25,26 @@ class CompetitorProfile(BaseModel):
     company_name: str = Field(..., description="Competitor company name")
     competitive_positioning: str = Field(..., description="Market positioning relative to target")
     market_share: float | None = Field(None, description="Estimated market share percentage")
-    
+
     # Financial Metrics
     revenue_estimate: float | None = Field(None, description="Estimated annual revenue")
     growth_rate: float | None = Field(None, description="Estimated growth rate")
     profitability_estimate: str = Field(default="unknown", description="Profitability assessment")
-    
+
     # Strategic Analysis
     competitive_strengths: list[str] = Field(default=[], description="Key competitive strengths")
     competitive_weaknesses: list[str] = Field(default=[], description="Identified weaknesses")
     strategic_initiatives: list[str] = Field(default=[], description="Recent strategic initiatives")
-    
+
     # Market Activity
     recent_ma_activity: list[str] = Field(default=[], description="Recent M&A or partnership activity")
     funding_status: str = Field(default="unknown", description="Recent funding or investment")
     expansion_plans: list[str] = Field(default=[], description="Geographic or market expansion")
-    
+
     # Threat Assessment
     competitive_threat_level: str = Field(default="medium", description="LOW, MEDIUM, HIGH threat level")
     threat_timeline: str = Field(default="medium_term", description="Threat materialization timeline")
-    
+
     # Evidence
     intelligence_sources: list[Evidence] = Field(default=[], description="Supporting intelligence")
     analysis_confidence: float = Field(default=0.0, description="Analysis confidence level")
@@ -56,32 +56,32 @@ class MarketTrendAnalysis(BaseModel):
     industry_sector: str = Field(..., description="Primary industry sector")
     market_size_estimate: float | None = Field(None, description="Total addressable market size")
     growth_rate: float | None = Field(None, description="Market growth rate")
-    
+
     # Market Dynamics
     key_growth_drivers: list[str] = Field(default=[], description="Primary market growth drivers")
     market_headwinds: list[str] = Field(default=[], description="Market challenges and headwinds")
     customer_behavior_trends: list[str] = Field(default=[], description="Customer behavior evolution")
-    
+
     # Technology Trends
     technology_disruption_risk: str = Field(default="medium", description="Technology disruption risk level")
     emerging_technologies: list[str] = Field(default=[], description="Emerging technology trends")
     automation_impact: str = Field(default="moderate", description="Automation impact on industry")
-    
+
     # Regulatory Environment
     regulatory_environment: str = Field(default="stable", description="Regulatory environment assessment")
     policy_changes_impact: list[str] = Field(default=[], description="Expected policy changes")
     compliance_complexity: str = Field(default="medium", description="Regulatory compliance complexity")
-    
+
     # Investment Flows
     venture_capital_activity: str = Field(default="moderate", description="VC investment activity")
     private_equity_interest: str = Field(default="moderate", description="PE interest level")
     public_market_valuation_trends: str = Field(default="stable", description="Public market trends")
-    
+
     # Future Outlook
     market_outlook_12_months: str = Field(default="positive", description="12-month market outlook")
     market_outlook_24_months: str = Field(default="positive", description="24-month market outlook")
     key_inflection_points: list[str] = Field(default=[], description="Market inflection points")
-    
+
     # Analysis Quality
     trend_confidence: float = Field(default=0.0, description="Trend analysis confidence")
     data_quality_score: float = Field(default=0.0, description="Underlying data quality")
@@ -94,22 +94,22 @@ class DisruptionAssessment(BaseModel):
     disruption_risk_level: str = Field(..., description="Overall disruption risk: LOW, MEDIUM, HIGH")
     disruption_timeline: str = Field(..., description="Expected disruption timeline")
     disruption_probability: float = Field(..., description="Probability of significant disruption")
-    
+
     # Technology Disruption
     emerging_tech_threats: list[str] = Field(default=[], description="Emerging technology threats")
     ai_automation_impact: str = Field(default="moderate", description="AI/automation disruption impact")
     platform_shift_risk: str = Field(default="low", description="Platform/business model shift risk")
-    
+
     # Market Disruption
     new_entrant_threat: str = Field(default="medium", description="New market entrant threat")
     customer_behavior_shift: str = Field(default="gradual", description="Customer behavior change pace")
     regulatory_disruption: str = Field(default="low", description="Regulatory disruption risk")
-    
+
     # Economic Disruption
     economic_cycle_sensitivity: str = Field(default="medium", description="Economic cycle sensitivity")
     supply_chain_vulnerability: str = Field(default="medium", description="Supply chain disruption risk")
     geopolitical_impact: str = Field(default="low", description="Geopolitical disruption impact")
-    
+
     # Mitigation Strategies
     disruption_mitigation: list[str] = Field(default=[], description="Disruption mitigation strategies")
     adaptation_capabilities: list[str] = Field(default=[], description="Company adaptation capabilities")
@@ -122,37 +122,37 @@ class MarketIntelligenceResult(BaseModel):
     target_company: str = Field(..., description="Target company name")
     industry_focus: str = Field(..., description="Primary industry focus")
     analysis_date: datetime = Field(default_factory=datetime.now)
-    
+
     # Competitive Landscape
     direct_competitors: list[CompetitorProfile] = Field(default=[], description="Direct competitors")
     indirect_competitors: list[CompetitorProfile] = Field(default=[], description="Indirect competitors")
     competitive_intensity: str = Field(..., description="Overall competitive intensity")
-    
+
     # Market Analysis
     market_trends: MarketTrendAnalysis = Field(..., description="Market trend analysis")
     disruption_assessment: DisruptionAssessment = Field(..., description="Disruption risk assessment")
-    
+
     # Strategic Positioning
     target_market_position: str = Field(..., description="Target's current market position")
     post_acquisition_position: str = Field(..., description="Expected post-acquisition position")
     competitive_advantages: list[str] = Field(default=[], description="Key competitive advantages")
     strategic_vulnerabilities: list[str] = Field(default=[], description="Strategic vulnerabilities")
-    
+
     # Market Opportunities
     growth_opportunities: list[str] = Field(default=[], description="Market growth opportunities")
     expansion_potential: list[str] = Field(default=[], description="Geographic/segment expansion")
     consolidation_opportunities: list[str] = Field(default=[], description="Industry consolidation opportunities")
-    
+
     # Strategic Recommendations
     market_strategy_recommendations: list[str] = Field(default=[], description="Strategic recommendations")
     competitive_response_plan: list[str] = Field(default=[], description="Competitive response planning")
     market_defense_strategies: list[str] = Field(default=[], description="Market position defense")
-    
+
     # Investment Implications
     market_impact_on_valuation: str = Field(..., description="Market dynamics impact on valuation")
     timing_considerations: list[str] = Field(default=[], description="Market timing considerations")
     risk_factors: list[str] = Field(default=[], description="Market-related risk factors")
-    
+
     # Supporting Data
     evidence: list[Evidence] = Field(default=[], description="Supporting market intelligence")
     intelligence_confidence: float = Field(default=0.0, description="Overall intelligence confidence")
@@ -176,14 +176,14 @@ class MAMarketIntelligenceWorkflow:
 
         start_time = datetime.now()
         print(f"📊 Starting Market Intelligence Analysis for {target_company}")
-        
+
         try:
             # Execute market intelligence components in parallel
             competitive_task = self._analyze_competitive_landscape(target_company)
             trends_task = self._analyze_market_trends(target_company, industry_focus)
             disruption_task = self._assess_disruption_risks(target_company, industry_focus)
             positioning_task = self._analyze_strategic_positioning(target_company)
-            
+
             # Wait for all intelligence analyses
             competitive_landscape, market_trends, disruption_assessment, strategic_positioning = await asyncio.gather(
                 competitive_task, trends_task, disruption_task, positioning_task,
@@ -194,15 +194,15 @@ class MAMarketIntelligenceWorkflow:
             if isinstance(competitive_landscape, Exception):
                 print(f"⚠️ Competitive analysis failed: {str(competitive_landscape)}")
                 competitive_landscape = {"competitors": [], "intensity": "medium"}
-                
+
             if isinstance(market_trends, Exception):
                 print(f"⚠️ Market trends analysis failed: {str(market_trends)}")
                 market_trends = self._create_default_market_trends(industry_focus or "technology")
-                
+
             if isinstance(disruption_assessment, Exception):
                 print(f"⚠️ Disruption assessment failed: {str(disruption_assessment)}")
                 disruption_assessment = self._create_default_disruption_assessment()
-                
+
             if isinstance(strategic_positioning, Exception):
                 print(f"⚠️ Strategic positioning analysis failed: {str(strategic_positioning)}")
                 strategic_positioning = {"position": "established player", "advantages": []}
@@ -222,21 +222,21 @@ class MAMarketIntelligenceWorkflow:
 
             # Generate strategic insights and recommendations
             result = await self._generate_strategic_recommendations(result)
-            
+
             # Calculate market impact on valuation
             result = await self._assess_market_valuation_impact(result)
-            
+
             # Create executive market intelligence summary
             result = await self._synthesize_market_intelligence_summary(result)
-            
+
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
-            
+
             print(f"✅ Market Intelligence completed in {execution_time:.1f}s")
             print(f"🏢 Competitive Intensity: {result.competitive_intensity}")
             print(f"⚠️ Disruption Risk: {result.disruption_assessment.disruption_risk_level}")
             print(f"📊 Intelligence Confidence: {result.intelligence_confidence:.2f}")
-            
+
             return result
 
         except Exception as e:
@@ -250,9 +250,9 @@ class MAMarketIntelligenceWorkflow:
         """Analyze comprehensive competitive landscape."""
 
         print(f"🏢 Analyzing Competitive Landscape for {target}")
-        
+
         competitive_data = {"direct": [], "indirect": [], "intensity": "medium", "evidence": []}
-        
+
         # Search for competitive intelligence
         competitive_queries = [
             f"{target} competitors competitive landscape analysis",
@@ -285,7 +285,7 @@ class MAMarketIntelligenceWorkflow:
             competitors = self._parse_competitors_from_intelligence(competitive_data["evidence"])
             competitive_data["direct"] = competitors[:5]  # Top 5 direct competitors
             competitive_data["indirect"] = competitors[5:8]  # Additional indirect competitors
-            
+
             # Assess competitive intensity
             if len(competitors) > 8:
                 competitive_data["intensity"] = "high"
@@ -304,15 +304,15 @@ class MAMarketIntelligenceWorkflow:
         """Analyze comprehensive market trends and dynamics."""
 
         print(f"📈 Analyzing Market Trends for {target}")
-        
+
         industry_sector = industry or "technology"
-        
+
         # Gather market trend intelligence
         market_data = await self._gather_market_trend_data(target, industry_sector)
-        
+
         # AI-powered market trend analysis
         trend_analysis = await self._analyze_market_trends_with_ai(target, industry_sector, market_data)
-        
+
         return MarketTrendAnalysis(
             industry_sector=industry_sector,
             market_size_estimate=trend_analysis.get("market_size"),
@@ -347,13 +347,13 @@ class MAMarketIntelligenceWorkflow:
         """Assess comprehensive disruption risks and threats."""
 
         print(f"⚡ Assessing Disruption Risks for {target}")
-        
+
         # Gather disruption intelligence
         disruption_data = await self._gather_disruption_intelligence(target, industry)
-        
+
         # AI-powered disruption analysis
         disruption_analysis = await self._analyze_disruption_with_ai(target, disruption_data)
-        
+
         return DisruptionAssessment(
             disruption_risk_level=disruption_analysis.get("risk_level", "MEDIUM"),
             disruption_timeline=disruption_analysis.get("timeline", "3-5 years"),
@@ -433,7 +433,7 @@ class MAMarketIntelligenceWorkflow:
 
         disruption_risk_impact = {
             "HIGH": "Significant downward pressure on terminal value assumptions",
-            "MEDIUM": "Moderate impact requiring scenario analysis and contingency planning", 
+            "MEDIUM": "Moderate impact requiring scenario analysis and contingency planning",
             "LOW": "Minimal impact on base case valuation assumptions"
         }
 
@@ -454,7 +454,7 @@ class MAMarketIntelligenceWorkflow:
 
         # Market-related risk factors
         result.risk_factors = [
-            f"Competitive intensity escalation affecting market share and pricing",
+            "Competitive intensity escalation affecting market share and pricing",
             f"Technology disruption timeline shorter than {result.disruption_assessment.disruption_timeline}",
             f"Market growth deceleration below current {result.market_trends.growth_rate or 'projected'} rate",
             "Customer behavior shifts accelerating beyond current trend analysis",
@@ -467,7 +467,7 @@ class MAMarketIntelligenceWorkflow:
         """Gather market trend and industry analysis data."""
 
         trend_data = {"evidence": []}
-        
+
         # Market trend search queries
         trend_queries = [
             f"{industry} industry trends market analysis 2024",
@@ -521,7 +521,7 @@ class MAMarketIntelligenceWorkflow:
                 3. Technology disruption and competitive threats
                 4. Customer behavior evolution and preferences
                 5. Regulatory environment and policy impacts
-                
+
                 Provide quantitative estimates where possible and conservative assessments for M&A planning."""
             ),
             AIMessage(
@@ -556,7 +556,7 @@ Focus on factors affecting M&A valuation and strategic positioning."""
 
         # Simplified competitor extraction
         competitors = []
-        
+
         # Common competitor patterns for technology companies
         tech_competitors = [
             {"name": "Palantir Technologies", "positioning": "Enterprise AI platform"},
@@ -565,7 +565,7 @@ Focus on factors affecting M&A valuation and strategic positioning."""
             {"name": "UiPath", "positioning": "Process automation platform"},
             {"name": "C3.ai", "positioning": "Enterprise AI software"}
         ]
-        
+
         for comp_data in tech_competitors:
             competitor = CompetitorProfile(
                 company_name=comp_data["name"],
@@ -587,13 +587,13 @@ Focus on factors affecting M&A valuation and strategic positioning."""
 
         # Extract key information (simplified parsing)
         trend_data = {}
-        
+
         # Growth rate extraction
         import re
         growth_match = re.search(r"growth rate:?\s*([0-9.]+)%", content.lower())
         if growth_match:
             trend_data["growth_rate"] = float(growth_match.group(1)) / 100
-        
+
         # Market outlook parsing
         if "positive" in content.lower() or "growth" in content.lower():
             trend_data["outlook_12m"] = "positive"
@@ -612,7 +612,7 @@ Focus on factors affecting M&A valuation and strategic positioning."""
             "AI and automation integration",
             "Data analytics and business intelligence demand"
         ]
-        
+
         trend_data["headwinds"] = [
             "Economic uncertainty affecting enterprise spending",
             "Increased competition and pricing pressure",
@@ -626,7 +626,7 @@ Focus on factors affecting M&A valuation and strategic positioning."""
         """Gather disruption and innovation intelligence."""
 
         disruption_data = {"evidence": []}
-        
+
         # Disruption-focused queries
         disruption_queries = [
             f"{industry or 'technology'} industry disruption AI automation trends",
@@ -680,7 +680,7 @@ Focus on factors affecting M&A valuation and strategic positioning."""
                 3. Regulatory changes affecting industry structure
                 4. Customer behavior evolution and adoption patterns
                 5. Competitive landscape transformation potential
-                
+
                 Provide conservative disruption assessment for investment planning."""
             ),
             AIMessage(
@@ -715,14 +715,14 @@ Focus on factors that could materially impact M&A investment returns."""
         # Extract disruption risk level
         risk_level = "MEDIUM"
         if "high" in content.lower() or "significant" in content.lower():
-            risk_level = "HIGH" 
+            risk_level = "HIGH"
         elif "low" in content.lower() or "minimal" in content.lower():
             risk_level = "LOW"
 
         # Extract timeline and probability
         timeline = "3-5 years"
         probability = 0.35
-        
+
         if "2-3 years" in content or "near-term" in content.lower():
             timeline = "2-3 years"
             probability = 0.50
@@ -736,7 +736,7 @@ Focus on factors that could materially impact M&A investment returns."""
             "probability": probability,
             "tech_threats": [
                 "Generative AI automation",
-                "Open-source alternatives", 
+                "Open-source alternatives",
                 "Low-code platform adoption",
                 "Cloud-native disruption"
             ],
@@ -794,7 +794,7 @@ Focus on factors that could materially impact M&A investment returns."""
             0.80,  # Default competitive analysis confidence
             0.75   # Default disruption assessment confidence
         ]
-        
+
         result.intelligence_confidence = (sum(analysis_factors) / len(analysis_factors)) * evidence_factor
 
         return result
@@ -807,7 +807,7 @@ async def run_market_intelligence_analysis(
     analysis_scope: str = "comprehensive"
 ) -> MarketIntelligenceResult:
     """Run comprehensive market intelligence analysis."""
-    
+
     workflow = MAMarketIntelligenceWorkflow()
     return await workflow.execute_comprehensive_market_intelligence(
         target_company, industry_focus, analysis_scope
@@ -816,13 +816,13 @@ async def run_market_intelligence_analysis(
 
 async def run_competitive_analysis(target_company: str) -> dict[str, Any]:
     """Run focused competitive landscape analysis."""
-    
+
     workflow = MAMarketIntelligenceWorkflow()
     return await workflow._analyze_competitive_landscape(target_company)
 
 
 async def run_disruption_assessment(target_company: str, industry: str = None) -> DisruptionAssessment:
     """Run focused disruption risk assessment."""
-    
-    workflow = MAMarketIntelligenceWorkflow()  
+
+    workflow = MAMarketIntelligenceWorkflow()
     return await workflow._assess_disruption_risks(target_company, industry)

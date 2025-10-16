@@ -11,9 +11,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from axiom.ai_client_integrations import get_layer_provider, AIMessage
+from axiom.ai_client_integrations import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
-from axiom.config.schemas import Evidence, Citation
+from axiom.config.schemas import Citation, Evidence
 from axiom.tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.utils.error_handling import FinancialDataError
@@ -26,22 +26,22 @@ class EnvironmentalAssessment(BaseModel):
     carbon_footprint_score: str = Field(default="unknown", description="Carbon footprint assessment")
     sustainability_rating: str = Field(default="medium", description="Overall sustainability rating")
     environmental_compliance: str = Field(default="compliant", description="Environmental regulation compliance")
-    
+
     # Climate Risk
     climate_risk_exposure: str = Field(default="medium", description="Climate change risk exposure")
     carbon_reduction_targets: list[str] = Field(default=[], description="Carbon reduction commitments")
     renewable_energy_usage: str = Field(default="unknown", description="Renewable energy adoption")
-    
+
     # Environmental Initiatives
     sustainability_programs: list[str] = Field(default=[], description="Environmental programs")
     green_innovation: list[str] = Field(default=[], description="Green technology initiatives")
     circular_economy: list[str] = Field(default=[], description="Circular economy practices")
-    
+
     # Regulatory Risk
     environmental_regulations: list[str] = Field(default=[], description="Key environmental regulations")
     compliance_risks: list[str] = Field(default=[], description="Environmental compliance risks")
     regulatory_changes_impact: str = Field(default="low", description="Future regulatory impact")
-    
+
     # Investment Implications
     environmental_capex_requirements: float = Field(default=0.0, description="Required environmental investments")
     carbon_pricing_impact: str = Field(default="minimal", description="Carbon pricing impact assessment")
@@ -55,22 +55,22 @@ class SocialAssessment(BaseModel):
     employee_satisfaction: str = Field(default="unknown", description="Employee satisfaction level")
     diversity_inclusion: str = Field(default="developing", description="D&I program maturity")
     labor_practices: str = Field(default="compliant", description="Labor practice assessment")
-    
+
     # Community Impact
     community_engagement: list[str] = Field(default=[], description="Community engagement programs")
     local_economic_impact: str = Field(default="positive", description="Local economic impact")
     social_license_to_operate: str = Field(default="strong", description="Social license strength")
-    
+
     # Customer and Product
     product_safety: str = Field(default="compliant", description="Product safety record")
     customer_privacy: str = Field(default="compliant", description="Data privacy practices")
     responsible_marketing: str = Field(default="compliant", description="Marketing and advertising practices")
-    
+
     # Supply Chain
     supply_chain_ethics: str = Field(default="developing", description="Supply chain ethical standards")
     supplier_diversity: str = Field(default="developing", description="Supplier diversity programs")
     human_rights_compliance: str = Field(default="compliant", description="Human rights standards")
-    
+
     # Social Risk Factors
     social_controversies: list[str] = Field(default=[], description="Recent social controversies")
     stakeholder_concerns: list[str] = Field(default=[], description="Stakeholder concerns")
@@ -84,22 +84,22 @@ class GovernanceAssessment(BaseModel):
     board_independence: float = Field(default=0.75, description="Board independence percentage")
     board_diversity: str = Field(default="developing", description="Board diversity assessment")
     governance_structure: str = Field(default="standard", description="Corporate governance structure")
-    
+
     # Executive Leadership
     management_quality: str = Field(default="strong", description="Management quality assessment")
     executive_compensation: str = Field(default="aligned", description="Executive compensation alignment")
     succession_planning: str = Field(default="adequate", description="Leadership succession planning")
-    
+
     # Ethical Standards
     code_of_conduct: str = Field(default="established", description="Code of conduct maturity")
     ethics_training: str = Field(default="regular", description="Ethics training programs")
     whistleblower_protection: str = Field(default="established", description="Whistleblower policies")
-    
+
     # Transparency and Reporting
     financial_transparency: str = Field(default="high", description="Financial reporting transparency")
     stakeholder_communication: str = Field(default="regular", description="Stakeholder communication")
     esg_reporting: str = Field(default="developing", description="ESG reporting maturity")
-    
+
     # Risk Management
     governance_risks: list[str] = Field(default=[], description="Governance risk factors")
     compliance_framework: str = Field(default="adequate", description="Compliance framework strength")
@@ -111,46 +111,46 @@ class ESGAssessmentResult(BaseModel):
 
     target_company: str = Field(..., description="Target company name")
     assessment_date: datetime = Field(default_factory=datetime.now)
-    
+
     # ESG Component Assessments
     environmental: EnvironmentalAssessment = Field(..., description="Environmental assessment")
     social: SocialAssessment = Field(..., description="Social assessment")
     governance: GovernanceAssessment = Field(..., description="Governance assessment")
-    
+
     # Overall ESG Rating
     overall_esg_score: float = Field(..., description="Overall ESG score 0-100")
     esg_rating: str = Field(..., description="ESG rating: A, B, C, D, F")
     esg_risk_level: str = Field(..., description="ESG risk level: LOW, MEDIUM, HIGH")
-    
+
     # Investment Impact
     esg_impact_on_valuation: str = Field(..., description="ESG impact on deal valuation")
     esg_risk_premium: float = Field(default=0.0, description="ESG risk premium/discount")
     stakeholder_approval_risk: str = Field(default="low", description="Stakeholder approval risk")
-    
+
     # ESG Integration Requirements
     required_esg_improvements: list[str] = Field(default=[], description="Required ESG improvements")
     esg_integration_costs: float = Field(default=0.0, description="Estimated ESG integration costs")
     esg_timeline: str = Field(default="12-18 months", description="ESG improvement timeline")
-    
+
     # Strategic Opportunities
     esg_value_creation_opportunities: list[str] = Field(default=[], description="ESG value creation opportunities")
     sustainability_competitive_advantages: list[str] = Field(default=[], description="Sustainability advantages")
     esg_synergies: list[str] = Field(default=[], description="ESG-related synergies")
-    
+
     # Risk Management
     esg_risks: list[str] = Field(default=[], description="Key ESG risks")
     regulatory_esg_requirements: list[str] = Field(default=[], description="ESG regulatory requirements")
     reputational_risks: list[str] = Field(default=[], description="ESG reputational risks")
-    
+
     # Stakeholder Considerations
     investor_esg_expectations: list[str] = Field(default=[], description="Investor ESG expectations")
     customer_esg_requirements: list[str] = Field(default=[], description="Customer ESG requirements")
     employee_esg_priorities: list[str] = Field(default=[], description="Employee ESG priorities")
-    
+
     # Supporting Evidence
     evidence: list[Evidence] = Field(default=[], description="Supporting ESG evidence")
     citations: list[Citation] = Field(default=[], description="ESG data sources")
-    
+
     # Metadata
     analysis_confidence: float = Field(default=0.0, description="ESG analysis confidence")
     analysis_duration: float = Field(default=0.0, description="Analysis execution time")
@@ -173,13 +173,13 @@ class MAESGAnalysisWorkflow:
 
         start_time = datetime.now()
         print(f"🌍 Starting ESG Analysis for {target_company}")
-        
+
         try:
             # Execute ESG assessments in parallel
             environmental_task = self._assess_environmental_impact(target_company, industry_context)
             social_task = self._assess_social_responsibility(target_company)
             governance_task = self._assess_corporate_governance(target_company)
-            
+
             # Wait for all ESG assessments
             environmental, social, governance = await asyncio.gather(
                 environmental_task, social_task, governance_task,
@@ -190,11 +190,11 @@ class MAESGAnalysisWorkflow:
             if isinstance(environmental, Exception):
                 print(f"⚠️ Environmental assessment failed: {str(environmental)}")
                 environmental = self._create_default_environmental_assessment()
-                
+
             if isinstance(social, Exception):
                 print(f"⚠️ Social assessment failed: {str(social)}")
                 social = self._create_default_social_assessment()
-                
+
             if isinstance(governance, Exception):
                 print(f"⚠️ Governance assessment failed: {str(governance)}")
                 governance = self._create_default_governance_assessment()
@@ -209,24 +209,24 @@ class MAESGAnalysisWorkflow:
 
             # Calculate overall ESG scoring
             result = self._calculate_overall_esg_score(result)
-            
+
             # Assess ESG impact on investment
             result = await self._assess_esg_investment_impact(result)
-            
+
             # Generate ESG integration requirements
             result = await self._generate_esg_integration_plan(result)
-            
+
             # AI-powered ESG strategic analysis
             result = await self._enhance_esg_analysis_with_ai(result)
-            
+
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
-            
+
             print(f"✅ ESG Analysis completed in {execution_time:.1f}s")
             print(f"🌍 ESG Score: {result.overall_esg_score:.0f}/100 (Rating: {result.esg_rating})")
             print(f"⚠️ ESG Risk Level: {result.esg_risk_level}")
             print(f"💰 ESG Impact: {result.esg_impact_on_valuation}")
-            
+
             return result
 
         except Exception as e:
@@ -240,10 +240,10 @@ class MAESGAnalysisWorkflow:
         """Assess environmental impact and sustainability practices."""
 
         print(f"🌱 Assessing Environmental Impact for {company}")
-        
+
         # Gather environmental data
-        env_data = await self._gather_environmental_intelligence(company, industry)
-        
+        await self._gather_environmental_intelligence(company, industry)
+
         # Industry-specific environmental considerations
         industry_considerations = {
             "technology": {
@@ -264,7 +264,7 @@ class MAESGAnalysisWorkflow:
         }
 
         sector_info = industry_considerations.get(industry or "technology", industry_considerations["technology"])
-        
+
         return EnvironmentalAssessment(
             carbon_footprint_score="medium" if not industry else "developing",
             sustainability_rating="medium",
@@ -278,15 +278,15 @@ class MAESGAnalysisWorkflow:
             carbon_pricing_impact="minimal"
         )
 
-    @trace_node("social_responsibility_assessment")  
+    @trace_node("social_responsibility_assessment")
     async def _assess_social_responsibility(self, company: str) -> SocialAssessment:
         """Assess social responsibility and stakeholder impact."""
 
         print(f"👥 Assessing Social Responsibility for {company}")
-        
+
         # Gather social responsibility intelligence
-        social_data = await self._gather_social_intelligence(company)
-        
+        await self._gather_social_intelligence(company)
+
         return SocialAssessment(
             employee_satisfaction="strong",
             diversity_inclusion="developing",
@@ -315,10 +315,10 @@ class MAESGAnalysisWorkflow:
         """Assess corporate governance standards and practices."""
 
         print(f"🏛️ Assessing Corporate Governance for {company}")
-        
+
         # Gather governance intelligence
-        governance_data = await self._gather_governance_intelligence(company)
-        
+        await self._gather_governance_intelligence(company)
+
         return GovernanceAssessment(
             board_independence=0.80,  # 80% independent directors
             board_diversity="developing",
@@ -346,16 +346,16 @@ class MAESGAnalysisWorkflow:
 
         # Environmental scoring (0-100)
         env_score = self._score_environmental_factors(result.environmental)
-        
+
         # Social scoring (0-100)
         social_score = self._score_social_factors(result.social)
-        
+
         # Governance scoring (0-100)
         governance_score = self._score_governance_factors(result.governance)
-        
+
         # Weighted ESG score (Environmental 30%, Social 35%, Governance 35%)
         result.overall_esg_score = (env_score * 0.30) + (social_score * 0.35) + (governance_score * 0.35)
-        
+
         # ESG rating assignment
         if result.overall_esg_score >= 80:
             result.esg_rating = "A"
@@ -404,21 +404,21 @@ class MAESGAnalysisWorkflow:
 
         # Required ESG improvements
         improvements = []
-        
+
         if result.environmental.sustainability_rating in ["low", "developing"]:
             improvements.extend([
                 "Develop comprehensive sustainability strategy and targets",
                 "Implement carbon footprint measurement and reduction program",
                 "Enhance environmental compliance monitoring"
             ])
-            
+
         if result.social.diversity_inclusion == "developing":
             improvements.extend([
                 "Strengthen diversity, equity, and inclusion programs",
                 "Enhance employee satisfaction and engagement initiatives",
                 "Develop comprehensive stakeholder engagement strategy"
             ])
-            
+
         if result.governance.esg_reporting == "developing":
             improvements.extend([
                 "Implement comprehensive ESG reporting framework",
@@ -427,11 +427,11 @@ class MAESGAnalysisWorkflow:
             ])
 
         result.required_esg_improvements = improvements
-        
+
         # ESG integration costs estimation
         improvement_count = len(improvements)
         result.esg_integration_costs = improvement_count * 2_000_000  # $2M per major improvement
-        
+
         # ESG value creation opportunities
         result.esg_value_creation_opportunities = [
             "ESG premium valuation through sustainability leadership",
@@ -440,11 +440,11 @@ class MAESGAnalysisWorkflow:
             "Reduced regulatory risk through proactive compliance",
             "Access to ESG-focused investment capital"
         ]
-        
+
         # ESG synergies
         result.esg_synergies = [
             "Combined sustainability programs for greater impact",
-            "Shared ESG reporting and compliance infrastructure", 
+            "Shared ESG reporting and compliance infrastructure",
             "Joint innovation in sustainable technology solutions",
             "Enhanced stakeholder engagement through combined resources"
         ]
@@ -491,8 +491,8 @@ Provide strategic ESG analysis:
         ]
 
         try:
-            response = await provider.generate_response_async(messages, max_tokens=1200, temperature=0.1)
-            
+            await provider.generate_response_async(messages, max_tokens=1200, temperature=0.1)
+
             # Extract ESG risks and opportunities from AI analysis
             result.esg_risks = [
                 "Environmental compliance costs and regulatory changes",
@@ -500,7 +500,7 @@ Provide strategic ESG analysis:
                 "Governance integration complexity and standards alignment",
                 "Reputational risk from ESG performance gaps"
             ]
-            
+
             # Stakeholder expectations
             result.investor_esg_expectations = [
                 "Comprehensive ESG reporting and transparency",
@@ -508,7 +508,7 @@ Provide strategic ESG analysis:
                 "Strong governance and ethical business practices",
                 "Social impact measurement and stakeholder value creation"
             ]
-            
+
             result.analysis_confidence = 0.82
 
         except Exception as e:
@@ -521,7 +521,7 @@ Provide strategic ESG analysis:
         """Score environmental factors on 0-100 scale."""
 
         score = 50  # Base score
-        
+
         # Sustainability rating impact
         if env.sustainability_rating == "high":
             score += 20
@@ -529,7 +529,7 @@ Provide strategic ESG analysis:
             score += 10
         elif env.sustainability_rating == "low":
             score -= 10
-            
+
         # Compliance impact
         if env.environmental_compliance == "excellent":
             score += 15
@@ -537,13 +537,13 @@ Provide strategic ESG analysis:
             score += 10
         else:
             score -= 15
-            
+
         # Climate risk impact
         if env.climate_risk_exposure == "low":
             score += 10
         elif env.climate_risk_exposure == "high":
             score -= 15
-            
+
         # Programs and initiatives
         if len(env.sustainability_programs) > 3:
             score += 10
@@ -556,7 +556,7 @@ Provide strategic ESG analysis:
         """Score social factors on 0-100 scale."""
 
         score = 50  # Base score
-        
+
         # Employee satisfaction impact
         if social.employee_satisfaction == "strong":
             score += 20
@@ -564,7 +564,7 @@ Provide strategic ESG analysis:
             score += 10
         else:
             score -= 10
-            
+
         # Diversity and inclusion
         if social.diversity_inclusion == "strong":
             score += 15
@@ -572,11 +572,11 @@ Provide strategic ESG analysis:
             score += 8
         else:
             score -= 10
-            
+
         # Community engagement
         if len(social.community_engagement) > 3:
             score += 10
-        
+
         # Social controversies penalty
         score -= len(social.social_controversies) * 5
 
@@ -586,7 +586,7 @@ Provide strategic ESG analysis:
         """Score governance factors on 0-100 scale."""
 
         score = 50  # Base score
-        
+
         # Board independence
         if governance.board_independence > 0.80:
             score += 15
@@ -594,7 +594,7 @@ Provide strategic ESG analysis:
             score += 10
         else:
             score -= 5
-            
+
         # Management quality
         if governance.management_quality == "strong":
             score += 20
@@ -602,13 +602,13 @@ Provide strategic ESG analysis:
             score += 10
         else:
             score -= 10
-            
+
         # Transparency
         if governance.financial_transparency == "high":
             score += 10
         elif governance.financial_transparency == "medium":
             score += 5
-            
+
         # Governance risks penalty
         score -= len(governance.governance_risks) * 3
 
@@ -619,7 +619,7 @@ Provide strategic ESG analysis:
         """Gather environmental and sustainability intelligence."""
 
         env_data = {"evidence": []}
-        
+
         try:
             env_queries = [
                 f"{company} sustainability environmental impact carbon footprint",
@@ -655,7 +655,7 @@ Provide strategic ESG analysis:
         """Gather social responsibility and stakeholder intelligence."""
 
         social_data = {"evidence": []}
-        
+
         try:
             social_queries = [
                 f"{company} employee satisfaction workplace culture diversity",
@@ -690,7 +690,7 @@ Provide strategic ESG analysis:
         """Gather corporate governance intelligence."""
 
         governance_data = {"evidence": []}
-        
+
         try:
             governance_queries = [
                 f"{company} corporate governance board directors management",
@@ -756,17 +756,17 @@ async def run_esg_analysis(
     esg_priorities: list[str] = None
 ) -> ESGAssessmentResult:
     """Run comprehensive ESG analysis."""
-    
+
     workflow = MAESGAnalysisWorkflow()
     return await workflow.execute_comprehensive_esg_analysis(target_company, industry_context, esg_priorities)
 
 
 async def assess_esg_investment_impact(target_company: str) -> dict[str, Any]:
     """Assess ESG impact on M&A investment decision."""
-    
+
     workflow = MAESGAnalysisWorkflow()
     esg_result = await workflow.execute_comprehensive_esg_analysis(target_company)
-    
+
     return {
         "esg_score": esg_result.overall_esg_score,
         "esg_rating": esg_result.esg_rating,

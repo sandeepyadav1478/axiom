@@ -11,9 +11,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from axiom.ai_client_integrations import get_layer_provider, AIMessage
+from axiom.ai_client_integrations import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
-from axiom.config.schemas import Evidence, Citation
 from axiom.tools.firecrawl_client import FirecrawlClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.utils.error_handling import FinancialDataError
@@ -24,32 +23,32 @@ class ContractAnalysisResult(BaseModel):
 
     document_type: str = Field(..., description="Type of contract (LOI, Term Sheet, Definitive Agreement)")
     analysis_date: datetime = Field(default_factory=datetime.now)
-    
+
     # Key Terms Analysis
     key_terms_summary: dict[str, str] = Field(default={}, description="Summary of key contract terms")
     valuation_terms: dict[str, Any] = Field(default={}, description="Valuation and pricing terms")
     closing_conditions: list[str] = Field(default=[], description="Closing conditions and requirements")
-    
+
     # Risk Analysis
     contract_risks: list[str] = Field(default=[], description="Identified contract risks")
     unfavorable_terms: list[str] = Field(default=[], description="Unfavorable terms requiring negotiation")
     deal_protection_mechanisms: list[str] = Field(default=[], description="Deal protection provisions")
-    
+
     # Financial Terms
     purchase_price_structure: dict[str, float] = Field(default={}, description="Purchase price breakdown")
     earnout_provisions: dict[str, Any] = Field(default={}, description="Earnout terms and conditions")
     indemnification_terms: dict[str, str] = Field(default={}, description="Indemnification provisions")
-    
+
     # Legal Compliance
     regulatory_compliance_terms: list[str] = Field(default=[], description="Regulatory compliance requirements")
     antitrust_provisions: list[str] = Field(default=[], description="Antitrust-related provisions")
     termination_rights: list[str] = Field(default=[], description="Termination rights and conditions")
-    
+
     # Recommendations
     negotiation_priorities: list[str] = Field(default=[], description="Negotiation priority items")
     recommended_changes: list[str] = Field(default=[], description="Recommended contract changes")
     deal_structure_optimizations: list[str] = Field(default=[], description="Deal structure improvements")
-    
+
     # Analysis Quality
     contract_complexity: str = Field(default="medium", description="Contract complexity level")
     analysis_confidence: float = Field(default=0.0, description="Analysis confidence level")
@@ -62,17 +61,17 @@ class NegotiationSupport(BaseModel):
     negotiation_objectives: list[str] = Field(default=[], description="Primary negotiation objectives")
     leverage_factors: list[str] = Field(default=[], description="Negotiating leverage factors")
     concession_strategy: dict[str, str] = Field(default={}, description="Concession strategy by issue")
-    
+
     # Key Issues
     critical_negotiation_points: list[str] = Field(default=[], description="Critical negotiation issues")
     potential_deal_breakers: list[str] = Field(default=[], description="Potential deal-breaking issues")
     compromise_opportunities: list[str] = Field(default=[], description="Areas for potential compromise")
-    
+
     # Tactical Approach
     negotiation_timeline: dict[str, str] = Field(default={}, description="Negotiation phase timeline")
     stakeholder_alignment: list[str] = Field(default=[], description="Stakeholder alignment requirements")
     communication_strategy: list[str] = Field(default=[], description="Negotiation communication approach")
-    
+
     # Risk Management
     negotiation_risks: list[str] = Field(default=[], description="Negotiation-related risks")
     contingency_plans: list[str] = Field(default=[], description="Negotiation contingency plans")
@@ -86,22 +85,22 @@ class ClosingCoordination(BaseModel):
     target_closing_date: datetime = Field(..., description="Target transaction closing date")
     critical_path_items: list[str] = Field(default=[], description="Critical path to closing")
     closing_milestones: dict[str, datetime] = Field(default={}, description="Key closing milestones")
-    
+
     # Documentation Requirements
     required_closing_documents: list[str] = Field(default=[], description="Required closing documentation")
     outstanding_conditions: list[str] = Field(default=[], description="Outstanding closing conditions")
     regulatory_approvals_pending: list[str] = Field(default=[], description="Pending regulatory approvals")
-    
+
     # Stakeholder Coordination
     closing_participants: list[str] = Field(default=[], description="Closing meeting participants")
     legal_counsel_coordination: dict[str, str] = Field(default={}, description="Legal counsel coordination")
     financing_coordination: list[str] = Field(default=[], description="Financing arrangement coordination")
-    
+
     # Risk Management
     closing_risks: list[str] = Field(default=[], description="Closing-related risks")
     contingency_procedures: list[str] = Field(default=[], description="Closing contingency procedures")
     post_closing_obligations: list[str] = Field(default=[], description="Post-closing obligations")
-    
+
     # Success Metrics
     closing_readiness_score: float = Field(default=0.0, description="Closing readiness score 0-1")
     probability_of_closing: float = Field(default=0.0, description="Probability of successful closing")
@@ -113,34 +112,34 @@ class DealExecutionResult(BaseModel):
     target_company: str = Field(..., description="Target company name")
     deal_stage: str = Field(..., description="Current deal execution stage")
     execution_date: datetime = Field(default_factory=datetime.now)
-    
+
     # Contract Analysis
     contract_analysis: ContractAnalysisResult | None = Field(None, description="Contract analysis results")
-    
+
     # Negotiation Support
     negotiation_support: NegotiationSupport = Field(..., description="Negotiation strategy and support")
-    
+
     # Closing Coordination
     closing_coordination: ClosingCoordination = Field(..., description="Closing coordination plan")
-    
+
     # Overall Deal Assessment
     deal_execution_risk: str = Field(..., description="Deal execution risk level")
     execution_timeline: str = Field(..., description="Expected execution timeline")
     success_probability: float = Field(..., description="Deal execution success probability")
-    
+
     # Strategic Recommendations
     execution_priorities: list[str] = Field(default=[], description="Execution priority actions")
     risk_mitigation_plan: list[str] = Field(default=[], description="Execution risk mitigation")
     optimization_opportunities: list[str] = Field(default=[], description="Execution optimization opportunities")
-    
+
     # Resource Requirements
     required_resources: dict[str, int] = Field(default={}, description="Required execution resources")
     external_advisor_needs: list[str] = Field(default=[], description="External advisor requirements")
-    
+
     # Monitoring Framework
     execution_kpis: list[str] = Field(default=[], description="Execution monitoring KPIs")
     milestone_tracking: dict[str, str] = Field(default={}, description="Milestone tracking system")
-    
+
     # Metadata
     analysis_confidence: float = Field(default=0.0, description="Analysis confidence level")
     analysis_duration: float = Field(default=0.0, description="Analysis execution time")
@@ -164,17 +163,17 @@ class MADealExecutionWorkflow:
 
         start_time = datetime.now()
         print(f"⚡ Starting Deal Execution Support for {target_company}")
-        
+
         try:
             # Execute deal execution components based on stage
             negotiation_task = self._develop_negotiation_strategy(target_company, deal_value)
             closing_task = self._coordinate_closing_process(target_company, deal_stage)
-            
+
             # Contract analysis if documents provided
             contract_task = None
             if contract_documents:
                 contract_task = self._analyze_contract_documents(contract_documents)
-            
+
             # Wait for execution analyses
             if contract_task:
                 negotiation_support, closing_coordination, contract_analysis = await asyncio.gather(
@@ -192,11 +191,11 @@ class MADealExecutionWorkflow:
             if isinstance(negotiation_support, Exception):
                 print(f"⚠️ Negotiation strategy failed: {str(negotiation_support)}")
                 negotiation_support = self._create_default_negotiation_support()
-                
+
             if isinstance(closing_coordination, Exception):
                 print(f"⚠️ Closing coordination failed: {str(closing_coordination)}")
                 closing_coordination = self._create_default_closing_coordination()
-                
+
             if isinstance(contract_analysis, Exception):
                 print(f"⚠️ Contract analysis failed: {str(contract_analysis)}")
                 contract_analysis = None
@@ -212,21 +211,21 @@ class MADealExecutionWorkflow:
 
             # Calculate execution risk and success probability
             result = self._assess_execution_risk(result, deal_value)
-            
+
             # Generate execution strategy and recommendations
             result = await self._generate_execution_strategy(result)
-            
+
             # AI-powered execution optimization
             result = await self._optimize_execution_with_ai(result)
-            
+
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
-            
+
             print(f"✅ Deal Execution Support completed in {execution_time:.1f}s")
             print(f"⚡ Execution Risk: {result.deal_execution_risk}")
             print(f"📊 Success Probability: {result.success_probability:.0%}")
             print(f"⏰ Timeline: {result.execution_timeline}")
-            
+
             return result
 
         except Exception as e:
@@ -240,7 +239,7 @@ class MADealExecutionWorkflow:
         """Analyze M&A contract documents and terms."""
 
         print("📄 Analyzing M&A Contract Documents...")
-        
+
         # Sample contract analysis (in production, would analyze actual documents)
         return ContractAnalysisResult(
             document_type="Definitive Purchase Agreement",
@@ -285,7 +284,7 @@ class MADealExecutionWorkflow:
         """Develop comprehensive negotiation strategy."""
 
         print(f"🤝 Developing Negotiation Strategy for {target}")
-        
+
         return NegotiationSupport(
             negotiation_objectives=[
                 "Secure favorable purchase price and terms",
@@ -333,7 +332,7 @@ class MADealExecutionWorkflow:
         """Coordinate comprehensive closing process."""
 
         print(f"📋 Coordinating Closing Process for {target}")
-        
+
         # Calculate target closing based on current stage
         if stage == "negotiation":
             target_close = datetime.now() + timedelta(days=120)
@@ -343,7 +342,7 @@ class MADealExecutionWorkflow:
             target_close = datetime.now() + timedelta(days=30)
         else:
             target_close = datetime.now() + timedelta(days=150)
-        
+
         return ClosingCoordination(
             target_closing_date=target_close,
             critical_path_items=[
@@ -378,7 +377,7 @@ class MADealExecutionWorkflow:
             ],
             closing_participants=[
                 "Acquirer executive team and board representatives",
-                "Target company management and board", 
+                "Target company management and board",
                 "Lead legal counsel for both parties",
                 "Investment banking advisors",
                 "Financing partners and debt arrangers",
@@ -392,17 +391,17 @@ class MADealExecutionWorkflow:
         """Assess overall deal execution risk."""
 
         risk_factors = []
-        
+
         # Contract complexity risk
         if result.contract_analysis and result.contract_analysis.contract_complexity == "high":
             risk_factors.append(0.6)
         else:
             risk_factors.append(0.3)
-            
+
         # Closing readiness risk
         readiness = result.closing_coordination.closing_readiness_score
         risk_factors.append(1 - readiness)
-        
+
         # Negotiation complexity risk
         negotiation_points = len(result.negotiation_support.critical_negotiation_points)
         if negotiation_points > 8:
@@ -422,7 +421,7 @@ class MADealExecutionWorkflow:
 
         # Calculate overall execution risk
         avg_risk = sum(risk_factors) / len(risk_factors)
-        
+
         if avg_risk >= 0.6:
             result.deal_execution_risk = "HIGH"
             result.success_probability = 0.65
@@ -483,7 +482,7 @@ class MADealExecutionWorkflow:
 
         result.external_advisor_needs = [
             "Experienced M&A legal counsel for transaction documentation",
-            "Regulatory counsel for antitrust and industry-specific approvals", 
+            "Regulatory counsel for antitrust and industry-specific approvals",
             "Tax advisors for deal structure optimization",
             "Integration consultants for post-closing execution planning"
         ]
@@ -531,7 +530,7 @@ CRITICAL FACTORS:
 
 Provide execution optimization:
 1. Execution risk mitigation priorities
-2. Timeline acceleration opportunities  
+2. Timeline acceleration opportunities
 3. Resource optimization recommendations
 4. Critical success factor focus areas
 5. Contingency planning for potential issues"""
@@ -539,8 +538,8 @@ Provide execution optimization:
         ]
 
         try:
-            response = await provider.generate_response_async(messages, max_tokens=1000, temperature=0.05)
-            
+            await provider.generate_response_async(messages, max_tokens=1000, temperature=0.05)
+
             # Extract optimization opportunities
             result.optimization_opportunities = [
                 "Parallel processing of regulatory approvals and contract finalization",
@@ -549,7 +548,7 @@ Provide execution optimization:
                 "Experienced deal team allocation for faster execution",
                 "Proactive issue identification and resolution processes"
             ]
-            
+
             result.analysis_confidence = 0.88
 
         except Exception as e:
@@ -586,7 +585,7 @@ async def run_deal_execution_support(
     contract_documents: list[str] = None
 ) -> DealExecutionResult:
     """Run comprehensive deal execution support."""
-    
+
     workflow = MADealExecutionWorkflow()
     return await workflow.execute_comprehensive_deal_execution_support(
         target_company, deal_stage, deal_value, contract_documents
@@ -595,13 +594,13 @@ async def run_deal_execution_support(
 
 async def analyze_contract_terms(contract_documents: list[str]) -> ContractAnalysisResult:
     """Analyze M&A contract terms and conditions."""
-    
+
     workflow = MADealExecutionWorkflow()
     return await workflow._analyze_contract_documents(contract_documents)
 
 
 async def develop_negotiation_strategy(target_company: str, deal_value: float = None) -> NegotiationSupport:
     """Develop M&A negotiation strategy and tactics."""
-    
+
     workflow = MADealExecutionWorkflow()
     return await workflow._develop_negotiation_strategy(target_company, deal_value)

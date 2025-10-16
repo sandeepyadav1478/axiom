@@ -7,11 +7,10 @@ tax optimization, international regulatory coordination, and cross-border execut
 
 import asyncio
 from datetime import datetime
-from typing import Any
 
 from pydantic import BaseModel, Field
 
-from axiom.ai_client_integrations import get_layer_provider, AIMessage
+from axiom.ai_client_integrations import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
 from axiom.config.schemas import Evidence
 from axiom.tools.tavily_client import TavilyClient
@@ -27,17 +26,17 @@ class CurrencyHedgingStrategy(BaseModel):
     target_currency: str = Field(..., description="Target company's functional currency")
     transaction_currency: str = Field(default="USD", description="Transaction pricing currency")
     exposure_amount: float = Field(..., description="Total currency exposure amount")
-    
+
     # Hedging Analysis
     currency_risk_level: str = Field(..., description="LOW, MEDIUM, HIGH currency risk")
     volatility_assessment: str = Field(..., description="Historical currency volatility")
     hedging_recommendation: str = Field(..., description="Recommended hedging approach")
-    
+
     # Hedging Instruments
     recommended_hedging_instruments: list[str] = Field(default=[], description="Recommended hedging instruments")
     hedging_timeline: str = Field(..., description="Hedging implementation timeline")
     hedging_cost_estimate: float = Field(default=0.0, description="Estimated hedging costs")
-    
+
     # Risk Management
     currency_scenarios: dict[str, float] = Field(default={}, description="Currency movement scenarios")
     value_at_risk: float = Field(default=0.0, description="Currency VaR")
@@ -51,22 +50,22 @@ class TaxOptimizationStrategy(BaseModel):
     acquirer_jurisdiction: str = Field(default="United States", description="Acquirer tax jurisdiction")
     target_jurisdiction: str = Field(..., description="Target company tax jurisdiction")
     transaction_structure: str = Field(..., description="Optimal transaction structure")
-    
+
     # Tax Implications
     withholding_tax_rate: float = Field(default=0.0, description="Applicable withholding tax rate")
     capital_gains_tax: float = Field(default=0.0, description="Capital gains tax implications")
     transfer_pricing_considerations: list[str] = Field(default=[], description="Transfer pricing issues")
-    
+
     # Tax Optimization
     recommended_structure: dict[str, str] = Field(default={}, description="Recommended tax structure")
     tax_savings_estimate: float = Field(default=0.0, description="Estimated annual tax savings")
     implementation_timeline: str = Field(default="3-6 months", description="Tax optimization timeline")
-    
+
     # Compliance Requirements
     tax_filing_requirements: list[str] = Field(default=[], description="Tax filing requirements")
     transfer_pricing_documentation: list[str] = Field(default=[], description="Required documentation")
     ongoing_compliance: list[str] = Field(default=[], description="Ongoing tax compliance")
-    
+
     # Risk Factors
     tax_risks: list[str] = Field(default=[], description="Tax-related risks")
     regulatory_changes_impact: str = Field(default="low", description="Impact of potential tax law changes")
@@ -79,17 +78,17 @@ class InternationalRegulatoryFramework(BaseModel):
     # Regulatory Jurisdictions
     primary_jurisdictions: list[str] = Field(..., description="Primary regulatory jurisdictions")
     secondary_jurisdictions: list[str] = Field(default=[], description="Secondary regulatory considerations")
-    
+
     # Regulatory Requirements
     merger_control_filings: dict[str, dict] = Field(default={}, description="Required merger control filings")
     foreign_investment_approvals: list[str] = Field(default=[], description="Foreign investment approvals")
     sectoral_approvals: dict[str, list] = Field(default={}, description="Industry-specific approvals by jurisdiction")
-    
+
     # Timeline Coordination
     regulatory_timeline_matrix: dict[str, str] = Field(default={}, description="Regulatory timeline by jurisdiction")
     critical_path_coordination: list[str] = Field(default=[], description="Cross-border critical path items")
     approval_sequencing: list[str] = Field(default=[], description="Optimal approval sequencing")
-    
+
     # Risk Assessment
     geopolitical_risks: list[str] = Field(default=[], description="Geopolitical transaction risks")
     regulatory_arbitrage_opportunities: list[str] = Field(default=[], description="Regulatory optimization opportunities")
@@ -104,32 +103,32 @@ class CrossBorderMandAResult(BaseModel):
     acquirer_country: str = Field(default="United States", description="Acquirer country")
     transaction_value: float = Field(..., description="Transaction value")
     analysis_date: datetime = Field(default_factory=datetime.now)
-    
+
     # Cross-Border Analysis Components
     currency_strategy: CurrencyHedgingStrategy = Field(..., description="Currency hedging strategy")
     tax_strategy: TaxOptimizationStrategy = Field(..., description="Tax optimization strategy")
     regulatory_framework: InternationalRegulatoryFramework = Field(..., description="International regulatory framework")
-    
+
     # Overall Assessment
     cross_border_complexity: str = Field(..., description="Overall complexity: LOW, MEDIUM, HIGH")
     execution_timeline: str = Field(..., description="Expected execution timeline")
     additional_costs: float = Field(default=0.0, description="Additional cross-border costs")
     success_probability: float = Field(..., description="Cross-border execution success probability")
-    
+
     # Strategic Considerations
     cross_border_synergies: list[str] = Field(default=[], description="Cross-border synergy opportunities")
     cultural_integration_requirements: list[str] = Field(default=[], description="Cultural integration needs")
     legal_structure_optimization: list[str] = Field(default=[], description="Legal structure recommendations")
-    
+
     # Risk Management
     cross_border_risks: list[str] = Field(default=[], description="Cross-border specific risks")
     mitigation_strategies: list[str] = Field(default=[], description="Risk mitigation approaches")
     contingency_plans: list[str] = Field(default=[], description="Cross-border contingency planning")
-    
+
     # Implementation Plan
     implementation_phases: dict[str, list[str]] = Field(default={}, description="Implementation phases and actions")
     resource_requirements: dict[str, int] = Field(default={}, description="Additional resource requirements")
-    
+
     # Supporting Evidence
     evidence: list[Evidence] = Field(default=[], description="Supporting cross-border evidence")
     analysis_confidence: float = Field(default=0.0, description="Analysis confidence level")
@@ -154,7 +153,7 @@ class MACrossBorderWorkflow:
 
         start_time = datetime.now()
         print(f"🌍 Starting Cross-Border M&A Analysis for {target_company} ({target_country})")
-        
+
         try:
             # Execute cross-border analyses in parallel
             currency_task = self._analyze_currency_hedging_strategy(
@@ -166,7 +165,7 @@ class MACrossBorderWorkflow:
             regulatory_task = self._coordinate_international_regulatory_framework(
                 target_country, acquirer_country, transaction_value
             )
-            
+
             # Wait for all cross-border analyses
             currency_strategy, tax_strategy, regulatory_framework = await asyncio.gather(
                 currency_task, tax_task, regulatory_task,
@@ -177,11 +176,11 @@ class MACrossBorderWorkflow:
             if isinstance(currency_strategy, Exception):
                 print(f"⚠️ Currency analysis failed: {str(currency_strategy)}")
                 currency_strategy = self._create_default_currency_strategy(target_country, transaction_value)
-                
+
             if isinstance(tax_strategy, Exception):
                 print(f"⚠️ Tax strategy failed: {str(tax_strategy)}")
                 tax_strategy = self._create_default_tax_strategy(target_country, transaction_value)
-                
+
             if isinstance(regulatory_framework, Exception):
                 print(f"⚠️ Regulatory framework failed: {str(regulatory_framework)}")
                 regulatory_framework = self._create_default_regulatory_framework(target_country)
@@ -199,21 +198,21 @@ class MACrossBorderWorkflow:
 
             # Calculate cross-border complexity and costs
             result = self._assess_cross_border_complexity(result)
-            
+
             # Generate cross-border integration strategy
             result = await self._develop_cross_border_integration_strategy(result)
-            
+
             # AI-powered cross-border optimization
             result = await self._optimize_cross_border_execution(result)
-            
+
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
-            
+
             print(f"✅ Cross-Border Analysis completed in {execution_time:.1f}s")
             print(f"🌍 Complexity Level: {result.cross_border_complexity}")
             print(f"💰 Additional Costs: ${result.additional_costs/1e6:.1f}M")
             print(f"📊 Success Probability: {result.success_probability:.0%}")
-            
+
             return result
 
         except Exception as e:
@@ -224,19 +223,19 @@ class MACrossBorderWorkflow:
 
     @trace_node("currency_hedging_analysis")
     async def _analyze_currency_hedging_strategy(
-        self, 
-        target_country: str, 
-        acquirer_country: str, 
+        self,
+        target_country: str,
+        acquirer_country: str,
         transaction_value: float
     ) -> CurrencyHedgingStrategy:
         """Analyze currency risk and develop hedging strategy."""
 
         print(f"💱 Analyzing Currency Hedging Strategy ({target_country} to {acquirer_country})")
-        
+
         # Currency mapping
         currency_map = {
             "United States": "USD",
-            "United Kingdom": "GBP", 
+            "United Kingdom": "GBP",
             "Germany": "EUR",
             "France": "EUR",
             "Japan": "JPY",
@@ -244,29 +243,29 @@ class MACrossBorderWorkflow:
             "Australia": "AUD",
             "Switzerland": "CHF"
         }
-        
+
         target_currency = currency_map.get(target_country, "EUR")
         base_currency = currency_map.get(acquirer_country, "USD")
-        
+
         # Currency risk assessment
         high_volatility_pairs = [("USD", "GBP"), ("USD", "EUR"), ("USD", "JPY")]
         medium_volatility_pairs = [("USD", "CAD"), ("USD", "AUD"), ("USD", "CHF")]
-        
+
         currency_pair = (base_currency, target_currency)
-        
+
         if currency_pair in high_volatility_pairs or currency_pair[::-1] in high_volatility_pairs:
             risk_level = "HIGH"
             volatility = "high"
             hedging_cost = transaction_value * 0.015  # 1.5% hedging cost
         elif currency_pair in medium_volatility_pairs or currency_pair[::-1] in medium_volatility_pairs:
             risk_level = "MEDIUM"
-            volatility = "medium"  
+            volatility = "medium"
             hedging_cost = transaction_value * 0.010  # 1.0% hedging cost
         else:
             risk_level = "LOW"
             volatility = "low"
             hedging_cost = transaction_value * 0.005  # 0.5% hedging cost
-        
+
         return CurrencyHedgingStrategy(
             target_currency=target_currency,
             transaction_currency="USD",  # Most M&A priced in USD
@@ -291,15 +290,15 @@ class MACrossBorderWorkflow:
 
     @trace_node("tax_optimization_strategy")
     async def _develop_tax_optimization_strategy(
-        self, 
-        target_country: str, 
-        acquirer_country: str, 
+        self,
+        target_country: str,
+        acquirer_country: str,
         transaction_value: float
     ) -> TaxOptimizationStrategy:
         """Develop international tax optimization strategy."""
 
         print(f"🏛️ Developing Tax Optimization Strategy ({target_country} acquisition)")
-        
+
         # Tax rate mapping (simplified - actual rates vary by specific circumstances)
         corporate_tax_rates = {
             "United States": 0.21,
@@ -311,7 +310,7 @@ class MACrossBorderWorkflow:
             "Singapore": 0.17,
             "Switzerland": 0.19
         }
-        
+
         # Withholding tax rates (typical treaty rates)
         withholding_rates = {
             ("United States", "United Kingdom"): 0.05,
@@ -320,17 +319,17 @@ class MACrossBorderWorkflow:
             ("United States", "Ireland"): 0.05,
             ("United States", "Netherlands"): 0.05
         }
-        
+
         target_tax_rate = corporate_tax_rates.get(target_country, 0.25)
         acquirer_tax_rate = corporate_tax_rates.get(acquirer_country, 0.21)
         withholding_rate = withholding_rates.get((acquirer_country, target_country), 0.10)
-        
+
         # Tax savings estimation
         if target_tax_rate > acquirer_tax_rate:
             annual_savings = transaction_value * 0.02 * (target_tax_rate - acquirer_tax_rate)  # 2% of deal value
         else:
             annual_savings = 0
-        
+
         return TaxOptimizationStrategy(
             target_jurisdiction=target_country,
             transaction_structure="Optimal holding company structure with IP migration",
@@ -361,13 +360,13 @@ class MACrossBorderWorkflow:
     async def _coordinate_international_regulatory_framework(
         self,
         target_country: str,
-        acquirer_country: str, 
+        acquirer_country: str,
         transaction_value: float
     ) -> InternationalRegulatoryFramework:
         """Coordinate international regulatory requirements."""
 
         print(f"📜 Coordinating International Regulatory Framework ({target_country} to {acquirer_country})")
-        
+
         # Regulatory requirements by jurisdiction
         regulatory_requirements = {
             "United States": {
@@ -389,12 +388,12 @@ class MACrossBorderWorkflow:
                 "timeline": "40-90 days"
             }
         }
-        
+
         # Build regulatory framework
         jurisdictions = [target_country, acquirer_country]
         if target_country in ["Germany", "France", "Netherlands"]:
             jurisdictions.append("European Union")
-            
+
         merger_filings = {}
         for jurisdiction in jurisdictions:
             if jurisdiction in regulatory_requirements:
@@ -405,7 +404,7 @@ class MACrossBorderWorkflow:
                         "timeline": req["timeline"],
                         "estimated_cost": self._estimate_filing_cost(jurisdiction, transaction_value)
                     }
-        
+
         return InternationalRegulatoryFramework(
             primary_jurisdictions=jurisdictions,
             merger_control_filings=merger_filings,
@@ -415,7 +414,7 @@ class MACrossBorderWorkflow:
                 "UK NSI Act review (if UK national security sectors)"
             ],
             regulatory_timeline_matrix={
-                jurisdiction: req.get("timeline", "60-120 days") 
+                jurisdiction: req.get("timeline", "60-120 days")
                 for jurisdiction, req in regulatory_requirements.items()
                 if jurisdiction in jurisdictions
             },
@@ -437,7 +436,7 @@ class MACrossBorderWorkflow:
         """Assess overall cross-border transaction complexity."""
 
         complexity_factors = []
-        
+
         # Currency complexity
         if result.currency_strategy.currency_risk_level == "HIGH":
             complexity_factors.append(0.7)
@@ -445,13 +444,13 @@ class MACrossBorderWorkflow:
             complexity_factors.append(0.4)
         else:
             complexity_factors.append(0.1)
-        
+
         # Tax complexity
         if len(result.tax_strategy.tax_risks) > 3:
             complexity_factors.append(0.6)
         else:
             complexity_factors.append(0.3)
-            
+
         # Regulatory complexity
         filing_count = len(result.regulatory_framework.merger_control_filings)
         if filing_count >= 3:
@@ -463,7 +462,7 @@ class MACrossBorderWorkflow:
 
         # Calculate overall complexity
         avg_complexity = sum(complexity_factors) / len(complexity_factors)
-        
+
         if avg_complexity >= 0.6:
             result.cross_border_complexity = "HIGH"
             result.execution_timeline = "12-18 months"
@@ -496,7 +495,7 @@ class MACrossBorderWorkflow:
             "Combined international customer base and cross-selling opportunities",
             "Global talent acquisition and retention program optimization"
         ]
-        
+
         # Cultural integration requirements
         result.cultural_integration_requirements = [
             "Cross-cultural leadership development and training programs",
@@ -505,7 +504,7 @@ class MACrossBorderWorkflow:
             "Legal and regulatory compliance harmonization across jurisdictions",
             "HR policy integration addressing international employment law"
         ]
-        
+
         # Implementation phases
         result.implementation_phases = {
             "Phase_1_PreClosing": [
@@ -521,7 +520,7 @@ class MACrossBorderWorkflow:
                 "Regulatory notification and compliance confirmation"
             ],
             "Phase_3_PostClosing": [
-                "International integration team establishment and coordination", 
+                "International integration team establishment and coordination",
                 "Cross-border system integration and technology harmonization",
                 "Cultural integration program launch and execution",
                 "Cross-border synergy realization and performance tracking"
@@ -546,7 +545,7 @@ class MACrossBorderWorkflow:
                 Provide practical recommendations for successful international deal execution."""
             ),
             AIMessage(
-                role="user", 
+                role="user",
                 content=f"""Optimize cross-border M&A execution for {result.target_company}:
 
 TRANSACTION PROFILE:
@@ -571,8 +570,8 @@ Provide optimization recommendations:
         ]
 
         try:
-            response = await provider.generate_response_async(messages, max_tokens=1200, temperature=0.1)
-            
+            await provider.generate_response_async(messages, max_tokens=1200, temperature=0.1)
+
             # Parse optimization insights
             result.cross_border_risks = [
                 "Currency volatility affecting transaction economics",
@@ -581,7 +580,7 @@ Provide optimization recommendations:
                 "Geopolitical tensions affecting transaction approval",
                 "Tax law changes impacting deal structure optimization"
             ]
-            
+
             result.mitigation_strategies = [
                 "Comprehensive currency hedging with staged implementation",
                 "Parallel regulatory filing and proactive authority engagement",
@@ -589,7 +588,7 @@ Provide optimization recommendations:
                 "Geopolitical risk monitoring and government relations strategy",
                 "Tax structure flexibility and contingency planning"
             ]
-            
+
             result.analysis_confidence = 0.85
 
         except Exception as e:
@@ -609,7 +608,7 @@ Provide optimization recommendations:
             "Germany": 40_000,           # German merger control fee
             "France": 35_000             # French merger control fee
         }
-        
+
         return cost_estimates.get(jurisdiction, 30_000)
 
     # Helper methods for default strategies
@@ -649,7 +648,7 @@ async def run_cross_border_ma_analysis(
     acquirer_country: str = "United States"
 ) -> CrossBorderMandAResult:
     """Run comprehensive cross-border M&A analysis."""
-    
+
     workflow = MACrossBorderWorkflow()
     return await workflow.execute_cross_border_analysis(
         target_company, target_country, transaction_value, acquirer_country
@@ -662,7 +661,7 @@ async def analyze_currency_hedging(
     acquirer_country: str = "United States"
 ) -> CurrencyHedgingStrategy:
     """Analyze currency hedging strategy for international M&A."""
-    
+
     workflow = MACrossBorderWorkflow()
     return await workflow._analyze_currency_hedging_strategy(target_country, acquirer_country, transaction_value)
 
@@ -673,6 +672,6 @@ async def optimize_international_tax_structure(
     acquirer_country: str = "United States"
 ) -> TaxOptimizationStrategy:
     """Optimize international tax structure for cross-border M&A."""
-    
+
     workflow = MACrossBorderWorkflow()
     return await workflow._develop_tax_optimization_strategy(target_country, acquirer_country, transaction_value)

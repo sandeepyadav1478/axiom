@@ -62,7 +62,7 @@ class BaseFinancialProvider(ABC):
         Args:
             company_identifier: Ticker symbol, CUSIP, or company name
             metrics: Specific financial metrics to retrieve
-            
+
         Returns:
             Standardized financial data response
         """
@@ -123,16 +123,16 @@ class BaseFinancialProvider(ABC):
 
     def estimate_query_cost(self, query_type: str, query_count: int = 1) -> float:
         """Estimate cost for API queries."""
-        
+
         # Default cost estimates (override in specific providers)
         cost_map = {
             "fundamental": 2.00,
-            "market_data": 1.50, 
+            "market_data": 1.50,
             "comparable": 3.00,
             "transaction": 4.00,
             "screening": 5.00
         }
-        
+
         return cost_map.get(query_type, 2.50) * query_count
 
 

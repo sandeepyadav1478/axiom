@@ -12,6 +12,14 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     
     steps:
+      - name: Debug Workflow Trigger
+        run: |
+          echo "📝 DEBUG: Update PR Description workflow triggered"
+          echo "📝 DEBUG: Triggered by workflow: ${{ github.event.workflow_run.name }}"
+          echo "📝 DEBUG: Parent workflow conclusion: ${{ github.event.workflow_run.conclusion }}"
+          echo "📝 DEBUG: Head branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "📝 DEBUG: Workflow run ID: ${{ github.event.workflow_run.id }}"
+          
       - name: Checkout
         uses: actions/checkout@v4
         with:

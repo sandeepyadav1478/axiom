@@ -40,8 +40,22 @@ jobs:
         run: |
           BRANCH="${{ steps.branch.outputs.branch }}"
           
+          echo "🔄 DEBUG: Creating PR for branch $BRANCH"
+          echo "🔄 DEBUG: Workflow name: Auto Create Pull Request"
+          echo "🔄 DEBUG: Job status will be: success (if no errors)"
+          
           gh pr create \
             --title "Auto PR: Merge $BRANCH into main" \
             --body "This pull request was automatically created when branch $BRANCH was pushed." \
             --base main \
             --head "$BRANCH"
+          
+          echo "🔄 DEBUG: PR creation completed successfully"
+          echo "🔄 DEBUG: This should trigger Update PR Description workflow"
+      
+      - name: Workflow Completion Debug
+        if: always()
+        run: |
+          echo "🔄 DEBUG: Auto Create Pull Request workflow completing"
+          echo "🔄 DEBUG: Workflow status: ${{ job.status }}"
+          echo "🔄 DEBUG: Should trigger dependent workflows now"

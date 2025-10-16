@@ -51,6 +51,54 @@ from .regulatory_compliance import (
     run_regulatory_compliance_analysis,
     run_hsr_analysis,
 )
+from .pmi_planning import (
+    MAPMIPlanningWorkflow,
+    PMIExecutionPlan,
+    IntegrationWorkstream,
+    Day1ReadinessPlan,
+    SynergyRealizationPlan,
+    run_pmi_planning,
+    run_day1_planning,
+)
+from .advanced_modeling import (
+    MAAdvancedModelingWorkflow,
+    MonteCarloResult,
+    StressTestResult,
+    ScenarioAnalysis,
+    AdvancedModelingResult,
+    run_monte_carlo_valuation,
+    run_comprehensive_stress_testing,
+    run_advanced_financial_modeling,
+)
+from .market_intelligence import (
+    MAMarketIntelligenceWorkflow,
+    CompetitorProfile,
+    MarketTrendAnalysis,
+    DisruptionAssessment,
+    MarketIntelligenceResult,
+    run_market_intelligence_analysis,
+    run_competitive_analysis,
+    run_disruption_assessment,
+)
+from .executive_dashboards import (
+    MAExecutiveDashboardWorkflow,
+    ExecutiveDashboardResult,
+    PortfolioAnalytics,
+    DealPerformanceMetrics,
+    SynergyRealizationDashboard,
+    generate_executive_ma_dashboard,
+    track_portfolio_synergies,
+    analyze_portfolio_performance,
+)
+from .esg_analysis import (
+    MAESGAnalysisWorkflow,
+    ESGAssessmentResult,
+    EnvironmentalAssessment,
+    SocialAssessment,
+    GovernanceAssessment,
+    run_esg_analysis,
+    assess_esg_investment_impact,
+)
 
 __all__ = [
     # Target Screening

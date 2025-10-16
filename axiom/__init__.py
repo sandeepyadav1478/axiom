@@ -7,7 +7,7 @@ __description__ = "Investment Banking Analytics Platform — AI-Powered Due Dili
 from axiom.config.schemas import Citation, Evidence, ResearchBrief
 from axiom.config.settings import settings
 from axiom.graph.graph import create_research_graph, run_research
-from axiom.main import research_query
+
 from axiom.workflows.due_diligence import (
     CommercialDDResult,
     ComprehensiveDDResult,
@@ -41,7 +41,6 @@ __all__ = [
     # Core Platform
     "run_research",
     "create_research_graph",
-    "research_query",
     "settings",
     "ResearchBrief",
     "Evidence",

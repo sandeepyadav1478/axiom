@@ -15,7 +15,6 @@ Cost-effective financial data providers for M&A analytics including:
 from .alpha_vantage_provider import (
     AlphaVantageProvider,
     PolygonProvider,
-    YahooFinanceProvider,
 )
 from .base_financial_provider import (
     BaseFinancialProvider,
@@ -25,11 +24,13 @@ from .base_financial_provider import (
 from .bloomberg_provider import BloombergProvider
 from .factset_provider import FactSetProvider
 from .openbb_provider import OpenBBProvider
-from .sec_edgar_provider import (
-    FinancialModelingPrepProvider,
-    IEXCloudProvider,
-    SECEdgarProvider,
-)
+from .sec_edgar_provider import SECEdgarProvider
+
+# New enhanced financial data sources (Phase 2)
+from .yahoo_finance_provider import YahooFinanceProvider
+from .finnhub_provider import FinnhubProvider
+from .iex_cloud_provider import IEXCloudProvider
+from .fmp_provider import FMPProvider
 
 __all__ = [
     # Base Classes
@@ -40,12 +41,13 @@ __all__ = [
     # FREE Data Providers (Recommended)
     "OpenBBProvider",           # 100% FREE, comprehensive
     "SECEdgarProvider",         # 100% FREE, government data (highest reliability)
-    "YahooFinanceProvider",     # 100% FREE, excellent coverage
+    "YahooFinanceProvider",     # 100% FREE, unlimited calls with yfinance
 
-    # Affordable Premium Providers
+    # Affordable Premium Providers (Phase 2 Enhanced)
     "AlphaVantageProvider",     # FREE tier or $49/month
-    "FinancialModelingPrepProvider",  # FREE tier or $15/month
-    "IEXCloudProvider",         # FREE tier or $9/month
+    "FinnhubProvider",          # FREE tier (60 calls/min) or $7.99/month
+    "IEXCloudProvider",         # FREE tier (500K credits/month) or $9/month
+    "FMPProvider",              # FREE tier (250 calls/day) or $14/month
     "PolygonProvider",          # FREE tier or $25/month
 
     # Professional Platforms (Expensive - for reference)
@@ -53,23 +55,26 @@ __all__ = [
     "FactSetProvider",          # $15K/year (too expensive)
 ]
 
-# Recommended cost-effective setup for M&A analytics
+# Phase 2 Enhanced: Recommended cost-effective setup for M&A analytics
 RECOMMENDED_FREE_SETUP = {
-    "primary": "OpenBB",        # 100% FREE, comprehensive
-    "government": "SEC Edgar",  # 100% FREE, highest reliability
-    "market_data": "Yahoo Finance",  # 100% FREE, excellent coverage
-    "backup": "Alpha Vantage",  # FREE tier (500 calls/day)
+    "primary": "Yahoo Finance",     # 100% FREE, unlimited calls, excellent library support
+    "comprehensive": "OpenBB",      # 100% FREE, professional-grade platform
+    "government": "SEC Edgar",      # 100% FREE, highest reliability
+    "real_time": "Finnhub",        # FREE tier 60 calls/min
+    "backup": "Alpha Vantage",     # FREE tier 500 calls/day
     "total_cost": "$0/month",
     "data_quality": "Professional grade",
-    "m&a_capability": "Complete M&A analysis"
+    "m&a_capability": "Complete M&A analysis with enhanced coverage"
 }
 
-AFFORDABLE_UPGRADE_OPTIONS = {
-    "alpha_vantage_premium": "$49/month unlimited",
-    "financial_modeling_prep": "$15/month for DCF models",
-    "iex_cloud_premium": "$9/month for enhanced data",
-    "polygon_starter": "$25/month for comprehensive data",
-    "total_max_cost": "$98/month (still 97% cheaper than Bloomberg)"
+ENHANCED_AFFORDABLE_OPTIONS = {
+    "yahoo_finance": "$0/month - 100% FREE unlimited (BEST VALUE)",
+    "finnhub_premium": "$7.99/month - Most affordable premium",
+    "iex_cloud_start": "$9/month - 5M credits",
+    "fmp_starter": "$14/month - 10K calls + DCF models",
+    "alpha_vantage_premium": "$49/month - Unlimited calls",
+    "polygon_starter": "$25/month - Comprehensive data",
+    "total_max_cost": "$105/month (still 96% cheaper than Bloomberg)"
 }
 
 EXPENSIVE_PLATFORMS_COMPARISON = {

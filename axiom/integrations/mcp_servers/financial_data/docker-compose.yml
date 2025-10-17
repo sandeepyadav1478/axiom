@@ -1,116 +1,67 @@
-version: '3.8'
-
 services:
-  # Official Polygon.io MCP Server - Professional real-time market data
-  # Only starts if POLYGON_API_KEY environment variable is provided (not 'demo')
+  # Official Polygon.io MCP Server - Use external Docker image or build from GitHub
   polygon-io-server:
-    build: ./polygon-io-server
+    # Option 1: Use official Docker image when available
+    # image: ghcr.io/polygon-io/mcp-polygon:latest
+    
+    # Option 2: Build from external repository (recommended for updates)
+    build: 
+      context: https://github.com/polygon-io/mcp_polygon.git
     container_name: axiom-polygon-financial-mcp
     environment:
       - POLYGON_API_KEY=${POLYGON_API_KEY}
+      - MCP_TRANSPORT=stdio
     stdin_open: true
     tty: true
     restart: unless-stopped
     networks:
       - financial-mcp-network
-    labels:
-      - "axiom.service=financial-mcp"
-      - "axiom.provider=polygon-io"
-      - "axiom.type=real-time-market-data"
-      - "axiom.cost=free-tier-premium-available"
-    # Only start if real API key is provided via profiles
     profiles:
       - "polygon"
-
-  # Professional Yahoo Finance MCP Server - 27 advanced financial tools
-  yahoo-finance-professional:
-    build: ./yahoo-finance-professional-server
-    container_name: axiom-yahoo-professional-mcp
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
-      - MCP_TRANSPORT=stdio
-    stdin_open: true
-    tty: true
-    restart: unless-stopped
-    networks:
-      - financial-mcp-network
     labels:
-      - "axiom.service=financial-mcp"
-      - "axiom.provider=yahoo-finance-professional"
-      - "axiom.type=advanced-analytics"
-      - "axiom.cost=100-percent-free"
-      - "axiom.tools=27-professional-tools"
-    # No ports - MCP uses STDIO transport
-
-  # Comprehensive Yahoo Finance MCP Server - Complete fundamental analysis
-  yahoo-finance-comprehensive:
-    build: ./yahoo-finance-comprehensive-server
-    container_name: axiom-yahoo-comprehensive-mcp
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
-      - MCP_TRANSPORT=stdio
-    stdin_open: true
-    tty: true
-    restart: unless-stopped
-    networks:
-      - financial-mcp-network
-    labels:
-      - "axiom.service=financial-mcp"
-      - "axiom.provider=yahoo-finance-comprehensive"
-      - "axiom.type=fundamental-analysis"
-      - "axiom.cost=100-percent-free"
-    # No ports - MCP uses STDIO transport
+      - "axiom.service=external-financial-mcp"
+      - "axiom.provider=polygon-io-official"
+      - "axiom.type=real-time-market-data"
+      - "axiom.cost=free-tier-premium-available"
+      - "axiom.update-strategy=external-repo-build"
 
 networks:
   financial-mcp-network:
-    name: axiom-financial-mcp
+    name: axiom-financial-mcp-external
     driver: bridge
 
-volumes:
-  financial-data-cache:
-    name: axiom-financial-data-cache
-    driver: local
-
-# Usage Instructions:
+# 🔄 EXTERNAL REFERENCE STRATEGY:
+# 
+# ✅ Benefits of this approach:
+# 1. No embedded external repositories in our codebase
+# 2. Always builds from latest upstream code
+# 3. Automatic updates when we rebuild containers
+# 4. Clean separation of Axiom code vs external dependencies
+# 5. Easier maintenance and security updates
 #
-# 🆓 Start FREE Yahoo Finance MCP servers (no API key needed):
-#   docker-compose up yahoo-finance-professional yahoo-finance-comprehensive -d
+# 🚀 Usage Instructions:
 #
-# 🏆 Start with Polygon.io (requires API key):
-#   POLYGON_API_KEY=your_real_key docker-compose --profile polygon up -d
+# 📊 Start MCP servers with external builds:
+#   docker-compose up --build -d
 #
-# 🚀 Start ALL servers (if you have Polygon.io API key):
-#   POLYGON_API_KEY=your_real_key docker-compose --profile polygon up -d
+# 🔄 Update to latest versions:
+#   docker-compose up --build --pull -d
 #
-# 📊 Start specific servers:
-#   docker-compose up yahoo-finance-professional -d              # FREE
-#   docker-compose up yahoo-finance-comprehensive -d             # FREE
-#   POLYGON_API_KEY=key docker-compose up polygon-io-server -d   # Requires API key
+# 💡 Alternative: Use MCP Settings Direct Installation
+#   Configure MCP settings to use uvx/npm direct installation:
+#   {
+#     "polygon-io": {
+#       "command": "uvx",
+#       "args": ["--from", "git+https://github.com/polygon-io/mcp_polygon@latest", "mcp_polygon"],
+#       "env": {"POLYGON_API_KEY": "your_key"}
+#     }
+#   }
 #
-# 📋 View logs:
-#   docker-compose logs -f yahoo-finance-professional
-#   docker-compose logs -f yahoo-finance-comprehensive
-#   docker-compose logs -f polygon-io-server
+# 🎯 Recommended Approach for Production:
+# 1. For Polygon.io: Use uvx with git installation (as per official docs)
+# 2. For Yahoo Finance: Use npm/pip direct installation from upstream
+# 3. This docker-compose for development/testing only
 #
-# 🛑 Stop all servers:
-#   docker-compose down
-#
-# 🔄 Rebuild and restart:
-#   docker-compose up --build -d yahoo-finance-professional yahoo-finance-comprehensive
-#
-# Environment Variables:
-# - POLYGON_API_KEY: Your Polygon.io API key (optional - FREE tier available at polygon.io)
-#   Without API key: Only FREE Yahoo Finance servers start
-#   With API key: All 3 servers start for maximum coverage
-#
-# API Key Rotation (for Polygon.io FREE tier optimization):
-#   POLYGON_API_KEY_1=key1 POLYGON_API_KEY_2=key2 POLYGON_API_KEY_3=key3
-#   Each FREE account: 5 calls/minute → Total: 15 calls/minute
-#
-# Cost Structure:
-# - DEFAULT (Yahoo Finance only): $0/month - 100% FREE unlimited
-# - WITH Polygon.io FREE tier: $0/month - Enhanced real-time data
-# - WITH Polygon.io premium: $25/month - Professional real-time feeds
-# - Total savings vs Bloomberg: 98%+ cost reduction
+# 📋 Environment Variables Required:
+# - POLYGON_API_KEY: Get FREE key at https://polygon.io/
+# - No keys needed for Yahoo Finance servers (100% FREE)

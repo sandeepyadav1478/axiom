@@ -4,12 +4,11 @@
 version: '3.8'
 
 services:
-  # Official Polygon.io MCP Server - Use external Docker image when available
+  # Official Polygon.io MCP Server - Build from external GitHub repo
   polygon-io-server:
-    image: ghcr.io/polygon-io/mcp-polygon:latest  # Use official image when published
-    # Fallback: Build from external repo
-    # build: 
-    #   context: https://github.com/polygon-io/mcp_polygon.git
+    # Build directly from Polygon.io GitHub repository
+    build:
+      context: https://github.com/polygon-io/mcp_polygon.git
     container_name: axiom-polygon-financial-mcp
     environment:
       - POLYGON_API_KEY=${POLYGON_API_KEY}
@@ -24,7 +23,7 @@ services:
     labels:
       - "axiom.service=external-financial-mcp"
       - "axiom.provider=polygon-io-official"
-      - "axiom.update-strategy=external-docker-image"
+      - "axiom.update-strategy=external-github-build"
 
   # Yahoo Finance Professional MCP - Use npm/uv installation approach
   yahoo-finance-professional:

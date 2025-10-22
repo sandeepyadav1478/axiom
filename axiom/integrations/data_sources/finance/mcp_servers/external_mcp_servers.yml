@@ -78,6 +78,26 @@ services:
       - "axiom.provider=yahoo-finance-comprehensive"
       - "axiom.update-strategy=dynamic-clone-and-run"
 
+  # Official Firecrawl MCP Server - Fast web scraping and data extraction
+  firecrawl-server:
+    image: mcp/firecrawl
+    container_name: axiom-firecrawl-mcp
+    environment:
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      - MCP_TRANSPORT=stdio
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - financial-mcp-network
+    profiles:
+      - "firecrawl"
+    labels:
+      - "axiom.service=external-search-mcp"
+      - "axiom.provider=firecrawl-official"
+      - "axiom.type=web-scraping-data-extraction"
+      - "axiom.update-strategy=official-docker-image"
+
 networks:
   financial-mcp-network:
     name: axiom-financial-mcp-external

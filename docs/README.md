@@ -1,5 +1,24 @@
 # Axiom M&A Investment Banking Analytics - Documentation Index
 
+## Key Features
+
+### Multi-Provider Financial Data Integration
+
+Axiom integrates multiple financial data providers for comprehensive M&A analytics:
+
+- **Tavily**: Web intelligence and market research
+- **Alpha Vantage**: 500 free calls/day for fundamentals and real-time data
+- **Financial Modeling Prep (FMP)**: 250 free calls/day for comprehensive financials
+- **Finnhub**: 60 calls/minute for real-time quotes and global coverage
+
+**Key Benefits:**
+- ✅ Multi-provider consensus for higher confidence
+- ✅ Automatic fallback when providers fail
+- ✅ 4,350+ free API calls per day across providers
+- ✅ Professional-grade financial data for M&A analysis
+
+See [Financial Provider Integration Guide](./FINANCIAL_PROVIDER_INTEGRATION.md) for complete details.
+
 ## 📚 Documentation Structure
 
 ### 🏗️ **Architecture Documentation** (`docs/architecture/`)

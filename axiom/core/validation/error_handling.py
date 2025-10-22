@@ -66,7 +66,7 @@ class AIProviderError(AxiomError):
     """Error related to AI provider operations."""
 
     def __init__(self, message: str, provider: str, model: str = "", **kwargs):
-        context = kwargs.get("context", {})
+        context = kwargs.pop("context", {})
         context.update({"provider": provider, "model": model})
         super().__init__(
             message,
@@ -81,7 +81,7 @@ class FinancialDataError(AxiomError):
     """Error related to financial data processing or validation."""
 
     def __init__(self, message: str, data_source: str = "", **kwargs):
-        context = kwargs.get("context", {})
+        context = kwargs.pop("context", {})
         context.update({"data_source": data_source})
         super().__init__(
             message,
@@ -96,7 +96,7 @@ class ComplianceError(AxiomError):
     """Error related to investment banking compliance requirements."""
 
     def __init__(self, message: str, compliance_rule: str = "", **kwargs):
-        context = kwargs.get("context", {})
+        context = kwargs.pop("context", {})
         context.update({"compliance_rule": compliance_rule})
         super().__init__(
             message,
@@ -111,7 +111,7 @@ class ConfigurationError(AxiomError):
     """Error related to system configuration."""
 
     def __init__(self, message: str, config_section: str = "", **kwargs):
-        context = kwargs.get("context", {})
+        context = kwargs.pop("context", {})
         context.update({"config_section": config_section})
         super().__init__(
             message,

@@ -1,2 +1,0 @@
-This is the first test commit to verify the workflow.
-Adding clear commit message for testing.

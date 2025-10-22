@@ -2,7 +2,7 @@
 
 import dspy
 
-from axiom.ai_client_integrations import provider_factory
+from axiom.integrations.ai_providers import provider_factory
 from axiom.config.settings import settings
 
 

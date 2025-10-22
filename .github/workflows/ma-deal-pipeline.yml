@@ -106,15 +106,14 @@ jobs:
           echo "🔍 Validating M&A system components..."
           python -c "
           try:
-              from axiom.workflows import (
-                  MATargetScreeningWorkflow,
-                  MADueDiligenceWorkflow, 
-                  MAValuationWorkflow,
-                  TargetCriteria
+              from axiom.core.analysis_engines import (
+                  target_screening,
+                  due_diligence,
+                  valuation
               )
               print('✅ All M&A workflow components ready')
               print('✅ Target Screening: Available')
-              print('✅ Due Diligence: Available') 
+              print('✅ Due Diligence: Available')
               print('✅ Valuation Analysis: Available')
               print('🎯 M&A system ready for deal execution')
           except Exception as e:
@@ -157,21 +156,22 @@ jobs:
           python -c "
           import asyncio
           import json
-          from axiom.workflows.target_screening import TargetCriteria, run_target_screening
+          from axiom.core.analysis_engines.target_screening import run_target_screening
           
           async def run_screening():
               # Define screening criteria based on deal parameters
-              criteria = TargetCriteria(
-                  industry_sectors=['technology', 'software', 'artificial intelligence'],
-                  strategic_rationale='Strategic acquisition for market expansion',
-                  min_revenue=50_000_000,      # \$50M minimum
-                  max_revenue=10_000_000_000,  # \$10B maximum
-                  min_ebitda_margin=0.15,      # 15% minimum margin
-                  min_growth_rate=0.20         # 20% minimum growth
-              )
+              criteria = {
+                  'target_company': '${{ env.DEAL_COMPANY }}',
+                  'industry_sectors': ['technology', 'software', 'artificial intelligence'],
+                  'strategic_rationale': 'Strategic acquisition for market expansion',
+                  'min_revenue': 50_000_000,      # $50M minimum
+                  'max_revenue': 10_000_000_000,  # $10B maximum
+                  'min_ebitda_margin': 0.15,      # 15% minimum margin
+                  'min_growth_rate': 0.20         # 20% minimum growth
+              }
               
               print(f'🔍 Screening targets for: ${{ env.DEAL_COMPANY }}')
-              print(f'📊 Criteria: Revenue \$50M-\$10B, EBITDA >15%, Growth >20%')
+              print(f'📊 Criteria: Revenue $50M-$10B, EBITDA >15%, Growth >20%')
               
               try:
                   # Execute screening (demo mode without actual API calls)

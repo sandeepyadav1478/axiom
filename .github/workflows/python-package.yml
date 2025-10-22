@@ -57,7 +57,7 @@ jobs:
       run: |
         echo "🎯 Testing M&A Query Detection and Task Generation..."
         python -c "
-        from axiom.graph.nodes.planner import detect_analysis_type, extract_company_info, create_ib_task_plans
+        from axiom.core.orchestration.nodes.planner import detect_analysis_type, extract_company_info, create_ib_task_plans
         
         # Test various M&A queries
         test_queries = [
@@ -85,8 +85,8 @@ jobs:
       run: |
         echo "🤖 Testing AI Provider Abstraction..."
         python -c "
-        from axiom.ai_client_integrations import BaseAIProvider, OpenAIProvider, ClaudeProvider
-        from axiom.ai_client_integrations.provider_factory import provider_factory
+        from axiom.integrations.ai_providers import BaseAIProvider, OpenAIProvider, ClaudeProvider
+        from axiom.integrations.ai_providers.provider_factory import provider_factory
         
         # Test provider creation (without API calls)
         openai_provider = OpenAIProvider('test-key', model_name='gpt-4o-mini')
@@ -108,7 +108,7 @@ jobs:
       run: |
         echo "📊 Testing Financial Data Validation..."
         python -c "
-        from axiom.utils.validation import FinancialValidator, ComplianceValidator
+        from axiom.core.validation.validation import FinancialValidator, ComplianceValidator
         
         # Test financial metrics validation
         valid_metrics = {
@@ -172,22 +172,22 @@ jobs:
         import os
         
         required_dirs = [
-            'axiom/ai_client_integrations',
+            'axiom/integrations/ai_providers',
             'axiom/config',
-            'axiom/graph/nodes',
-            'axiom/tools',
+            'axiom/core/orchestration/nodes',
+            'axiom/integrations/search_tools',
             'axiom/dspy_modules',
-            'axiom/utils'
+            'axiom/core/validation'
         ]
         
         for dir_path in required_dirs:
             assert os.path.isdir(dir_path), f'Missing directory: {dir_path}'
             
         key_files = [
-            'axiom/ai_client_integrations/provider_factory.py',
-            'axiom/graph/nodes/planner.py',
-            'axiom/utils/validation.py',
-            'demo_ma_analysis.py'
+            'axiom/integrations/ai_providers/provider_factory.py',
+            'axiom/core/orchestration/nodes/planner.py',
+            'axiom/core/validation/validation.py',
+            'demos/demo_ma_analysis.py'
         ]
         
         for file_path in key_files:
@@ -276,7 +276,7 @@ jobs:
       run: |
         echo "🔧 Testing financial tools and MCP integration..."
         python -c "
-        from axiom.tools.mcp_adapter import mcp_adapter
+        from axiom.integrations.search_tools.mcp_adapter import mcp_adapter
         
         # Test tool availability
         tools = mcp_adapter.get_available_tools()
@@ -453,8 +453,8 @@ jobs:
         
         # Check compliance-related files exist
         compliance_files = [
-            'axiom/utils/validation.py',
-            'axiom/utils/error_handling.py',
+            'axiom/core/validation/validation.py',
+            'axiom/core/validation/error_handling.py',
             'axiom/tracing/langsmith_tracer.py'
         ]
         

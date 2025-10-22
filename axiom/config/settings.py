@@ -91,14 +91,117 @@ class Settings(BaseSettings):
     regulatory_compliance_check: bool = Field(True, env="REGULATORY_COMPLIANCE_CHECK")
     market_volatility_assessment: bool = Field(True, env="MARKET_VOLATILITY_ASSESSMENT")
 
-    # Financial Data API Keys (Optional)
+    # Financial Data API Keys (Optional - with rotation support)
     alpha_vantage_api_key: str | None = Field(None, env="ALPHA_VANTAGE_API_KEY")
     financial_modeling_prep_api_key: str | None = Field(
         None, env="FINANCIAL_MODELING_PREP_API_KEY"
     )
+    fmp_api_key: str | None = Field(None, env="FMP_API_KEY")  # Alias for FMP
+    finnhub_api_key: str | None = Field(None, env="FINNHUB_API_KEY")
     polygon_api_key: str | None = Field(None, env="POLYGON_API_KEY")
     sec_edgar_user_agent: str | None = Field(None, env="SEC_EDGAR_USER_AGENT")
+    
+    # Financial API Rotation Settings
+    financial_api_rotation_enabled: bool = Field(True, env="FINANCIAL_API_ROTATION_ENABLED")
+    alpha_vantage_api_rotation_enabled: bool = Field(True, env="ALPHA_VANTAGE_API_ROTATION_ENABLED")
+    polygon_api_rotation_enabled: bool = Field(True, env="POLYGON_API_ROTATION_ENABLED")
+    finnhub_api_rotation_enabled: bool = Field(True, env="FINNHUB_API_ROTATION_ENABLED")
+    fmp_api_rotation_enabled: bool = Field(True, env="FMP_API_ROTATION_ENABLED")
 
+    # Quantitative Finance Model Settings
+    # VaR (Value at Risk) Configuration
+    var_default_confidence_level: float = Field(0.95, env="VAR_DEFAULT_CONFIDENCE_LEVEL")
+    var_default_time_horizon_days: int = Field(1, env="VAR_DEFAULT_TIME_HORIZON_DAYS")
+    var_monte_carlo_simulations: int = Field(10000, env="VAR_MONTE_CARLO_SIMULATIONS")
+    var_calculation_method: str = Field("historical", env="VAR_CALCULATION_METHOD")  # parametric, historical, monte_carlo
+    
+    # Portfolio Optimization Configuration
+    # Basic Settings
+    portfolio_risk_free_rate: float = Field(0.02, env="PORTFOLIO_RISK_FREE_RATE")
+    portfolio_default_optimization: str = Field("max_sharpe", env="PORTFOLIO_DEFAULT_OPTIMIZATION")
+    portfolio_rebalancing_threshold: float = Field(0.05, env="PORTFOLIO_REBALANCING_THRESHOLD")
+    portfolio_transaction_cost: float = Field(0.001, env="PORTFOLIO_TRANSACTION_COST")
+    portfolio_efficient_frontier_points: int = Field(50, env="PORTFOLIO_EFFICIENT_FRONTIER_POINTS")
+    
+    # Position Constraints
+    portfolio_allow_short_selling: bool = Field(False, env="PORTFOLIO_ALLOW_SHORT_SELLING")
+    portfolio_min_position_weight: float = Field(0.0, env="PORTFOLIO_MIN_POSITION_WEIGHT")
+    portfolio_max_position_weight: float = Field(1.0, env="PORTFOLIO_MAX_POSITION_WEIGHT")
+    portfolio_max_concentration: float = Field(0.3, env="PORTFOLIO_MAX_CONCENTRATION")  # Max weight in single position
+    portfolio_min_positions: int = Field(5, env="PORTFOLIO_MIN_POSITIONS")  # Diversification requirement
+    
+    # Risk Parameters
+    portfolio_target_volatility: float = Field(0.15, env="PORTFOLIO_TARGET_VOLATILITY")  # 15% annual
+    portfolio_max_volatility: float = Field(0.25, env="PORTFOLIO_MAX_VOLATILITY")  # 25% annual
+    portfolio_target_return: float = Field(0.10, env="PORTFOLIO_TARGET_RETURN")  # 10% annual
+    portfolio_min_sharpe_ratio: float = Field(0.5, env="PORTFOLIO_MIN_SHARPE_RATIO")
+    portfolio_max_drawdown_limit: float = Field(0.20, env="PORTFOLIO_MAX_DRAWDOWN_LIMIT")  # 20%
+    
+    # Covariance Matrix Settings
+    portfolio_cov_estimation_method: str = Field("sample", env="PORTFOLIO_COV_ESTIMATION_METHOD")  # sample, shrinkage, ledoit_wolf
+    portfolio_cov_shrinkage_delta: float = Field(0.5, env="PORTFOLIO_COV_SHRINKAGE_DELTA")
+    portfolio_cov_lookback_days: int = Field(252, env="PORTFOLIO_COV_LOOKBACK_DAYS")  # 1 year
+    portfolio_cov_exponential_decay: float = Field(0.94, env="PORTFOLIO_COV_EXPONENTIAL_DECAY")  # EWMA decay
+    
+    # Return Forecasting
+    portfolio_return_estimation: str = Field("historical", env="PORTFOLIO_RETURN_ESTIMATION")  # historical, black_litterman, factor_model
+    portfolio_return_lookback_days: int = Field(252, env="PORTFOLIO_RETURN_LOOKBACK_DAYS")
+    portfolio_use_momentum: bool = Field(False, env="PORTFOLIO_USE_MOMENTUM")
+    portfolio_momentum_window_days: int = Field(90, env="PORTFOLIO_MOMENTUM_WINDOW_DAYS")
+    
+    # Optimization Solver Settings
+    portfolio_optimizer_method: str = Field("SLSQP", env="PORTFOLIO_OPTIMIZER_METHOD")  # SLSQP, trust-constr, COBYLA
+    portfolio_optimizer_max_iterations: int = Field(1000, env="PORTFOLIO_OPTIMIZER_MAX_ITERATIONS")
+    portfolio_optimizer_tolerance: float = Field(1e-8, env="PORTFOLIO_OPTIMIZER_TOLERANCE")
+    portfolio_use_gradient: bool = Field(True, env="PORTFOLIO_USE_GRADIENT")
+    
+    # Asset Allocation Preferences
+    portfolio_equal_weight_baseline: bool = Field(False, env="PORTFOLIO_EQUAL_WEIGHT_BASELINE")
+    portfolio_market_cap_weighted: bool = Field(False, env="PORTFOLIO_MARKET_CAP_WEIGHTED")
+    portfolio_sector_constraints_enabled: bool = Field(False, env="PORTFOLIO_SECTOR_CONSTRAINTS_ENABLED")
+    portfolio_max_sector_weight: float = Field(0.4, env="PORTFOLIO_MAX_SECTOR_WEIGHT")
+    
+    # Rebalancing Policy
+    portfolio_rebalancing_frequency: str = Field("monthly", env="PORTFOLIO_REBALANCING_FREQUENCY")  # daily, weekly, monthly, quarterly
+    portfolio_max_turnover: float = Field(0.5, env="PORTFOLIO_MAX_TURNOVER")  # 50% max turnover
+    portfolio_min_trade_size: float = Field(0.01, env="PORTFOLIO_MIN_TRADE_SIZE")  # 1% minimum
+    portfolio_tax_aware_rebalancing: bool = Field(False, env="PORTFOLIO_TAX_AWARE_REBALANCING")
+    
+    # Risk Parity Settings
+    portfolio_risk_parity_method: str = Field("equal_risk", env="PORTFOLIO_RISK_PARITY_METHOD")  # equal_risk, equal_vol
+    portfolio_risk_parity_leverage: float = Field(1.0, env="PORTFOLIO_RISK_PARITY_LEVERAGE")
+    
+    # Black-Litterman Settings
+    portfolio_bl_tau: float = Field(0.025, env="PORTFOLIO_BL_TAU")  # Prior uncertainty
+    portfolio_bl_risk_aversion: float = Field(2.5, env="PORTFOLIO_BL_RISK_AVERSION")
+    portfolio_bl_views_confidence: float = Field(0.5, env="PORTFOLIO_BL_VIEWS_CONFIDENCE")
+    
+    # CVaR/Downside Risk Settings
+    portfolio_cvar_alpha: float = Field(0.95, env="PORTFOLIO_CVAR_ALPHA")  # CVaR confidence level
+    portfolio_focus_downside_risk: bool = Field(True, env="PORTFOLIO_FOCUS_DOWNSIDE_RISK")
+    portfolio_mar_threshold: float = Field(0.0, env="PORTFOLIO_MAR_THRESHOLD")  # Minimum acceptable return
+    
+    # Market Regime Settings
+    portfolio_market_regime: str = Field("normal", env="PORTFOLIO_MARKET_REGIME")  # normal, bull, bear, volatile
+    portfolio_crisis_mode: bool = Field(False, env="PORTFOLIO_CRISIS_MODE")
+    portfolio_defensive_allocation: bool = Field(False, env="PORTFOLIO_DEFENSIVE_ALLOCATION")
+    
+    # Performance Attribution
+    portfolio_benchmark_tracking: bool = Field(False, env="PORTFOLIO_BENCHMARK_TRACKING")
+    portfolio_max_tracking_error: float = Field(0.05, env="PORTFOLIO_MAX_TRACKING_ERROR")
+    portfolio_target_information_ratio: float = Field(0.5, env="PORTFOLIO_TARGET_INFORMATION_RATIO")
+    
+    # Advanced Options
+    portfolio_use_robust_estimation: bool = Field(False, env="PORTFOLIO_USE_ROBUST_ESTIMATION")
+    portfolio_winsorize_returns: bool = Field(False, env="PORTFOLIO_WINSORIZE_RETURNS")
+    portfolio_winsorize_percentile: float = Field(0.05, env="PORTFOLIO_WINSORIZE_PERCENTILE")
+    portfolio_correlation_floor: float = Field(-0.99, env="PORTFOLIO_CORRELATION_FLOOR")
+    portfolio_correlation_ceiling: float = Field(0.99, env="PORTFOLIO_CORRELATION_CEILING")
+    
+    # Risk Management Global Settings
+    risk_monitoring_enabled: bool = Field(True, env="RISK_MONITORING_ENABLED")
+    regulatory_var_enabled: bool = Field(True, env="REGULATORY_VAR_ENABLED")
+    
     # Legacy settings (for backward compatibility)
     max_parallel_tasks: int = Field(5, env="MAX_PARALLEL_TASKS")
     snippet_reasoning_threshold: int = Field(5, env="SNIPPET_REASONING_THRESHOLD")
@@ -107,6 +210,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"  # Ignore extra fields from .env
 
     def get_configured_providers(self) -> list[str]:
         """Get list of providers that have valid API keys configured"""

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from axiom.ai_client_integrations import AIResponse
+from axiom.integrations.ai_providers import AIResponse
 from axiom.config.ai_layer_config import AnalysisLayer
 from axiom.config.schemas import (
     Citation,
@@ -12,8 +12,8 @@ from axiom.config.schemas import (
     ResearchBrief,
     SearchQuery,
 )
-from axiom.graph.nodes.planner import planner_node
-from axiom.graph.state import create_initial_state
+from axiom.core.orchestration.nodes.planner import planner_node
+from axiom.core.orchestration.state import create_initial_state
 
 
 class TestWorkflowIntegration:
@@ -35,7 +35,7 @@ class TestWorkflowIntegration:
         assert state["step_count"] == 0
 
     @pytest.mark.asyncio
-    @patch("axiom.ai_client_integrations.provider_factory.get_provider_for_layer")
+    @patch("axiom.integrations.ai_providers.provider_factory.get_layer_provider")
     async def test_planner_node_integration(self, mock_get_provider):
         """Test planner node with mocked AI provider."""
         # Setup mock provider
@@ -67,7 +67,7 @@ class TestWorkflowIntegration:
 
     def test_ma_query_detection(self):
         """Test M&A query detection in planner."""
-        from axiom.graph.nodes.planner import detect_analysis_type, extract_company_info
+        from axiom.core.orchestration.nodes.planner import detect_analysis_type, extract_company_info
 
         # Test M&A query detection
         ma_query = "Microsoft acquisition of OpenAI due diligence analysis"
@@ -85,7 +85,7 @@ class TestWorkflowIntegration:
 
     def test_task_plan_structure(self):
         """Test task plan structure for investment banking."""
-        from axiom.graph.nodes.planner import create_ib_task_plans
+        from axiom.core.orchestration.nodes.planner import create_ib_task_plans
 
         query = "Apple M&A due diligence analysis"
         analysis_type = "ma_due_diligence"
@@ -182,9 +182,8 @@ class TestSchemaValidation:
 class TestToolIntegration:
     """Test tool integration and MCP adapter."""
 
-    @pytest.mark.asyncio
-    @patch("axiom.tools.tavily_client.TavilyClient")
-    async def test_tavily_integration(self, mock_tavily_class):
+    @patch("axiom.integrations.search_tools.tavily_client.TavilyClient")
+    def test_tavily_integration(self, mock_tavily_class):
         """Test Tavily search integration."""
         # Mock Tavily client
         mock_client = Mock()
@@ -202,13 +201,13 @@ class TestToolIntegration:
         mock_client.search.return_value = mock_search_result
         mock_tavily_class.return_value.client = mock_client
 
-        from axiom.tools.tavily_client import TavilyClient
+        from axiom.integrations.search_tools.tavily_client import TavilyClient
 
         tavily = TavilyClient()
 
-        # Test with async wrapper
+        # Test synchronous search method
         with patch.object(tavily, "search", return_value=mock_search_result):
-            result = await tavily.search("Tesla financial performance")
+            result = tavily.search("Tesla financial performance")
 
             assert result is not None
             assert "results" in result
@@ -218,7 +217,7 @@ class TestToolIntegration:
     @pytest.mark.asyncio
     async def test_mcp_adapter_tool_execution(self):
         """Test MCP adapter tool execution."""
-        from axiom.tools.mcp_adapter import mcp_adapter
+        from axiom.integrations.search_tools.mcp_adapter import mcp_adapter
 
         # Test tool schema retrieval
         tools = mcp_adapter.get_available_tools()
@@ -302,7 +301,7 @@ class TestEndToEndMockWorkflow:
 
         # Mock all external dependencies
         with patch(
-            "axiom.ai_client_integrations.provider_factory.get_provider_for_layer"
+            "axiom.integrations.ai_providers.provider_factory.get_layer_provider"
         ) as mock_get_provider:
             # Setup mock provider
             mock_provider = Mock()
@@ -318,7 +317,7 @@ class TestEndToEndMockWorkflow:
             mock_provider.is_available.return_value = True
             mock_get_provider.return_value = mock_provider
 
-            with patch("axiom.tools.tavily_client.TavilyClient") as mock_tavily:
+            with patch("axiom.integrations.search_tools.tavily_client.TavilyClient") as mock_tavily:
                 # Mock search results
                 mock_tavily.return_value.search = AsyncMock(
                     return_value={

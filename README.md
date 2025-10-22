@@ -27,7 +27,7 @@ python tests/validate_system.py
 # Expected: 7/7 validations passed ✅
 
 # Test core M&A functionality
-python demo_ma_analysis.py
+python demos/demo_ma_analysis.py
 # Expected: 5/5 demos successful ✅
 ```
 
@@ -123,6 +123,18 @@ axiom/
 ├── config/         # ⚙️ Financial data sources and analysis parameters
 ├── utils/          # 🛠️ Validation, error handling, compliance frameworks
 └── eval/           # 📊 Investment decision accuracy and performance metrics
+
+demos/              # 🎮 Demo files and examples
+├── demo_complete_ma_workflow.py     # Complete M&A workflow demonstration
+├── demo_enhanced_ma_workflows.py    # Enhanced M&A workflows
+├── demo_ma_analysis.py              # M&A analysis examples
+├── simple_demo.py                   # Quick start demo
+└── README.md                        # Demo documentation
+
+guides/             # 📚 Setup and configuration guides
+├── FINANCIAL_MCP_SERVERS_GUIDE.md   # Financial MCP servers setup
+├── INSTALLATION_GUIDE.md            # Installation instructions
+└── README.md                        # Guides documentation
 
 docs/
 ├── ma-workflows/   # 💼 M&A workflow documentation and guides

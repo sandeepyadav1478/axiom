@@ -7,21 +7,21 @@ The Axiom M&A Investment Banking System provides comprehensive automation for th
 
 ## 🏗️ Architecture Components
 
-### 1. 🤖 AI-Powered M&A Workflows (`axiom/workflows/`)
+### 1. 🤖 AI-Powered M&A Workflows (`axiom/core/analysis_engines/`)
 
-**Target Identification & Screening** [`target_screening.py`](axiom/workflows/target_screening.py)
+**Target Identification & Screening** [`target_screening.py`](../../axiom/core/analysis_engines/target_screening.py)
 - Systematic target discovery with AI-powered industry analysis
 - Financial screening with customizable criteria and thresholds
 - Strategic fit assessment using Claude AI with conservative settings
 - Target prioritization based on acquisition probability scoring
 
-**Due Diligence Modules** [`due_diligence.py`](axiom/workflows/due_diligence.py)
+**Due Diligence Modules** [`due_diligence.py`](../../axiom/core/analysis_engines/due_diligence.py)
 - **Financial DD**: Revenue quality, profitability analysis, cash flow assessment
 - **Commercial DD**: Market position, customer analysis, competitive differentiation
 - **Operational DD**: Management quality, efficiency analysis, integration risk assessment
 - Parallel execution with comprehensive risk identification
 
-**Valuation & Deal Structure** [`valuation.py`](axiom/workflows/valuation.py)
+**Valuation & Deal Structure** [`valuation.py`](../../axiom/core/analysis_engines/valuation.py)
 - **DCF Analysis**: Multi-scenario enterprise value modeling with sensitivity analysis
 - **Comparable Analysis**: AI-driven peer identification and trading multiple analysis
 - **Precedent Transactions**: Historical M&A transaction analysis and benchmarking
@@ -204,15 +204,17 @@ CONFIDENCE_THRESHOLDS = {
 ### Repository Structure
 ```
 axiom/
-├── workflows/                          # M&A workflow modules
-│   ├── target_screening.py            # Target identification & screening
-│   ├── due_diligence.py              # Financial, commercial, operational DD
-│   └── valuation.py                  # DCF, comparables, synergy analysis
-├── ai_client_integrations/           # Multi-AI provider system
-├── config/                           # Conservative AI configurations
-├── tools/                            # Financial data integration tools
-├── utils/                            # Validation and error handling
-└── graph/                            # LangGraph workflow orchestration
+├── core/
+│   ├── analysis_engines/                # M&A workflow modules
+│   │   ├── target_screening.py          # Target identification & screening
+│   │   ├── due_diligence.py            # Financial, commercial, operational DD
+│   │   └── valuation.py                # DCF, comparables, synergy analysis
+│   ├── orchestration/                  # LangGraph workflow orchestration
+│   └── validation/                    # Validation and error handling
+├── integrations/
+│   ├── ai_providers/                  # Multi-AI provider system
+│   └── search_tools/                  # Financial data integration tools
+└── config/                            # Conservative AI configurations
 
 .github/workflows/                     # M&A GitHub Actions
 ├── ma-deal-pipeline.yml              # Complete deal lifecycle automation
@@ -232,8 +234,9 @@ axiom/
 #### 1. Complete M&A Transaction Analysis
 ```python
 # Execute comprehensive M&A analysis using workflows
-from axiom.workflows import run_target_screening, run_comprehensive_dd, run_comprehensive_valuation
-from axiom.workflows.target_screening import TargetCriteria
+from axiom.core.analysis_engines.target_screening import run_target_screening, TargetCriteria
+from axiom.core.analysis_engines.due_diligence import run_comprehensive_dd
+from axiom.core.analysis_engines.valuation import run_comprehensive_valuation
 
 async def full_ma_analysis():
     # Step 1: Target Screening

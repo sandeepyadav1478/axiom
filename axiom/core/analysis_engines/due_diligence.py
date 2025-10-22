@@ -476,24 +476,67 @@ class MADueDiligenceWorkflow:
 
     # Financial DD Helper Methods
     async def _gather_financial_information(self, company: str) -> dict[str, Any]:
-        """Gather comprehensive financial information."""
+        """Gather comprehensive financial information using financial providers."""
 
-        financial_data = {"evidence": []}
+        financial_data = {"evidence": [], "fundamentals": {}}
 
-        # Search for financial statements and filings
+        try:
+            # Get fundamental data from financial providers first
+            logger.info("Gathering financial information from providers",
+                       company=company)
+            
+            fundamentals = await self.financial_aggregator.get_company_fundamentals(
+                company_identifier=company,
+                use_consensus=True
+            )
+            
+            if fundamentals and fundamentals.data_payload:
+                payload = fundamentals.data_payload
+                financial_data["fundamentals"] = payload
+                
+                # Create evidence from comprehensive financial data
+                evidence_content = f"""Financial Analysis for {company}:
+Revenue: ${payload.get('annual_revenue', 0):,.0f}
+EBITDA: ${payload.get('ebitda', 0):,.0f}
+EBITDA Margin: {payload.get('ebitda_margin', 0):.1%}
+Market Cap: ${payload.get('market_cap', 0):,.0f}
+Growth Rate: {payload.get('revenue_growth', 0):.1%}
+
+Profitability Ratios: {payload.get('profitability_ratios', {})}
+Liquidity Ratios: {payload.get('liquidity_ratios', {})}
+Leverage Ratios: {payload.get('leverage_ratios', {})}
+"""
+                
+                evidence = Evidence(
+                    content=evidence_content,
+                    source=f"Financial Providers ({fundamentals.provider})",
+                    relevance_score=fundamentals.confidence or 0.90,
+                    evidence_type="financial_data",
+                    source_url="",
+                    timestamp=datetime.now()
+                )
+                financial_data["evidence"].append(evidence)
+                
+                logger.info("Retrieved comprehensive financial data",
+                           company=company, provider=fundamentals.provider,
+                           confidence=fundamentals.confidence)
+        
+        except Exception as e:
+            logger.warning("Could not get financial data from providers",
+                          company=company, error=str(e))
+        
+        # Supplement with web search for additional context
         financial_queries = [
             f"{company} financial statements annual report 10-K",
             f"{company} quarterly earnings Q4 Q3 Q2 Q1 results",
             f"{company} revenue EBITDA profit margins financial metrics",
-            f"{company} balance sheet debt cash working capital",
-            f"{company} cash flow statement FCF capex",
         ]
 
-        for query in financial_queries:
+        for query in financial_queries[:2]:  # Limit queries if we have provider data
             search_results = await self.tavily_client.search(
                 query=query,
                 search_type="financial",
-                max_results=8,
+                max_results=5,
                 include_domains=[
                     "sec.gov",
                     "investor.",
@@ -504,7 +547,7 @@ class MADueDiligenceWorkflow:
             )
 
             if search_results and search_results.get("results"):
-                for result in search_results["results"][:3]:
+                for result in search_results["results"][:2]:
                     evidence = Evidence(
                         content=result.get("content", result.get("snippet", "")),
                         source=result.get("title", "Financial Data"),

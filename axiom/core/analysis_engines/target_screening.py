@@ -670,9 +670,50 @@ Please provide:
         return companies
 
     async def _enhance_financial_data(self, target: TargetProfile) -> TargetProfile:
-        """Enhance target profile with additional financial data."""
+        """Enhance target profile with additional financial data from providers."""
 
-        # Search for detailed financial information
+        try:
+            # Try financial providers first for accurate data
+            logger.info("Enhancing target profile with financial providers",
+                       company=target.company_name)
+            
+            # Use ticker if available, otherwise company name
+            identifier = target.ticker if target.ticker else target.company_name
+            
+            fundamentals = await self.financial_aggregator.get_company_fundamentals(
+                company_identifier=identifier,
+                use_consensus=False  # Single provider is fine for screening
+            )
+            
+            if fundamentals and fundamentals.data_payload:
+                payload = fundamentals.data_payload
+                
+                # Update target with comprehensive financial data
+                target.annual_revenue = payload.get("annual_revenue") or payload.get("metrics", {}).get("revenue", {}).get("annual_revenue")
+                target.ebitda = payload.get("ebitda")
+                target.ebitda_margin = payload.get("ebitda_margin") or payload.get("profitability_ratios", {}).get("operating_profit_margin")
+                target.revenue_growth = payload.get("revenue_growth") or payload.get("growth_metrics", {}).get("revenue_growth_ttm")
+                target.market_cap = payload.get("market_cap")
+                target.enterprise_value = payload.get("valuation_metrics", {}).get("enterprise_value")
+                target.net_income = payload.get("net_income")
+                
+                # Add provider info to data sources
+                target.data_sources.append(fundamentals.provider)
+                
+                # Boost confidence with provider data
+                target.confidence_level = min(target.confidence_level + 0.25, 0.95)
+                
+                logger.info("Successfully enhanced target with financial data",
+                           company=target.company_name, provider=fundamentals.provider,
+                           confidence=target.confidence_level)
+                
+                return target
+        
+        except Exception as e:
+            logger.warning("Could not enhance with financial providers, trying web search",
+                          company=target.company_name, error=str(e))
+        
+        # Fallback to web search for financial information
         financial_query = (
             f"{target.company_name} financial statements revenue EBITDA profit"
         )
@@ -701,12 +742,11 @@ Please provide:
                 if financial_data.get("growth_rate"):
                     target.revenue_growth = financial_data["growth_rate"]
 
-                target.confidence_level = min(target.confidence_level + 0.2, 1.0)
+                target.confidence_level = min(target.confidence_level + 0.15, 1.0)
 
         except Exception as e:
-            print(
-                f"⚠️  Could not enhance financial data for {target.company_name}: {str(e)}"
-            )
+            logger.error("Could not enhance financial data",
+                        company=target.company_name, error=str(e))
 
         return target
 

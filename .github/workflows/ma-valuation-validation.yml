@@ -36,7 +36,7 @@ on:
   # Auto-trigger on valuation file changes
   push:
     paths:
-      - 'axiom/workflows/valuation.py'
+      - 'axiom/core/analysis_engines/valuation.py'
       - 'valuations/**'
       - 'financial-models/**'
 

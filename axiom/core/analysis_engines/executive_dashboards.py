@@ -11,10 +11,10 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from axiom.ai_client_integrations import get_layer_provider
+from axiom.integrations.ai_providers import get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
 from axiom.tracing.langsmith_tracer import trace_node
-from axiom.utils.error_handling import FinancialDataError
+from axiom.core.validation.error_handling import FinancialDataError
 
 
 class DealPerformanceMetrics(BaseModel):

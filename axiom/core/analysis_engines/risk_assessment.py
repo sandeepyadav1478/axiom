@@ -11,13 +11,13 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from axiom.ai_client_integrations import AIMessage, get_layer_provider
+from axiom.integrations.ai_providers import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
 from axiom.config.schemas import Evidence
-from axiom.tools.firecrawl_client import FirecrawlClient
-from axiom.tools.tavily_client import TavilyClient
+from axiom.integrations.search_tools.firecrawl_client import FirecrawlClient
+from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
-from axiom.utils.error_handling import FinancialDataError
+from axiom.core.validation.error_handling import FinancialDataError
 
 
 class RiskCategory(BaseModel):

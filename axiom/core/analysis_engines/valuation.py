@@ -689,8 +689,40 @@ Use conservative assumptions appropriate for M&A analysis.""",
             }
 
     async def _identify_comparable_companies(self, target_company: str) -> list[dict]:
-        """Identify relevant comparable public companies."""
+        """Identify relevant comparable public companies using financial providers."""
 
+        # Try financial data providers first for better data
+        try:
+            logger.info("Using financial providers to find comparables",
+                       target_company=target_company)
+            
+            financial_response = await self.financial_aggregator.get_comparable_companies(
+                target_company=target_company,
+                use_consensus=True
+            )
+            
+            if financial_response and financial_response.data_payload.get("comparables"):
+                comparables = financial_response.data_payload["comparables"]
+                logger.info("Found comparables from financial providers",
+                           count=len(comparables), provider=financial_response.provider)
+                
+                # Convert to expected format
+                return [
+                    {
+                        "name": comp.get("name", comp.get("company_name", "")),
+                        "symbol": comp.get("symbol", ""),
+                        "market_cap": comp.get("market_cap"),
+                        "revenue": comp.get("annual_revenue"),
+                        "industry": comp.get("industry", comp.get("sector", "")),
+                        "source": "financial_providers"
+                    }
+                    for comp in comparables[:12]
+                ]
+        except Exception as e:
+            logger.warning("Financial providers failed, falling back to web search",
+                          error=str(e))
+        
+        # Fallback to web search if financial providers fail
         comparable_queries = [
             f"{target_company} competitors public companies trading multiples",
             f"{target_company} industry peers comparable companies analysis",
@@ -889,10 +921,54 @@ Use conservative assumptions (10-20% of target revenue typically).""",
 
         return synergies
 
-    # Additional helper methods (simplified implementations)
+    # Additional helper methods with financial provider integration
     async def _gather_projection_data(self, company: str) -> dict:
-        """Gather data for financial projections."""
-        return {"evidence": [], "historical_data": {}}
+        """Gather data for financial projections using financial providers."""
+        
+        projection_data = {"evidence": [], "historical_data": {}}
+        
+        try:
+            # Get fundamental data from financial providers
+            logger.info(f"Gathering projection data from financial providers",
+                       company=company)
+            
+            fundamentals = await self.financial_aggregator.get_company_fundamentals(
+                company_identifier=company,
+                use_consensus=True
+            )
+            
+            if fundamentals and fundamentals.data_payload:
+                # Extract historical financial data
+                payload = fundamentals.data_payload
+                
+                projection_data["historical_data"] = {
+                    "revenue": payload.get("annual_revenue") or payload.get("metrics", {}).get("revenue"),
+                    "ebitda": payload.get("ebitda"),
+                    "ebitda_margin": payload.get("ebitda_margin") or payload.get("profitability_metrics", {}).get("ebitda_margin"),
+                    "growth_rate": payload.get("revenue_growth") or payload.get("growth_metrics", {}).get("revenue_growth_ttm"),
+                    "market_cap": payload.get("market_cap"),
+                    "enterprise_value": payload.get("valuation_metrics", {}).get("enterprise_value"),
+                }
+                
+                # Create evidence from financial data
+                evidence = Evidence(
+                    content=f"Financial data for {company}: Revenue ${payload.get('annual_revenue', 0):,.0f}, Market Cap ${payload.get('market_cap', 0):,.0f}",
+                    source=f"Financial Providers ({fundamentals.provider})",
+                    relevance_score=fundamentals.confidence or 0.85,
+                    evidence_type="financial_data",
+                    source_url="",
+                    timestamp=datetime.now()
+                )
+                projection_data["evidence"].append(evidence)
+                
+                logger.info(f"Retrieved historical financial data",
+                           company=company, provider=fundamentals.provider)
+        
+        except Exception as e:
+            logger.warning(f"Could not get projection data from financial providers",
+                          company=company, error=str(e))
+        
+        return projection_data
 
     def _extract_comparable_companies(self, search_results: list) -> list[dict]:
         """Extract comparable companies from search results."""

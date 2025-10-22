@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from axiom.config.schemas import Evidence
 from axiom.tracing.langsmith_tracer import trace_node
-from axiom.utils.error_handling import FinancialDataError
+from axiom.core.validation.error_handling import FinancialDataError
 
 
 class MonteCarloResult(BaseModel):

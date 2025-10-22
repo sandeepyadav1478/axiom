@@ -4,8 +4,8 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Any
 
-from axiom.tools.firecrawl_client import FirecrawlClient
-from axiom.tools.tavily_client import TavilyClient
+from axiom.integrations.search_tools.firecrawl_client import FirecrawlClient
+from axiom.integrations.search_tools.tavily_client import TavilyClient
 
 
 class MCPTool(ABC):

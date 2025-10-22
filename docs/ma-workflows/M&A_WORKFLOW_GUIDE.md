@@ -27,12 +27,9 @@ python demo_complete_ma_workflow.py
 ### Basic Usage
 ```python
 import asyncio
-from axiom.workflows import (
-    run_target_screening,
-    run_comprehensive_dd, 
-    run_comprehensive_valuation,
-    TargetCriteria
-)
+from axiom.core.analysis_engines.target_screening import run_target_screening, TargetCriteria
+from axiom.core.analysis_engines.due_diligence import run_comprehensive_dd
+from axiom.core.analysis_engines.valuation import run_comprehensive_valuation
 
 async def main():
     # 1. Target Screening
@@ -62,7 +59,7 @@ asyncio.run(main())
 **Purpose**: Systematically identify and evaluate potential M&A targets
 
 ```python
-from axiom.workflows.target_screening import (
+from axiom.core.analysis_engines.target_screening import (
     MATargetScreeningWorkflow,
     TargetCriteria,
     TargetProfile,
@@ -99,7 +96,7 @@ for target in screening_result.targets_identified:
 **Purpose**: Comprehensive analysis to identify risks and validate investment thesis
 
 ```python
-from axiom.workflows.due_diligence import (
+from axiom.core.analysis_engines.due_diligence import (
     MADueDiligenceWorkflow,
     run_financial_dd,
     run_comprehensive_dd
@@ -128,7 +125,7 @@ operational_results = comprehensive_dd.operational_dd
 **Purpose**: Determine fair value using multiple methodologies and optimize transaction structure
 
 ```python
-from axiom.workflows.valuation import (
+from axiom.core.analysis_engines.valuation import (
     MAValuationWorkflow,
     run_dcf_valuation,
     run_comprehensive_valuation
@@ -177,7 +174,7 @@ print(f"  Confidence Level: {valuation_result.valuation_confidence:.2f}")
 ```python
 # Configure AI providers for M&A analysis
 from axiom.config.settings import settings
-from axiom.ai_client_integrations import provider_factory
+from axiom.integrations.ai_providers import provider_factory
 
 # Check available providers
 providers = provider_factory.get_available_providers()
@@ -448,7 +445,7 @@ CONFIDENCE_REQUIREMENTS = {
 ### Validation Framework
 
 ```python
-from axiom.utils.validation import (
+from axiom.core.validation.validation import (
     FinancialValidator,
     ComplianceValidator,
     validate_investment_banking_workflow

@@ -58,13 +58,13 @@ def validate_project_structure():
     # Key directories
     directories = [
         ("axiom", "Main package directory"),
-        ("axiom/ai_client_integrations", "AI provider integrations"),
+        ("axiom/integrations/ai_providers", "AI provider integrations"),
         ("axiom/config", "Configuration files"),
-        ("axiom/graph", "LangGraph workflow"),
-        ("axiom/graph/nodes", "Workflow nodes"),
-        ("axiom/tools", "Tool integrations"),
+        ("axiom/core/orchestration", "Orchestration workflow"),
+        ("axiom/core/orchestration/nodes", "Workflow nodes"),
+        ("axiom/integrations/search_tools", "Tool integrations"),
         ("axiom/dspy_modules", "DSPy optimization"),
-        ("axiom/utils", "Utilities"),
+        ("axiom/core/validation", "Validation utilities"),
         ("tests", "Test files"),
     ]
 
@@ -89,18 +89,18 @@ def validate_core_files():
         ("axiom/config/settings.py", "Settings configuration"),
         ("axiom/config/schemas.py", "Data schemas"),
         ("axiom/config/ai_layer_config.py", "AI layer configuration"),
-        ("axiom/graph/state.py", "Graph state management"),
-        ("axiom/graph/graph.py", "LangGraph workflow"),
-        ("axiom/ai_client_integrations/base_ai_provider.py", "Base AI provider"),
-        ("axiom/ai_client_integrations/openai_provider.py", "OpenAI provider"),
-        ("axiom/ai_client_integrations/claude_provider.py", "Claude provider"),
-        ("axiom/ai_client_integrations/sglang_provider.py", "SGLang provider"),
-        ("axiom/ai_client_integrations/provider_factory.py", "Provider factory"),
-        ("axiom/tools/tavily_client.py", "Tavily integration"),
-        ("axiom/tools/firecrawl_client.py", "Firecrawl integration"),
-        ("axiom/tools/mcp_adapter.py", "MCP adapter"),
-        ("axiom/utils/error_handling.py", "Error handling"),
-        ("axiom/utils/validation.py", "Data validation"),
+        ("axiom/core/orchestration/state.py", "Orchestration state management"),
+        ("axiom/core/orchestration/graph.py", "Orchestration workflow"),
+        ("axiom/integrations/ai_providers/base_ai_provider.py", "Base AI provider"),
+        ("axiom/integrations/ai_providers/openai_provider.py", "OpenAI provider"),
+        ("axiom/integrations/ai_providers/claude_provider.py", "Claude provider"),
+        ("axiom/integrations/ai_providers/sglang_provider.py", "SGLang provider"),
+        ("axiom/integrations/ai_providers/provider_factory.py", "Provider factory"),
+        ("axiom/integrations/search_tools/tavily_client.py", "Tavily integration"),
+        ("axiom/integrations/search_tools/firecrawl_client.py", "Firecrawl integration"),
+        ("axiom/integrations/search_tools/mcp_adapter.py", "MCP adapter"),
+        ("axiom/core/validation/error_handling.py", "Error handling"),
+        ("axiom/core/validation/validation.py", "Data validation"),
     ]
 
     files_valid = True
@@ -119,8 +119,8 @@ def validate_imports():
     import_tests = [
         ("axiom.config.schemas", "Data schemas"),
         ("axiom.config.ai_layer_config", "AI layer config"),
-        ("axiom.graph.state", "Graph state"),
-        ("axiom.ai_client_integrations.base_ai_provider", "Base AI provider"),
+        ("axiom.core.orchestration.state", "Orchestration state"),
+        ("axiom.integrations.ai_providers.base_ai_provider", "Base AI provider"),
     ]
 
     imports_valid = True
@@ -174,7 +174,7 @@ def validate_ai_providers():
 
     try:
         # Import provider factory
-        from axiom.ai_client_integrations.provider_factory import provider_factory
+        from axiom.integrations.ai_providers.provider_factory import provider_factory
 
         # Test provider factory initialization
         available_providers = provider_factory.get_available_providers()
@@ -197,22 +197,23 @@ def validate_ai_providers():
 
 
 def validate_graph_components():
-    """Validate LangGraph components."""
-    print("\n🌐 Validating Graph Components...")
+    """Validate orchestration components."""
+    print("\n🌐 Validating Orchestration Components...")
 
     try:
         # Test state management
-        from axiom.graph.state import create_initial_state
+        from axiom.core.orchestration.state import create_initial_state
 
         test_state = create_initial_state("Test query", "test-trace")
         print(f"✅ State creation: {type(test_state)}")
 
         # Test node imports
-
-        print("✅ Graph nodes: planner, task_runner, observer imported")
+        from axiom.core.orchestration.nodes import planner, task_runner, observer
+        
+        print("✅ Orchestration nodes: planner, task_runner, observer imported")
 
         # Test graph creation
-        from axiom.graph.graph import create_research_graph
+        from axiom.core.orchestration.graph import create_research_graph
 
         create_research_graph()
         print("✅ Research graph created successfully")
@@ -220,7 +221,7 @@ def validate_graph_components():
         return True
 
     except Exception as e:
-        print(f"❌ Graph component validation failed: {e}")
+        print(f"❌ Orchestration component validation failed: {e}")
         return False
 
 
@@ -230,7 +231,7 @@ def validate_tools():
 
     try:
         # Test tool imports
-        from axiom.tools.mcp_adapter import mcp_adapter
+        from axiom.integrations.search_tools.mcp_adapter import mcp_adapter
 
         tools = mcp_adapter.get_available_tools()
         print(f"✅ MCP adapter: {len(tools)} tools available")
@@ -266,7 +267,7 @@ def main():
         "Module Imports": validate_imports(),
         "Configuration": validate_configuration(),
         "AI Providers": validate_ai_providers(),
-        "Graph Components": validate_graph_components(),
+        "Orchestration Components": validate_graph_components(),
         "Tool Integrations": validate_tools(),
     }
 

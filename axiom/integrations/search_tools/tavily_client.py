@@ -7,6 +7,9 @@ from tavily import TavilyClient as BaseTavilyClient
 
 from axiom.config.settings import settings
 from axiom.tracing.langsmith_tracer import trace_tool
+from axiom.core.logging.axiom_logger import AxiomLogger
+
+logger = AxiomLogger("tavily_client")
 
 
 class TavilyClient:
@@ -77,7 +80,7 @@ class TavilyClient:
             return response
 
         except Exception as e:
-            print(f"Investment banking search error: {e}")
+            logger.error(f"Investment banking search error: {e}", error=str(e))
             return None
 
     @trace_tool("financial_company_search")
@@ -140,7 +143,7 @@ class TavilyClient:
             return response
 
         except Exception as e:
-            print(f"Financial QnA search error: {e}")
+            logger.error(f"Financial QnA search error: {e}", error=str(e))
             return None
 
     def _enhance_financial_query(self, query: str) -> str:

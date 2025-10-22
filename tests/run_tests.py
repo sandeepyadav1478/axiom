@@ -9,8 +9,8 @@ import pytest
 # Add the parent directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from axiom.ai_client_integrations import test_providers
-from axiom.utils import global_health_checker, setup_logging
+from axiom.integrations.ai_providers import test_providers
+from axiom.core.logging.axiom_logger import get_logger
 
 
 def run_health_checks():
@@ -18,31 +18,26 @@ def run_health_checks():
 
     print("🏥 Running Investment Banking System Health Checks...")
 
-    # Register health checks
-    global_health_checker.register_check(
-        "ai_providers",
-        lambda: len(test_providers()) > 0,
-        "Check if any AI providers are available",
-    )
+    # Check AI providers
+    try:
+        provider_status = test_providers()
+        if provider_status:
+            print(f"  ✅ AI providers: {len(provider_status)} available")
+        else:
+            print("  ⚠️  AI providers: None available (may need API keys)")
+    except Exception as e:
+        print(f"  ❌ AI providers check failed: {e}")
+        return False
 
-    global_health_checker.register_check(
-        "configuration",
-        lambda: check_basic_configuration(),
-        "Check basic system configuration",
-    )
-
-    # Run checks
-    health_results = global_health_checker.run_health_checks()
-
-    print(f"Overall Status: {health_results['overall_status'].upper()}")
-    for check_name, check_result in health_results["checks"].items():
-        status_icon = "✅" if check_result["status"] == "pass" else "❌"
-        print(f"  {status_icon} {check_name}: {check_result['status']}")
-        if check_result["status"] != "pass":
-            print(f"    Error: {check_result.get('error', 'Unknown error')}")
-
-    if health_results["overall_status"] != "healthy":
-        print("\n⚠️  Some health checks failed. Tests may not run properly.")
+    # Check configuration
+    try:
+        if check_basic_configuration():
+            print("  ✅ Configuration: Valid")
+        else:
+            print("  ❌ Configuration: Invalid")
+            return False
+    except Exception as e:
+        print(f"  ❌ Configuration check failed: {e}")
         return False
 
     print("✅ All health checks passed!\n")
@@ -124,7 +119,7 @@ def run_system_validation():
 
         # Test tool availability
         print("  Testing Financial Tools...")
-        from axiom.tools.mcp_adapter import mcp_adapter
+        from axiom.integrations.search_tools.mcp_adapter import mcp_adapter
 
         tools = mcp_adapter.get_available_tools()
         print(f"    ✅ Available tools: {len(tools)}")
@@ -153,7 +148,8 @@ def main():
     print("=" * 60)
 
     # Setup logging
-    setup_logging("INFO")
+    logger = get_logger("axiom.tests")
+    logger.info("Starting test suite")
 
     # Track test results
     results = {

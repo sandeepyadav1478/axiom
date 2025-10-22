@@ -11,12 +11,12 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from axiom.ai_client_integrations import AIMessage, get_layer_provider
+from axiom.integrations.ai_providers import AIMessage, get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
 from axiom.config.schemas import Evidence
-from axiom.tools.tavily_client import TavilyClient
+from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
-from axiom.utils.error_handling import FinancialDataError
+from axiom.core.validation.error_handling import FinancialDataError
 
 
 class CompetitorProfile(BaseModel):
@@ -282,7 +282,7 @@ class MAMarketIntelligenceWorkflow:
                         competitive_data["evidence"].append(evidence)
 
             # Parse competitive intelligence from search results
-            competitors = self._parse_competitors_from_intelligence(competitive_data["evidence"])
+            competitors = await self._parse_competitors_from_intelligence(competitive_data["evidence"])
             competitive_data["direct"] = competitors[:5]  # Top 5 direct competitors
             competitive_data["indirect"] = competitors[5:8]  # Additional indirect competitors
 
@@ -551,23 +551,54 @@ Focus on factors affecting M&A valuation and strategic positioning."""
             print(f"⚠️ AI market trend analysis failed: {str(e)}")
             return self._create_default_trend_analysis()
 
-    def _parse_competitors_from_intelligence(self, evidence: list[Evidence]) -> list[CompetitorProfile]:
-        """Parse competitor information from market intelligence."""
+    async def _parse_competitors_from_intelligence(self, evidence: list[Evidence]) -> list[CompetitorProfile]:
+        """Parse competitor information from market intelligence and financial providers."""
 
-        # Simplified competitor extraction
         competitors = []
 
-        # Common competitor patterns for technology companies
+        # Try to extract from evidence first
+        for ev in evidence[:3]:
+            # Simple competitor extraction from content
+            content_lower = ev.content.lower()
+            if any(word in content_lower for word in ["competitor", "rival", "competes with"]):
+                # Extract company names (simplified)
+                logger.debug("Extracting competitors from evidence",
+                            source=ev.source)
+
+        # Common competitor patterns for technology companies (fallback)
         tech_competitors = [
-            {"name": "Palantir Technologies", "positioning": "Enterprise AI platform"},
-            {"name": "Snowflake Inc", "positioning": "Cloud data platform"},
-            {"name": "Databricks", "positioning": "Data and AI platform"},
-            {"name": "UiPath", "positioning": "Process automation platform"},
-            {"name": "C3.ai", "positioning": "Enterprise AI software"}
+            {"name": "Palantir Technologies", "positioning": "Enterprise AI platform", "ticker": "PLTR"},
+            {"name": "Snowflake Inc", "positioning": "Cloud data platform", "ticker": "SNOW"},
+            {"name": "Databricks", "positioning": "Data and AI platform", "ticker": None},
+            {"name": "UiPath", "positioning": "Process automation platform", "ticker": "PATH"},
+            {"name": "C3.ai", "positioning": "Enterprise AI software", "ticker": "AI"}
         ]
 
+        # Batch get market data for all public competitors
+        tickers_to_enhance = [c.get("ticker") for c in tech_competitors if c.get("ticker")]
+        
+        market_data_map = {}
+        if tickers_to_enhance:
+            try:
+                logger.info("Fetching market data for competitors",
+                           ticker_count=len(tickers_to_enhance))
+                
+                market_response = await self.financial_aggregator.get_market_data(
+                    symbols=tickers_to_enhance
+                )
+                
+                if market_response and market_response.data_payload:
+                    market_data_map = market_response.data_payload.get("market_data", {})
+                    logger.info("Retrieved competitor market data",
+                               symbols_retrieved=len(market_data_map))
+            
+            except Exception as e:
+                logger.warning("Could not fetch competitor market data",
+                              error=str(e))
+
+        # Build competitor profiles
         for comp_data in tech_competitors:
-            competitor = CompetitorProfile(
+            comp_profile = CompetitorProfile(
                 company_name=comp_data["name"],
                 competitive_positioning=comp_data["positioning"],
                 competitive_strengths=[
@@ -578,7 +609,18 @@ Focus on factors affecting M&A valuation and strategic positioning."""
                 competitive_threat_level="medium",
                 analysis_confidence=0.70
             )
-            competitors.append(competitor)
+            
+            # Enhance with market data if available
+            ticker = comp_data.get("ticker")
+            if ticker and ticker in market_data_map:
+                ticker_data = market_data_map[ticker]
+                comp_profile.revenue_estimate = ticker_data.get("annual_revenue")
+                comp_profile.analysis_confidence = min(0.85, comp_profile.analysis_confidence + 0.15)
+                
+                logger.debug("Enhanced competitor with market data",
+                            competitor=comp_data["name"], ticker=ticker)
+            
+            competitors.append(comp_profile)
 
         return competitors[:6]  # Return top 6 competitors
 

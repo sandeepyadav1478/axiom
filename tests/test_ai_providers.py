@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from axiom.ai_client_integrations import (
+from axiom.integrations.ai_providers import (
     AIMessage,
     AIProviderError,
     AIResponse,
@@ -53,7 +53,7 @@ class TestOpenAIProvider:
     def mock_openai_client(self):
         """Mock OpenAI client."""
         with patch(
-            "axiom.ai_client_integrations.openai_provider.OpenAI"
+            "axiom.integrations.ai_providers.openai_provider.OpenAI"
         ) as mock_client:
             yield mock_client
 
@@ -120,7 +120,7 @@ class TestClaudeProvider:
     def mock_anthropic_client(self):
         """Mock Anthropic client."""
         with patch(
-            "axiom.ai_client_integrations.claude_provider.Anthropic"
+            "axiom.integrations.ai_providers.claude_provider.Anthropic"
         ) as mock_client:
             yield mock_client
 
@@ -168,7 +168,7 @@ class TestSGLangProvider:
     def mock_sglang_client(self):
         """Mock SGLang OpenAI-compatible client."""
         with patch(
-            "axiom.ai_client_integrations.sglang_provider.OpenAI"
+            "axiom.integrations.ai_providers.sglang_provider.OpenAI"
         ) as mock_client:
             yield mock_client
 

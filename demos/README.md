@@ -4,17 +4,35 @@ This directory contains demonstration files showing how to use the Axiom investm
 
 ## 📁 Available Demos
 
+### 🌟 Flagship Demos
+
+- **[`demo_integrated_quant_finance.py`](demo_integrated_quant_finance.py)** ⭐ **NEW!** - **Comprehensive Quantitative Finance Integration Demo**
+  - Complete end-to-end workflow with REAL market data
+  - VaR calculations (Parametric, Historical, Monte Carlo)
+  - Portfolio optimization (Max Sharpe, Min Vol, Risk Parity)
+  - Efficient Frontier generation with visualization
+  - Strategy comparison and performance analysis
+  - 100% FREE data from Yahoo Finance (no API keys needed!)
+  - Production-ready code with comprehensive error handling
+  - **[Full Documentation](QUANT_FINANCE_DEMO_README.md)**
+
 ### Core Workflow Demos
 - **[`demo_complete_ma_workflow.py`](demo_complete_ma_workflow.py)** - Complete M&A workflow demonstration from target screening to deal execution
 - **[`demo_enhanced_ma_workflows.py`](demo_enhanced_ma_workflows.py)** - Enhanced M&A workflows with advanced features
 - **[`demo_ma_analysis.py`](demo_ma_analysis.py)** - M&A analysis examples and use cases
 
+### Quantitative Finance Demos
+- **[`demo_var_risk_models.py`](demo_var_risk_models.py)** - Value at Risk models and risk calculations
+- **[`demo_portfolio_optimization.py`](demo_portfolio_optimization.py)** - Portfolio optimization strategies
+
 ### Provider & Integration Demos
+- **[`demo_financial_provider_integration.py`](demo_financial_provider_integration.py)** - Financial data provider integrations
 - **[`demo_enhanced_financial_providers.py`](demo_enhanced_financial_providers.py)** - Enhanced financial data providers demonstration
 - **[`test_enhanced_providers.py`](test_enhanced_providers.py)** - Testing enhanced provider integrations
 
 ### Quick Start
 - **[`simple_demo.py`](simple_demo.py)** - Simple demonstration to get started quickly
+- **[`validate_demo.py`](validate_demo.py)** - Validation script to check dependencies
 
 ## 🚀 Running Demos
 

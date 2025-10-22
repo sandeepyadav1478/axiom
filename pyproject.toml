@@ -46,6 +46,8 @@ quantitative = [
     "scipy>=1.10.0",
     "pandas>=2.0.0",
     "numba>=0.57.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
 ]
 
 # UV-specific configuration for enhanced performance

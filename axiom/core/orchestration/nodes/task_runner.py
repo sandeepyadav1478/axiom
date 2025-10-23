@@ -13,6 +13,7 @@ from axiom.core.orchestration.state import AxiomState
 from axiom.integrations.search_tools.firecrawl_client import FirecrawlClient
 from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
+from axiom.core.logging.axiom_logger import workflow_logger
 
 
 @trace_node("investment_banking_task_runner")
@@ -62,7 +63,7 @@ async def task_runner_node(state: AxiomState) -> dict[str, Any]:
                     result = await search_task
                     return (result, task_id, original_query)
                 except Exception as e:
-                    print(f"Search failed for {original_query}: {str(e)}")
+                    workflow_logger.warning(f"Search failed for {original_query}: {str(e)}")
                     return (None, task_id, original_query)
 
         search_responses = await asyncio.gather(
@@ -207,7 +208,7 @@ Extract key investment banking evidence:""",
                 )
 
         except Exception as e:
-            print(f"Evidence extraction failed for {task_id}: {str(e)}")
+            workflow_logger.warning(f"Evidence extraction failed for {task_id}: {str(e)}")
             # Fallback: create basic evidence
             for result in results[:2]:
                 evidence.append(
@@ -269,6 +270,6 @@ async def crawl_financial_documents(
             if result:
                 crawl_results.append(result)
         except Exception as e:
-            print(f"Failed to crawl {url}: {str(e)}")
+            workflow_logger.warning(f"Failed to crawl {url}: {str(e)}")
 
     return crawl_results

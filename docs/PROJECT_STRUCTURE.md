@@ -66,6 +66,23 @@ axiom/
 │
 ├── models/                                 # 📈 Quantitative Finance Models
 │   ├── __init__.py
+│   ├── base/                               # 🏗️ Base classes & infrastructure
+│   │   ├── __init__.py
+│   │   ├── base_model.py                   # Abstract base classes (DRY)
+│   │   │   ├── BaseFinancialModel          # Base for all models
+│   │   │   ├── BasePricingModel            # Base for pricing models
+│   │   │   ├── BaseRiskModel               # Base for risk models
+│   │   │   └── BasePortfolioModel          # Base for portfolio models
+│   │   ├── factory.py                      # Factory pattern for models
+│   │   │   ├── ModelFactory                # Centralized model creation
+│   │   │   ├── ModelType                   # Model type enumeration
+│   │   │   └── PluginManager               # Plugin registration
+│   │   └── mixins.py                       # Reusable mixins (DRY)
+│   │       ├── MonteCarloMixin             # Monte Carlo simulation
+│   │       ├── NumericalMethodsMixin       # Numerical solvers
+│   │       ├── PerformanceMixin            # Performance tracking
+│   │       ├── ValidationMixin             # Input validation
+│   │       └── LoggingMixin                # Enhanced logging
 │   ├── pricing/                            # 💰 Pricing models
 │   │   ├── __init__.py
 │   │   ├── black_scholes.py                # Black-Scholes-Merton
@@ -81,11 +98,17 @@ axiom/
 │   │   ├── markowitz.py                    # Mean-variance optimization
 │   │   ├── black_litterman.py              # Black-Litterman model
 │   │   └── risk_parity.py                  # Risk parity allocation
-│   └── time_series/                        # 📈 Time series models
+│   ├── time_series/                        # 📈 Time series models
+│   │   ├── __init__.py
+│   │   ├── arima.py                        # ARIMA/ARMA models
+│   │   ├── garch.py                        # GARCH volatility models
+│   │   └── ewma.py                         # EWMA models
+│   └── credit/                             # 💳 Credit risk models
 │       ├── __init__.py
-│       ├── arima.py                        # ARIMA/ARMA models
-│       ├── garch.py                        # GARCH volatility models
-│       └── state_space.py                  # State-space models
+│       ├── default_probability.py          # PD models (KMV, Altman)
+│       ├── lgd_models.py                   # LGD models
+│       ├── ead_models.py                   # EAD models
+│       └── portfolio_risk.py               # Portfolio credit risk
 │
 ├── infrastructure/                         # 🚀 Deployment & Operations
 │   ├── __init__.py

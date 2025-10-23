@@ -19,6 +19,7 @@ from axiom.integrations.search_tools.firecrawl_client import FirecrawlClient
 from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import ma_dd_logger
 
 
 class FinancialDDResult(BaseModel):
@@ -275,7 +276,7 @@ class MADueDiligenceWorkflow:
         """Execute comprehensive due diligence analysis."""
 
         start_time = datetime.now()
-        print(f"🔍 Starting Comprehensive Due Diligence for {target_company}")
+        ma_dd_logger.info(f"Starting Comprehensive Due Diligence for {target_company}")
 
         try:
             # Execute all DD modules in parallel for efficiency
@@ -293,15 +294,15 @@ class MADueDiligenceWorkflow:
 
             # Handle any exceptions
             if isinstance(financial_dd, Exception):
-                print(f"⚠️  Financial DD failed: {str(financial_dd)}")
+                ma_dd_logger.warning(f"Financial DD failed: {str(financial_dd)}")
                 financial_dd = FinancialDDResult()
 
             if isinstance(commercial_dd, Exception):
-                print(f"⚠️  Commercial DD failed: {str(commercial_dd)}")
+                ma_dd_logger.warning(f"Commercial DD failed: {str(commercial_dd)}")
                 commercial_dd = CommercialDDResult()
 
             if isinstance(operational_dd, Exception):
-                print(f"⚠️  Operational DD failed: {str(operational_dd)}")
+                ma_dd_logger.warning(f"Operational DD failed: {str(operational_dd)}")
                 operational_dd = OperationalDDResult()
 
             # Create comprehensive result
@@ -318,10 +319,9 @@ class MADueDiligenceWorkflow:
             execution_time = (datetime.now() - start_time).total_seconds()
             result.total_analysis_time = execution_time
 
-            print(f"✅ Comprehensive DD completed in {execution_time:.1f}s")
-            print(
-                f"📊 Overall Risk: {result.overall_risk_rating} | Recommendation: {result.investment_recommendation}"
-            )
+            ma_dd_logger.info(f"Comprehensive DD completed in {execution_time:.1f}s",
+                            overall_risk=result.overall_risk_rating,
+                            recommendation=result.investment_recommendation)
 
             return result
 
@@ -335,7 +335,7 @@ class MADueDiligenceWorkflow:
     async def execute_financial_dd(self, target_company: str) -> FinancialDDResult:
         """Execute Financial Due Diligence analysis."""
 
-        print(f"💰 Analyzing Financial DD for {target_company}")
+        ma_dd_logger.info(f"Analyzing Financial DD for {target_company}")
         result = FinancialDDResult()
 
         try:
@@ -387,7 +387,7 @@ class MADueDiligenceWorkflow:
             return result
 
         except Exception as e:
-            print(f"⚠️  Financial DD analysis failed: {str(e)}")
+            ma_dd_logger.error(f"Financial DD analysis failed: {str(e)}")
             result.critical_financial_issues.append(f"Analysis incomplete: {str(e)}")
             result.analysis_confidence = 0.3
             return result
@@ -396,7 +396,7 @@ class MADueDiligenceWorkflow:
     async def execute_commercial_dd(self, target_company: str) -> CommercialDDResult:
         """Execute Commercial Due Diligence analysis."""
 
-        print(f"🏢 Analyzing Commercial DD for {target_company}")
+        ma_dd_logger.info(f"Analyzing Commercial DD for {target_company}")
         result = CommercialDDResult()
 
         try:
@@ -425,7 +425,7 @@ class MADueDiligenceWorkflow:
             return result
 
         except Exception as e:
-            print(f"⚠️  Commercial DD analysis failed: {str(e)}")
+            ma_dd_logger.error(f"Commercial DD analysis failed: {str(e)}")
             result.commercial_risks.append(f"Analysis incomplete: {str(e)}")
             result.analysis_confidence = 0.3
             return result
@@ -434,7 +434,7 @@ class MADueDiligenceWorkflow:
     async def execute_operational_dd(self, target_company: str) -> OperationalDDResult:
         """Execute Operational Due Diligence analysis."""
 
-        print(f"⚙️  Analyzing Operational DD for {target_company}")
+        ma_dd_logger.info(f"Analyzing Operational DD for {target_company}")
         result = OperationalDDResult()
 
         try:
@@ -469,7 +469,7 @@ class MADueDiligenceWorkflow:
             return result
 
         except Exception as e:
-            print(f"⚠️  Operational DD analysis failed: {str(e)}")
+            ma_dd_logger.error(f"Operational DD analysis failed: {str(e)}")
             result.integration_challenges.append(f"Analysis incomplete: {str(e)}")
             result.analysis_confidence = 0.3
             return result
@@ -517,13 +517,13 @@ Leverage Ratios: {payload.get('leverage_ratios', {})}
                 )
                 financial_data["evidence"].append(evidence)
                 
-                logger.info("Retrieved comprehensive financial data",
-                           company=company, provider=fundamentals.provider,
-                           confidence=fundamentals.confidence)
+                ma_dd_logger.info("Retrieved comprehensive financial data",
+                                company=company, provider=fundamentals.provider,
+                                confidence=fundamentals.confidence)
         
         except Exception as e:
-            logger.warning("Could not get financial data from providers",
-                          company=company, error=str(e))
+            ma_dd_logger.warning("Could not get financial data from providers",
+                                company=company, error=str(e))
         
         # Supplement with web search for additional context
         financial_queries = [
@@ -615,7 +615,7 @@ Focus on revenue sustainability and predictability for M&A valuation.""",
             )
             return self._parse_revenue_analysis(response.content)
         except Exception as e:
-            print(f"⚠️  Revenue analysis failed: {str(e)}")
+            ma_dd_logger.error(f"Revenue analysis failed: {str(e)}")
             return {
                 "quality_score": 0.5,
                 "growth_trend": "unknown",
@@ -733,7 +733,7 @@ Provide:
             )
             self._parse_overall_assessment(response.content, result)
         except Exception as e:
-            print(f"⚠️  Overall assessment synthesis failed: {str(e)}")
+            ma_dd_logger.error(f"Overall assessment synthesis failed: {str(e)}")
             result.investment_recommendation = "further_analysis_required"
 
         # Calculate overall confidence

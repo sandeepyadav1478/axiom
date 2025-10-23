@@ -8,6 +8,7 @@ from firecrawl import FirecrawlApp
 
 from axiom.config.settings import settings
 from axiom.tracing.langsmith_tracer import trace_tool
+from axiom.core.logging.axiom_logger import integration_logger
 
 
 class FirecrawlClient:
@@ -74,7 +75,7 @@ class FirecrawlClient:
             return response
 
         except Exception as e:
-            print(f"Financial document scrape error for {url}: {e}")
+            integration_logger.error("Financial document scrape failed", url=url, error=str(e))
             return None
 
     @trace_tool("sec_filing_scrape")
@@ -117,7 +118,7 @@ class FirecrawlClient:
             return response
 
         except Exception as e:
-            print(f"SEC filing scrape error for {url}: {e}")
+            integration_logger.error("SEC filing scrape failed", url=url, error=str(e))
             return None
 
     @trace_tool("investor_relations_crawl")
@@ -163,7 +164,7 @@ class FirecrawlClient:
             return response
 
         except Exception as e:
-            print(f"Investor relations crawl error for {base_url}: {e}")
+            integration_logger.error("Investor relations crawl failed", base_url=base_url, error=str(e))
             return None
 
     @trace_tool("financial_table_extraction")
@@ -197,7 +198,7 @@ class FirecrawlClient:
             return response
 
         except Exception as e:
-            print(f"Financial table extraction error for {url}: {e}")
+            integration_logger.error("Financial table extraction failed", url=url, error=str(e))
             return None
 
     def _is_financial_document(self, url: str) -> bool:

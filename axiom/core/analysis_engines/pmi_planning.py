@@ -16,6 +16,7 @@ from axiom.config.ai_layer_config import AnalysisLayer
 from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import workflow_logger
 
 
 class IntegrationWorkstream(BaseModel):
@@ -157,7 +158,7 @@ class MAPMIPlanningWorkflow:
         start_time = datetime.now()
         integration_start = start_time + timedelta(days=60)  # Typical 60-day close to integration
 
-        print(f"🤝 Starting PMI Planning for {target_company}")
+        workflow_logger.info(f"Starting PMI Planning for {target_company}")
 
         try:
             # Execute PMI planning components in parallel
@@ -174,19 +175,19 @@ class MAPMIPlanningWorkflow:
 
             # Handle exceptions
             if isinstance(day1_plan, Exception):
-                print(f"⚠️ Day 1 planning failed: {str(day1_plan)}")
+                workflow_logger.warning(f"Day 1 planning failed: {str(day1_plan)}")
                 day1_plan = self._create_default_day1_plan()
 
             if isinstance(workstreams, Exception):
-                print(f"⚠️ Workstream planning failed: {str(workstreams)}")
+                workflow_logger.warning(f"Workstream planning failed: {str(workstreams)}")
                 workstreams = self._create_default_workstreams()
 
             if isinstance(synergy_plan, Exception):
-                print(f"⚠️ Synergy planning failed: {str(synergy_plan)}")
+                workflow_logger.warning(f"Synergy planning failed: {str(synergy_plan)}")
                 synergy_plan = self._create_default_synergy_plan()
 
             if isinstance(governance, Exception):
-                print(f"⚠️ Governance planning failed: {str(governance)}")
+                workflow_logger.warning(f"Governance planning failed: {str(governance)}")
                 governance = self._create_default_governance()
 
             # Create comprehensive PMI plan
@@ -215,10 +216,10 @@ class MAPMIPlanningWorkflow:
 
             execution_time = (datetime.now() - start_time).total_seconds()
 
-            print(f"✅ PMI Planning completed in {execution_time:.1f}s")
-            print(f"🎯 Integration Duration: {pmi_plan.integration_duration} months")
-            print(f"💰 Total Budget: ${pmi_plan.total_integration_budget/1e6:.1f}M")
-            print(f"📊 Success Probability: {pmi_plan.success_probability:.0%}")
+            workflow_logger.info(f"PMI Planning completed in {execution_time:.1f}s",
+                               integration_duration=pmi_plan.integration_duration,
+                               total_budget=f"${pmi_plan.total_integration_budget/1e6:.1f}M",
+                               success_probability=pmi_plan.success_probability)
 
             return pmi_plan
 
@@ -609,7 +610,7 @@ Provide optimization recommendations:
             plan.plan_confidence = 0.85
 
         except Exception as e:
-            print(f"⚠️ AI integration optimization failed: {str(e)}")
+            workflow_logger.error(f"AI integration optimization failed: {str(e)}")
             plan.success_probability = 0.75
             plan.plan_confidence = 0.70
 

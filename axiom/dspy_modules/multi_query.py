@@ -4,6 +4,7 @@ import dspy
 
 from axiom.integrations.ai_providers import provider_factory
 from axiom.config.settings import settings
+from axiom.core.logging.axiom_logger import ai_logger
 
 
 class InvestmentBankingQueryExpansion(dspy.Signature):
@@ -81,7 +82,7 @@ class InvestmentBankingMultiQueryModule(dspy.Module):
                 )
 
         except Exception as e:
-            print(f"Investment banking multi-query error: {e}")
+            ai_logger.error("Investment banking multi-query expansion failed", error=str(e), query=query)
             return self._fallback_queries(query)
 
     def _expand_ma_query(
@@ -240,7 +241,7 @@ class SectorMultiQueryModule(dspy.Module):
             return self._fallback_sector_queries(sector)
 
         except Exception as e:
-            print(f"Sector multi-query error: {e}")
+            ai_logger.error("Sector multi-query expansion failed", error=str(e), sector=sector)
             return self._fallback_sector_queries(sector)
 
     def _parse_queries(self, raw_queries: str) -> list[str]:
@@ -303,10 +304,10 @@ def setup_dspy_with_provider():
             )
         )
 
-        print(f"DSPy configured with {provider_name} provider")
+        ai_logger.info("DSPy configured for investment banking analysis", provider=provider_name)
 
     except Exception as e:
-        print(f"DSPy setup error: {e}")
+        ai_logger.warning("DSPy setup using fallback configuration", error=str(e))
         # Fallback configuration
         dspy.configure(
             lm=dspy.OpenAI(

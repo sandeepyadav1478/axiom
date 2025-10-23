@@ -17,6 +17,7 @@ from axiom.config.schemas import Citation, Evidence
 from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import ma_dd_logger
 
 
 class EnvironmentalAssessment(BaseModel):
@@ -172,7 +173,7 @@ class MAESGAnalysisWorkflow:
         """Execute comprehensive ESG analysis for M&A due diligence."""
 
         start_time = datetime.now()
-        print(f"🌍 Starting ESG Analysis for {target_company}")
+        ma_dd_logger.info(f"Starting ESG Analysis for {target_company}")
 
         try:
             # Execute ESG assessments in parallel
@@ -188,15 +189,15 @@ class MAESGAnalysisWorkflow:
 
             # Handle exceptions
             if isinstance(environmental, Exception):
-                print(f"⚠️ Environmental assessment failed: {str(environmental)}")
+                ma_dd_logger.warning(f"Environmental assessment failed: {str(environmental)}")
                 environmental = self._create_default_environmental_assessment()
 
             if isinstance(social, Exception):
-                print(f"⚠️ Social assessment failed: {str(social)}")
+                ma_dd_logger.warning(f"Social assessment failed: {str(social)}")
                 social = self._create_default_social_assessment()
 
             if isinstance(governance, Exception):
-                print(f"⚠️ Governance assessment failed: {str(governance)}")
+                ma_dd_logger.warning(f"Governance assessment failed: {str(governance)}")
                 governance = self._create_default_governance_assessment()
 
             # Create comprehensive ESG result
@@ -222,10 +223,11 @@ class MAESGAnalysisWorkflow:
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
 
-            print(f"✅ ESG Analysis completed in {execution_time:.1f}s")
-            print(f"🌍 ESG Score: {result.overall_esg_score:.0f}/100 (Rating: {result.esg_rating})")
-            print(f"⚠️ ESG Risk Level: {result.esg_risk_level}")
-            print(f"💰 ESG Impact: {result.esg_impact_on_valuation}")
+            ma_dd_logger.info(f"ESG Analysis completed in {execution_time:.1f}s",
+                            esg_score=result.overall_esg_score,
+                            esg_rating=result.esg_rating,
+                            risk_level=result.esg_risk_level,
+                            valuation_impact=result.esg_impact_on_valuation)
 
             return result
 
@@ -239,7 +241,7 @@ class MAESGAnalysisWorkflow:
     async def _assess_environmental_impact(self, company: str, industry: str | None) -> EnvironmentalAssessment:
         """Assess environmental impact and sustainability practices."""
 
-        print(f"🌱 Assessing Environmental Impact for {company}")
+        ma_dd_logger.info(f"Assessing Environmental Impact for {company}")
 
         # Gather environmental data
         await self._gather_environmental_intelligence(company, industry)
@@ -282,7 +284,7 @@ class MAESGAnalysisWorkflow:
     async def _assess_social_responsibility(self, company: str) -> SocialAssessment:
         """Assess social responsibility and stakeholder impact."""
 
-        print(f"👥 Assessing Social Responsibility for {company}")
+        ma_dd_logger.info(f"Assessing Social Responsibility for {company}")
 
         # Gather social responsibility intelligence
         await self._gather_social_intelligence(company)
@@ -314,7 +316,7 @@ class MAESGAnalysisWorkflow:
     async def _assess_corporate_governance(self, company: str) -> GovernanceAssessment:
         """Assess corporate governance standards and practices."""
 
-        print(f"🏛️ Assessing Corporate Governance for {company}")
+        ma_dd_logger.info(f"Assessing Corporate Governance for {company}")
 
         # Gather governance intelligence
         await self._gather_governance_intelligence(company)
@@ -512,7 +514,7 @@ Provide strategic ESG analysis:
             result.analysis_confidence = 0.82
 
         except Exception as e:
-            print(f"⚠️ AI ESG analysis enhancement failed: {str(e)}")
+            ma_dd_logger.warning(f"AI ESG analysis enhancement failed: {str(e)}")
             result.analysis_confidence = 0.70
 
         return result
@@ -647,7 +649,7 @@ Provide strategic ESG analysis:
                         )
                         env_data["evidence"].append(evidence)
         except Exception as e:
-            print(f"⚠️ Environmental intelligence gathering failed: {e}")
+            ma_dd_logger.warning(f"Environmental intelligence gathering failed: {e}")
 
         return env_data
 
@@ -682,7 +684,7 @@ Provide strategic ESG analysis:
                         )
                         social_data["evidence"].append(evidence)
         except Exception as e:
-            print(f"⚠️ Social intelligence gathering failed: {e}")
+            ma_dd_logger.warning(f"Social intelligence gathering failed: {e}")
 
         return social_data
 
@@ -716,7 +718,7 @@ Provide strategic ESG analysis:
                         )
                         governance_data["evidence"].append(evidence)
         except Exception as e:
-            print(f"⚠️ Governance intelligence gathering failed: {e}")
+            ma_dd_logger.warning(f"Governance intelligence gathering failed: {e}")
 
         return governance_data
 

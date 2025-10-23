@@ -2,6 +2,8 @@
 
 import dspy
 
+from axiom.core.logging.axiom_logger import ai_logger
+
 
 class InvestmentBankingHyDE(dspy.Signature):
     """Generate hypothetical investment banking documents for enhanced financial search."""
@@ -80,7 +82,7 @@ class InvestmentBankingHyDEModule(dspy.Module):
             return query  # Fallback to original query
 
         except Exception as e:
-            print(f"Investment Banking HyDE error: {e}")
+            ai_logger.error("Investment Banking HyDE generation failed", error=str(e), query=query)
             return query
 
     def enrich_financial_query(self, query: str, company_context: str = "") -> str:
@@ -97,7 +99,7 @@ class InvestmentBankingHyDEModule(dspy.Module):
             return query
 
         except Exception as e:
-            print(f"Financial query enrichment error: {e}")
+            ai_logger.error("Financial query enrichment failed", error=str(e), query=query)
             return query
 
 
@@ -165,7 +167,7 @@ class ComprehensiveFinancialHyDEModule(dspy.Module):
             )
 
         except Exception as e:
-            print(f"Comprehensive Financial HyDE error: {e}")
+            ai_logger.error("Comprehensive Financial HyDE generation failed", error=str(e), query=query, document_type=document_type)
             return query
 
 
@@ -188,7 +190,7 @@ class FinancialQueryEnrichmentModule(dspy.Module):
             return query
 
         except Exception as e:
-            print(f"Financial query enrichment error: {e}")
+            ai_logger.error("Financial query enrichment module failed", error=str(e), query=query)
             return query
 
 

@@ -18,6 +18,7 @@ from axiom.integrations.search_tools.firecrawl_client import FirecrawlClient
 from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import workflow_logger
 
 
 class HSRAnalysis(BaseModel):
@@ -135,7 +136,7 @@ class MARegulatoryComplianceWorkflow:
         """Execute comprehensive regulatory compliance analysis."""
 
         start_time = datetime.now()
-        print(f"📜 Starting Regulatory Compliance Analysis for {target_company}")
+        workflow_logger.info(f"Starting Regulatory Compliance Analysis for {target_company}")
 
         try:
             # Execute regulatory analyses in parallel
@@ -151,15 +152,15 @@ class MARegulatoryComplianceWorkflow:
 
             # Handle exceptions
             if isinstance(hsr_analysis, Exception):
-                print(f"⚠️ HSR analysis failed: {str(hsr_analysis)}")
+                workflow_logger.warning(f"HSR analysis failed: {str(hsr_analysis)}")
                 hsr_analysis = self._create_default_hsr_analysis(transaction_value)
 
             if isinstance(international_clearances, Exception):
-                print(f"⚠️ International clearance analysis failed: {str(international_clearances)}")
+                workflow_logger.warning(f"International clearance analysis failed: {str(international_clearances)}")
                 international_clearances = []
 
             if isinstance(industry_approvals, Exception):
-                print(f"⚠️ Industry approval analysis failed: {str(industry_approvals)}")
+                workflow_logger.warning(f"Industry approval analysis failed: {str(industry_approvals)}")
                 industry_approvals = {}
 
             # Create comprehensive result
@@ -184,10 +185,10 @@ class MARegulatoryComplianceWorkflow:
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
 
-            print(f"✅ Regulatory Analysis completed in {execution_time:.1f}s")
-            print(f"📜 Overall Risk: {result.overall_regulatory_risk}")
-            print(f"⏰ Timeline: {result.total_approval_timeline}")
-            print(f"📊 Approval Probability: {result.approval_probability:.0%}")
+            workflow_logger.info(f"Regulatory Analysis completed in {execution_time:.1f}s",
+                               overall_risk=result.overall_regulatory_risk,
+                               timeline=result.total_approval_timeline,
+                               approval_probability=result.approval_probability)
 
             return result
 
@@ -201,7 +202,7 @@ class MARegulatoryComplianceWorkflow:
     async def _analyze_hsr_requirements(self, target: str, acquirer: str, transaction_value: float | None) -> HSRAnalysis:
         """Analyze Hart-Scott-Rodino filing requirements."""
 
-        print(f"📋 Analyzing HSR Requirements for {target}")
+        workflow_logger.info(f"Analyzing HSR Requirements for {target}")
 
         # HSR threshold analysis (2024 thresholds)
         hsr_size_threshold = 101_000_000  # $101M size-of-transaction threshold
@@ -248,7 +249,7 @@ class MARegulatoryComplianceWorkflow:
     async def _analyze_international_clearances(self, target: str, transaction_value: float | None) -> list[InternationalClearance]:
         """Analyze international merger control requirements."""
 
-        print(f"🌍 Analyzing International Clearances for {target}")
+        workflow_logger.info(f"Analyzing International Clearances for {target}")
 
         clearances = []
 
@@ -300,7 +301,7 @@ class MARegulatoryComplianceWorkflow:
     async def _analyze_industry_specific_approvals(self, target: str, structure: dict | None) -> dict[str, Any]:
         """Analyze industry-specific regulatory approvals."""
 
-        print(f"🏭 Analyzing Industry-Specific Approvals for {target}")
+        workflow_logger.info(f"Analyzing Industry-Specific Approvals for {target}")
 
         # Gather industry intelligence
         industry_data = await self._identify_target_industry(target)
@@ -482,7 +483,7 @@ Provide:
             response = await provider.generate_response_async(messages, max_tokens=1500, temperature=0.03)
             self._parse_regulatory_strategy(response.content, result)
         except Exception as e:
-            print(f"⚠️ Regulatory strategy synthesis failed: {str(e)}")
+            workflow_logger.error(f"Regulatory strategy synthesis failed: {str(e)}")
             result.regulatory_strategy = [
                 "Engage experienced antitrust counsel immediately",
                 "Develop comprehensive regulatory timeline",
@@ -572,7 +573,7 @@ Provide:
                         )
                         competitive_data["evidence"].append(evidence)
         except Exception as e:
-            print(f"⚠️ Competitive intelligence gathering failed: {e}")
+            workflow_logger.warning(f"Competitive intelligence gathering failed: {e}")
 
         return competitive_data
 
@@ -627,7 +628,7 @@ Focus on factors that could trigger extended regulatory review or deal challenge
             response = await provider.generate_response_async(messages, max_tokens=1200, temperature=0.05)
             return self._parse_antitrust_analysis(response.content)
         except Exception as e:
-            print(f"⚠️ AI antitrust analysis failed: {str(e)}")
+            workflow_logger.error(f"AI antitrust analysis failed: {str(e)}")
             return {
                 "antitrust_risk": "MEDIUM",
                 "second_request_risk": 0.20,

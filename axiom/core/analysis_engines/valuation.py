@@ -22,6 +22,10 @@ from axiom.integrations.search_tools.firecrawl_client import FirecrawlClient
 from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import AxiomLogger
+
+# Initialize logger for M&A valuation
+logger = AxiomLogger("ma.valuation")
 
 
 class DCFAnalysis(BaseModel):
@@ -286,6 +290,13 @@ class MAValuationWorkflow:
     def __init__(self):
         self.tavily_client = TavilyClient()
         self.firecrawl_client = FirecrawlClient()
+        
+        # Import financial aggregator for enhanced valuation
+        try:
+            from axiom.integrations.data_sources.finance.financial_data_aggregator import get_financial_aggregator
+            self.financial_aggregator = get_financial_aggregator()
+        except:
+            self.financial_aggregator = None
 
     @trace_node("ma_valuation_comprehensive")
     async def execute_comprehensive_valuation(
@@ -294,7 +305,7 @@ class MAValuationWorkflow:
         """Execute comprehensive M&A valuation using multiple methodologies."""
 
         start_time = datetime.now()
-        print(f"💰 Starting Comprehensive Valuation for {target_company}")
+        logger.info("Starting comprehensive valuation", target=target_company)
 
         try:
             # Execute valuation methodologies in parallel
@@ -318,19 +329,19 @@ class MAValuationWorkflow:
 
             # Handle exceptions
             if isinstance(dcf_result, Exception):
-                print(f"⚠️  DCF analysis failed: {str(dcf_result)}")
+                logger.warning("DCF analysis failed", error=str(dcf_result))
                 dcf_result = DCFAnalysis()
 
             if isinstance(comp_result, Exception):
-                print(f"⚠️  Comparable analysis failed: {str(comp_result)}")
+                logger.warning("Comparable analysis failed", error=str(comp_result))
                 comp_result = ComparableAnalysis()
 
             if isinstance(precedent_result, Exception):
-                print(f"⚠️  Precedent analysis failed: {str(precedent_result)}")
+                logger.warning("Precedent analysis failed", error=str(precedent_result))
                 precedent_result = PrecedentAnalysis()
 
             if isinstance(synergy_result, Exception):
-                print(f"⚠️  Synergy analysis failed: {str(synergy_result)}")
+                logger.warning("Synergy analysis failed", error=str(synergy_result))
                 synergy_result = SynergyAnalysis()
 
             # Create valuation summary
@@ -354,10 +365,12 @@ class MAValuationWorkflow:
             execution_time = (datetime.now() - start_time).total_seconds()
             summary.analysis_duration = execution_time
 
-            print(f"✅ Comprehensive Valuation completed in {execution_time:.1f}s")
-            print(
-                f"💎 Valuation Range: ${summary.valuation_low/1e9:.1f}B - ${summary.valuation_high/1e9:.1f}B"
-            )
+            logger.info("Comprehensive valuation completed",
+                       duration=execution_time,
+                       target=target_company,
+                       valuation_low=summary.valuation_low,
+                       valuation_high=summary.valuation_high,
+                       confidence=summary.valuation_confidence)
 
             return summary
 
@@ -373,7 +386,7 @@ class MAValuationWorkflow:
     ) -> DCFAnalysis:
         """Execute DCF (Discounted Cash Flow) valuation analysis."""
 
-        print(f"📊 Building DCF Model for {target_company}")
+        logger.info("Building DCF model", target=target_company)
         result = DCFAnalysis()
 
         try:
@@ -407,7 +420,7 @@ class MAValuationWorkflow:
             return result
 
         except Exception as e:
-            print(f"⚠️  DCF analysis failed: {str(e)}")
+            logger.error("DCF analysis failed", error=str(e))
             result.methodology_notes.append(f"DCF analysis incomplete: {str(e)}")
             result.projection_confidence = 0.3
             return result
@@ -418,7 +431,7 @@ class MAValuationWorkflow:
     ) -> ComparableAnalysis:
         """Execute Comparable Company Analysis."""
 
-        print(f"🏢 Finding Comparable Companies for {target_company}")
+        logger.info("Finding comparable companies", target=target_company)
         result = ComparableAnalysis()
 
         try:
@@ -467,7 +480,7 @@ class MAValuationWorkflow:
             return result
 
         except Exception as e:
-            print(f"⚠️  Comparable analysis failed: {str(e)}")
+            logger.error("Comparable analysis failed", error=str(e))
             result.multiple_reliability = "low"
             result.comparability_score = 0.3
             return result
@@ -478,7 +491,7 @@ class MAValuationWorkflow:
     ) -> PrecedentAnalysis:
         """Execute Precedent Transaction Analysis."""
 
-        print(f"📋 Analyzing Precedent Transactions for {target_company}")
+        logger.info("Analyzing precedent transactions", target=target_company)
         result = PrecedentAnalysis()
 
         try:
@@ -517,7 +530,7 @@ class MAValuationWorkflow:
             return result
 
         except Exception as e:
-            print(f"⚠️  Precedent analysis failed: {str(e)}")
+            logger.error("Precedent analysis failed", error=str(e))
             result.relevance_score = 0.3
             result.recency_factor = 0.5
             return result
@@ -528,7 +541,7 @@ class MAValuationWorkflow:
     ) -> SynergyAnalysis:
         """Execute Synergy Analysis and Quantification."""
 
-        print(f"🤝 Quantifying Synergies for {target_company}")
+        logger.info("Quantifying synergies", target=target_company)
         result = SynergyAnalysis()
 
         try:
@@ -567,7 +580,7 @@ class MAValuationWorkflow:
             return result
 
         except Exception as e:
-            print(f"⚠️  Synergy analysis failed: {str(e)}")
+            logger.error("Synergy analysis failed", error=str(e))
             result.synergy_risk_level = "high"
             result.probability_of_achievement = 0.4
             return result
@@ -682,7 +695,7 @@ Use conservative assumptions appropriate for M&A analysis.""",
             )
             return self._parse_dcf_model(response.content)
         except Exception as e:
-            print(f"⚠️  DCF modeling failed: {str(e)}")
+            logger.error("DCF modeling failed", error=str(e))
             return {
                 "base_case_value": 1000000000,
                 "methodology_notes": [f"DCF modeling error: {str(e)}"],

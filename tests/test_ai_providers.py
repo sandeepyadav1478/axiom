@@ -14,6 +14,7 @@ from axiom.integrations.ai_providers import (
     SGLangProvider,
     provider_factory,
 )
+from tests.test_helpers import retry_on_api_error
 
 
 class TestBaseAIProvider:

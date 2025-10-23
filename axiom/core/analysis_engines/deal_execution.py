@@ -16,6 +16,7 @@ from axiom.config.ai_layer_config import AnalysisLayer
 from axiom.integrations.search_tools.firecrawl_client import FirecrawlClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import workflow_logger
 
 
 class ContractAnalysisResult(BaseModel):
@@ -162,7 +163,7 @@ class MADealExecutionWorkflow:
         """Execute comprehensive deal execution support."""
 
         start_time = datetime.now()
-        print(f"⚡ Starting Deal Execution Support for {target_company}")
+        workflow_logger.info(f"Starting Deal Execution Support for {target_company}")
 
         try:
             # Execute deal execution components based on stage
@@ -189,15 +190,15 @@ class MADealExecutionWorkflow:
 
             # Handle exceptions
             if isinstance(negotiation_support, Exception):
-                print(f"⚠️ Negotiation strategy failed: {str(negotiation_support)}")
+                workflow_logger.warning(f"Negotiation strategy failed: {str(negotiation_support)}")
                 negotiation_support = self._create_default_negotiation_support()
 
             if isinstance(closing_coordination, Exception):
-                print(f"⚠️ Closing coordination failed: {str(closing_coordination)}")
+                workflow_logger.warning(f"Closing coordination failed: {str(closing_coordination)}")
                 closing_coordination = self._create_default_closing_coordination()
 
             if isinstance(contract_analysis, Exception):
-                print(f"⚠️ Contract analysis failed: {str(contract_analysis)}")
+                workflow_logger.warning(f"Contract analysis failed: {str(contract_analysis)}")
                 contract_analysis = None
 
             # Create comprehensive result
@@ -221,10 +222,10 @@ class MADealExecutionWorkflow:
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
 
-            print(f"✅ Deal Execution Support completed in {execution_time:.1f}s")
-            print(f"⚡ Execution Risk: {result.deal_execution_risk}")
-            print(f"📊 Success Probability: {result.success_probability:.0%}")
-            print(f"⏰ Timeline: {result.execution_timeline}")
+            workflow_logger.info(f"Deal Execution Support completed in {execution_time:.1f}s",
+                               execution_risk=result.deal_execution_risk,
+                               success_probability=result.success_probability,
+                               timeline=result.execution_timeline)
 
             return result
 
@@ -238,7 +239,7 @@ class MADealExecutionWorkflow:
     async def _analyze_contract_documents(self, contract_docs: list[str]) -> ContractAnalysisResult:
         """Analyze M&A contract documents and terms."""
 
-        print("📄 Analyzing M&A Contract Documents...")
+        workflow_logger.info("Analyzing M&A Contract Documents...")
 
         # Sample contract analysis (in production, would analyze actual documents)
         return ContractAnalysisResult(
@@ -283,7 +284,7 @@ class MADealExecutionWorkflow:
     async def _develop_negotiation_strategy(self, target: str, deal_value: float | None) -> NegotiationSupport:
         """Develop comprehensive negotiation strategy."""
 
-        print(f"🤝 Developing Negotiation Strategy for {target}")
+        workflow_logger.info(f"Developing Negotiation Strategy for {target}")
 
         return NegotiationSupport(
             negotiation_objectives=[
@@ -331,7 +332,7 @@ class MADealExecutionWorkflow:
     async def _coordinate_closing_process(self, target: str, stage: str) -> ClosingCoordination:
         """Coordinate comprehensive closing process."""
 
-        print(f"📋 Coordinating Closing Process for {target}")
+        workflow_logger.info(f"Coordinating Closing Process for {target}")
 
         # Calculate target closing based on current stage
         if stage == "negotiation":
@@ -552,7 +553,7 @@ Provide execution optimization:
             result.analysis_confidence = 0.88
 
         except Exception as e:
-            print(f"⚠️ AI execution optimization failed: {str(e)}")
+            workflow_logger.error(f"AI execution optimization failed: {str(e)}")
             result.optimization_opportunities = ["Standard execution optimization procedures"]
             result.analysis_confidence = 0.70
 

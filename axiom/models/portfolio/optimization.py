@@ -19,51 +19,63 @@ Integrates with VaR models for comprehensive risk management.
 
 import numpy as np
 import pandas as pd
-from scipy import optimize
 from scipy import stats
-from typing import List, Dict, Optional, Tuple, Union, Callable
+from typing import List, Dict, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 import warnings
 
+from axiom.models.base.base_model import BasePortfolioModel, ModelResult
+from axiom.models.base.mixins import (
+    NumericalMethodsMixin,
+    PerformanceMixin,
+    ValidationMixin,
+    LoggingMixin
+)
+from axiom.config.model_config import PortfolioConfig, get_config
+from axiom.core.logging.axiom_logger import get_logger
+
+# Get module-level logger
+portfolio_logger = get_logger("axiom.models.portfolio")
+
 
 class OptimizationMethod(Enum):
     """Portfolio optimization objectives."""
-    MAX_SHARPE = "max_sharpe"  # Maximize Sharpe ratio
-    MIN_VOLATILITY = "min_volatility"  # Minimize portfolio volatility
-    MAX_RETURN = "max_return"  # Maximize expected return
-    EFFICIENT_RETURN = "efficient_return"  # Target specific return
-    EFFICIENT_RISK = "efficient_risk"  # Target specific risk
-    RISK_PARITY = "risk_parity"  # Equal risk contribution
-    MIN_CVaR = "min_cvar"  # Minimize Conditional VaR
+    MAX_SHARPE = "max_sharpe"
+    MIN_VOLATILITY = "min_volatility"
+    MAX_RETURN = "max_return"
+    EFFICIENT_RETURN = "efficient_return"
+    EFFICIENT_RISK = "efficient_risk"
+    RISK_PARITY = "risk_parity"
+    MIN_CVaR = "min_cvar"
 
 
 class ConstraintType(Enum):
     """Portfolio constraint types."""
-    LONG_ONLY = "long_only"  # No short selling (weights >= 0)
-    FULLY_INVESTED = "fully_invested"  # Sum of weights = 1
-    BOX = "box"  # Lower and upper bounds per asset
-    SECTOR = "sector"  # Sector exposure limits
-    TURNOVER = "turnover"  # Limit portfolio turnover
+    LONG_ONLY = "long_only"
+    FULLY_INVESTED = "fully_invested"
+    BOX = "box"
+    SECTOR = "sector"
+    TURNOVER = "turnover"
 
 
 @dataclass
 class PortfolioMetrics:
     """Portfolio performance metrics."""
     
-    expected_return: float  # Annualized expected return
-    volatility: float  # Annualized volatility (standard deviation)
-    sharpe_ratio: float  # Risk-adjusted return
-    sortino_ratio: float  # Downside risk-adjusted return
-    calmar_ratio: Optional[float] = None  # Return to max drawdown ratio
-    max_drawdown: Optional[float] = None  # Maximum peak-to-trough decline
-    var_95: Optional[float] = None  # 95% Value at Risk
-    cvar_95: Optional[float] = None  # 95% Conditional VaR (Expected Shortfall)
-    beta: Optional[float] = None  # Market beta (if benchmark provided)
-    alpha: Optional[float] = None  # Jensen's alpha (if benchmark provided)
-    information_ratio: Optional[float] = None  # Tracking error adjusted return
-    treynor_ratio: Optional[float] = None  # Return per unit of systematic risk
+    expected_return: float
+    volatility: float
+    sharpe_ratio: float
+    sortino_ratio: float
+    calmar_ratio: Optional[float] = None
+    max_drawdown: Optional[float] = None
+    var_95: Optional[float] = None
+    cvar_95: Optional[float] = None
+    beta: Optional[float] = None
+    alpha: Optional[float] = None
+    information_ratio: Optional[float] = None
+    treynor_ratio: Optional[float] = None
     
     def to_dict(self) -> Dict:
         """Convert metrics to dictionary."""
@@ -98,14 +110,14 @@ class PortfolioMetrics:
 class OptimizationResult:
     """Portfolio optimization result."""
     
-    weights: np.ndarray  # Optimal portfolio weights
-    assets: List[str]  # Asset identifiers
-    metrics: PortfolioMetrics  # Portfolio performance metrics
-    method: OptimizationMethod  # Optimization method used
-    success: bool  # Whether optimization succeeded
-    message: str = ""  # Optimization status message
-    constraints_satisfied: bool = True  # Whether all constraints are satisfied
-    computation_time: float = 0.0  # Time taken for optimization
+    weights: np.ndarray
+    assets: List[str]
+    metrics: PortfolioMetrics
+    method: OptimizationMethod
+    success: bool
+    message: str = ""
+    constraints_satisfied: bool = True
+    computation_time: float = 0.0
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     
     def get_weights_dict(self) -> Dict[str, float]:
@@ -132,7 +144,7 @@ class OptimizationResult:
         weights_str = "\n".join([
             f"  {asset}: {weight*100:.2f}%"
             for asset, weight in self.get_weights_dict().items()
-            if weight > 0.001  # Show only significant weights
+            if weight > 0.001
         ])
         return (
             f"Optimization Result ({self.method.value}):\n"
@@ -146,12 +158,12 @@ class OptimizationResult:
 class EfficientFrontier:
     """Efficient frontier results."""
     
-    returns: np.ndarray  # Expected returns for each portfolio
-    risks: np.ndarray  # Volatilities for each portfolio
-    sharpe_ratios: np.ndarray  # Sharpe ratios for each portfolio
-    weights: np.ndarray  # Weights for each portfolio (2D array)
-    assets: List[str]  # Asset identifiers
-    risk_free_rate: float = 0.0  # Risk-free rate used
+    returns: np.ndarray
+    risks: np.ndarray
+    sharpe_ratios: np.ndarray
+    weights: np.ndarray
+    assets: List[str]
+    risk_free_rate: float = 0.0
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     
     def get_max_sharpe_portfolio(self) -> OptimizationResult:
@@ -164,7 +176,7 @@ class EfficientFrontier:
                 expected_return=self.returns[max_sharpe_idx],
                 volatility=self.risks[max_sharpe_idx],
                 sharpe_ratio=self.sharpe_ratios[max_sharpe_idx],
-                sortino_ratio=0.0  # Not computed in efficient frontier
+                sortino_ratio=0.0
             ),
             method=OptimizationMethod.MAX_SHARPE,
             success=True,
@@ -208,7 +220,13 @@ class EfficientFrontier:
         }
 
 
-class PortfolioOptimizer:
+class PortfolioOptimizer(
+    BasePortfolioModel,
+    NumericalMethodsMixin,
+    PerformanceMixin,
+    ValidationMixin,
+    LoggingMixin
+):
     """
     Portfolio optimization using Modern Portfolio Theory (MPT).
     
@@ -219,24 +237,65 @@ class PortfolioOptimizer:
     - Flexible constraint system
     - Efficient frontier generation
     - Integration with VaR models
-    - Transaction cost modeling
+    - Configuration-driven (no hardcoded parameters)
+    - Performance tracking
+    - Institutional logging
     """
     
     def __init__(
         self,
-        risk_free_rate: float = 0.02,
-        periods_per_year: int = 252
+        config: Optional[PortfolioConfig] = None,
+        risk_free_rate: Optional[float] = None,
+        periods_per_year: Optional[int] = None,
+        **kwargs
     ):
         """
         Initialize portfolio optimizer.
         
         Args:
-            risk_free_rate: Annual risk-free rate (default: 2%)
-            periods_per_year: Trading periods per year (252 for daily, 52 for weekly)
+            config: Portfolio configuration (uses global config if None)
+            risk_free_rate: Risk-free rate (backward compatibility)
+            periods_per_year: Periods per year (backward compatibility)
+            **kwargs: Additional backward compatibility parameters
         """
-        self.risk_free_rate = risk_free_rate
-        self.periods_per_year = periods_per_year
+        # Handle backward compatibility: create config from kwargs if needed
+        if config is None:
+            base_config = get_config().portfolio
+            if risk_free_rate is not None or periods_per_year is not None:
+                # Create modified config with backward compat params
+                from dataclasses import replace
+                self.portfolio_config = replace(
+                    base_config,
+                    default_risk_free_rate=risk_free_rate or base_config.default_risk_free_rate,
+                    periods_per_year=periods_per_year or base_config.periods_per_year
+                )
+            else:
+                self.portfolio_config = base_config
+        else:
+            self.portfolio_config = config
+        
+        super().__init__(config=self.portfolio_config.to_dict())
+        self.logger = portfolio_logger
+        self.enable_logging = True
         self.optimization_history: List[OptimizationResult] = []
+        
+        if self.enable_logging:
+            self.logger.info(
+                "PortfolioOptimizer initialized",
+                risk_free_rate=self.portfolio_config.default_risk_free_rate,
+                optimization_method=self.portfolio_config.optimization_method
+            )
+    
+    # Backward compatibility properties
+    @property
+    def risk_free_rate(self) -> float:
+        """Get risk-free rate (backward compatibility)."""
+        return self.portfolio_config.default_risk_free_rate
+    
+    @property
+    def periods_per_year(self) -> int:
+        """Get periods per year (backward compatibility)."""
+        return self.portfolio_config.periods_per_year
     
     def optimize(
         self,
@@ -246,11 +305,12 @@ class PortfolioOptimizer:
         constraints: Optional[Dict] = None,
         target_return: Optional[float] = None,
         target_risk: Optional[float] = None,
-        bounds: Optional[Tuple[float, float]] = (0.0, 1.0),
-        initial_weights: Optional[np.ndarray] = None
+        bounds: Optional[Tuple[float, float]] = None,
+        initial_weights: Optional[np.ndarray] = None,
+        **kwargs
     ) -> OptimizationResult:
         """
-        Optimize portfolio weights.
+        Optimize portfolio weights using configuration and mixins.
         
         Args:
             returns: Historical returns (assets in columns, time in rows)
@@ -259,189 +319,175 @@ class PortfolioOptimizer:
             constraints: Additional constraints dict
             target_return: Target return for efficient return optimization
             target_risk: Target risk for efficient risk optimization
-            bounds: Weight bounds per asset (min, max)
+            bounds: Weight bounds per asset (overrides config)
             initial_weights: Starting weights for optimization
-        
+            
         Returns:
             OptimizationResult with optimal weights and metrics
         """
-        import time
-        start_time = time.time()
-        
-        # Convert returns to DataFrame if needed
-        if isinstance(returns, np.ndarray):
-            if assets is None:
-                assets = [f"Asset_{i}" for i in range(returns.shape[1])]
-            returns = pd.DataFrame(returns, columns=assets)
-        else:
-            assets = list(returns.columns)
-        
-        n_assets = len(assets)
-        
-        # Calculate expected returns and covariance
-        mean_returns = returns.mean().values * self.periods_per_year
-        cov_matrix = returns.cov().values * self.periods_per_year
-        
-        # Initial weights
-        if initial_weights is None:
-            initial_weights = np.array([1.0 / n_assets] * n_assets)
-        
-        # Set up constraints
-        cons = self._setup_constraints(
-            n_assets, constraints, target_return, target_risk, mean_returns
-        )
-        
-        # Set up bounds
-        if bounds is not None:
+        with self.track_time(f"portfolio_optimization_{method.value}"):
+            # Convert returns to DataFrame if needed
+            if isinstance(returns, np.ndarray):
+                if assets is None:
+                    assets = [f"Asset_{i}" for i in range(returns.shape[1])]
+                returns = pd.DataFrame(returns, columns=assets)
+            else:
+                assets = list(returns.columns)
+            
+            n_assets = len(assets)
+            
+            # Calculate expected returns and covariance using config
+            mean_returns = returns.mean().values * self.portfolio_config.periods_per_year
+            cov_matrix = returns.cov().values * self.portfolio_config.periods_per_year
+            
+            # Initial weights
+            if initial_weights is None:
+                initial_weights = np.array([1.0 / n_assets] * n_assets)
+            
+            # Use config for bounds if not provided
+            if bounds is None:
+                bounds = (self.portfolio_config.min_weight, self.portfolio_config.max_weight)
             bounds_tuple = [bounds] * n_assets
-        else:
-            bounds_tuple = [(0.0, 1.0)] * n_assets
-        
-        # Optimization objective function
-        if method == OptimizationMethod.MAX_SHARPE:
-            # Minimize negative Sharpe ratio
-            objective = lambda w: -self._portfolio_sharpe(w, mean_returns, cov_matrix)
-        elif method == OptimizationMethod.MIN_VOLATILITY:
-            objective = lambda w: self._portfolio_volatility(w, cov_matrix)
-        elif method == OptimizationMethod.MAX_RETURN:
-            objective = lambda w: -self._portfolio_return(w, mean_returns)
-        elif method == OptimizationMethod.EFFICIENT_RETURN:
-            # Minimize volatility for target return
-            objective = lambda w: self._portfolio_volatility(w, cov_matrix)
-        elif method == OptimizationMethod.EFFICIENT_RISK:
-            # Maximize return for target risk
-            objective = lambda w: -self._portfolio_return(w, mean_returns)
-        elif method == OptimizationMethod.RISK_PARITY:
-            objective = lambda w: self._risk_parity_objective(w, cov_matrix)
-        elif method == OptimizationMethod.MIN_CVaR:
-            # Minimize Conditional VaR
-            objective = lambda w: self._portfolio_cvar(w, returns.values)
-        else:
-            raise ValueError(f"Unknown optimization method: {method}")
-        
-        # Run optimization
-        try:
-            result = optimize.minimize(
-                objective,
-                initial_weights,
-                method='SLSQP',
-                bounds=bounds_tuple,
-                constraints=cons,
-                options={'maxiter': 1000, 'ftol': 1e-9}
+            
+            # Setup constraints using config
+            cons = self._setup_constraints(
+                n_assets, constraints, target_return, target_risk, mean_returns
             )
             
-            optimal_weights = result.x
-            success = result.success
-            message = result.message
+            # Define objective function
+            objective = self._get_objective_function(method, mean_returns, cov_matrix, returns.values)
             
-        except Exception as e:
-            warnings.warn(f"Optimization failed: {str(e)}")
-            optimal_weights = initial_weights
-            success = False
-            message = f"Optimization error: {str(e)}"
-        
-        # Calculate portfolio metrics
-        metrics = self.calculate_metrics(
-            optimal_weights,
-            returns.values,
-            mean_returns,
-            cov_matrix
-        )
-        
-        # Create result
-        optimization_result = OptimizationResult(
-            weights=optimal_weights,
-            assets=assets,
-            metrics=metrics,
-            method=method,
-            success=success,
-            message=message,
-            constraints_satisfied=self._check_constraints(optimal_weights),
-            computation_time=time.time() - start_time
-        )
-        
-        # Store in history
-        self.optimization_history.append(optimization_result)
-        
-        return optimization_result
+            # Solve optimization using mixin
+            optimal_weights, success, message = self.solve_optimization_problem(
+                objective=objective,
+                constraints=cons,
+                bounds=bounds_tuple,
+                initial_guess=initial_weights
+            )
+            
+            # Calculate portfolio metrics
+            metrics = self.calculate_metrics(
+                optimal_weights,
+                returns.values,
+                mean_returns,
+                cov_matrix
+            )
+            
+            # Create result
+            result = OptimizationResult(
+                weights=optimal_weights,
+                assets=assets,
+                metrics=metrics,
+                method=method,
+                success=success,
+                message=message,
+                constraints_satisfied=self._check_constraints(optimal_weights),
+                computation_time=0.0
+            )
+            
+            self.optimization_history.append(result)
+            
+            if self.enable_logging:
+                self.logger.info(
+                    f"Optimization completed: {method.value}",
+                    success=success,
+                    sharpe_ratio=metrics.sharpe_ratio
+                )
+            
+            return result
+    
+    def _get_objective_function(
+        self,
+        method: OptimizationMethod,
+        mean_returns: np.ndarray,
+        cov_matrix: np.ndarray,
+        returns_array: np.ndarray
+    ):
+        """Get objective function for optimization method."""
+        if method == OptimizationMethod.MAX_SHARPE:
+            return lambda w: -self._portfolio_sharpe(w, mean_returns, cov_matrix)
+        elif method == OptimizationMethod.MIN_VOLATILITY:
+            return lambda w: self._portfolio_volatility(w, cov_matrix)
+        elif method == OptimizationMethod.MAX_RETURN:
+            return lambda w: -self._portfolio_return(w, mean_returns)
+        elif method == OptimizationMethod.EFFICIENT_RETURN:
+            return lambda w: self._portfolio_volatility(w, cov_matrix)
+        elif method == OptimizationMethod.EFFICIENT_RISK:
+            return lambda w: -self._portfolio_return(w, mean_returns)
+        elif method == OptimizationMethod.RISK_PARITY:
+            return lambda w: self._risk_parity_objective(w, cov_matrix)
+        elif method == OptimizationMethod.MIN_CVaR:
+            return lambda w: self._portfolio_cvar(w, returns_array)
+        else:
+            raise ValueError(f"Unknown optimization method: {method}")
     
     def calculate_efficient_frontier(
         self,
         returns: Union[pd.DataFrame, np.ndarray],
         assets: Optional[List[str]] = None,
-        n_points: int = 100,
-        bounds: Optional[Tuple[float, float]] = (0.0, 1.0)
+        n_points: int = None,
+        bounds: Optional[Tuple[float, float]] = None
     ) -> EfficientFrontier:
-        """
-        Calculate the efficient frontier.
+        """Calculate the efficient frontier using configuration."""
+        # Use config for n_points if not provided
+        if n_points is None:
+            n_points = self.portfolio_config.frontier_points
         
-        Args:
-            returns: Historical returns
-            assets: Asset names
-            n_points: Number of points on the frontier
-            bounds: Weight bounds per asset
-        
-        Returns:
-            EfficientFrontier object with frontier portfolios
-        """
-        # Convert to DataFrame if needed
-        if isinstance(returns, np.ndarray):
-            if assets is None:
-                assets = [f"Asset_{i}" for i in range(returns.shape[1])]
-            returns = pd.DataFrame(returns, columns=assets)
-        else:
-            assets = list(returns.columns)
-        
-        # Calculate statistics
-        mean_returns = returns.mean().values * self.periods_per_year
-        cov_matrix = returns.cov().values * self.periods_per_year
-        
-        # Find min and max returns
-        min_vol_result = self.optimize(
-            returns, assets, OptimizationMethod.MIN_VOLATILITY, bounds=bounds
-        )
-        max_return_result = self.optimize(
-            returns, assets, OptimizationMethod.MAX_RETURN, bounds=bounds
-        )
-        
-        min_return = min_vol_result.metrics.expected_return
-        max_return = max_return_result.metrics.expected_return
-        
-        # Generate target returns
-        target_returns = np.linspace(min_return, max_return, n_points)
-        
-        # Calculate efficient portfolios
-        frontier_returns = []
-        frontier_risks = []
-        frontier_sharpe = []
-        frontier_weights = []
-        
-        for target_ret in target_returns:
-            try:
-                result = self.optimize(
-                    returns,
-                    assets,
-                    OptimizationMethod.EFFICIENT_RETURN,
-                    target_return=target_ret,
-                    bounds=bounds
-                )
-                
-                if result.success:
-                    frontier_returns.append(result.metrics.expected_return)
-                    frontier_risks.append(result.metrics.volatility)
-                    frontier_sharpe.append(result.metrics.sharpe_ratio)
-                    frontier_weights.append(result.weights)
-            except:
-                continue
-        
-        return EfficientFrontier(
-            returns=np.array(frontier_returns),
-            risks=np.array(frontier_risks),
-            sharpe_ratios=np.array(frontier_sharpe),
-            weights=np.array(frontier_weights),
-            assets=assets,
-            risk_free_rate=self.risk_free_rate
-        )
+        with self.track_time("efficient_frontier_calculation"):
+            # Convert to DataFrame if needed
+            if isinstance(returns, np.ndarray):
+                if assets is None:
+                    assets = [f"Asset_{i}" for i in range(returns.shape[1])]
+                returns = pd.DataFrame(returns, columns=assets)
+            else:
+                assets = list(returns.columns)
+            
+            # Find min and max returns
+            min_vol_result = self.optimize(
+                returns, assets, OptimizationMethod.MIN_VOLATILITY, bounds=bounds
+            )
+            max_return_result = self.optimize(
+                returns, assets, OptimizationMethod.MAX_RETURN, bounds=bounds
+            )
+            
+            min_return = min_vol_result.metrics.expected_return
+            max_return = max_return_result.metrics.expected_return
+            
+            # Generate target returns
+            target_returns = np.linspace(min_return, max_return, n_points)
+            
+            # Calculate efficient portfolios
+            frontier_returns = []
+            frontier_risks = []
+            frontier_sharpe = []
+            frontier_weights = []
+            
+            for target_ret in target_returns:
+                try:
+                    result = self.optimize(
+                        returns,
+                        assets,
+                        OptimizationMethod.EFFICIENT_RETURN,
+                        target_return=target_ret,
+                        bounds=bounds
+                    )
+                    
+                    if result.success:
+                        frontier_returns.append(result.metrics.expected_return)
+                        frontier_risks.append(result.metrics.volatility)
+                        frontier_sharpe.append(result.metrics.sharpe_ratio)
+                        frontier_weights.append(result.weights)
+                except:
+                    continue
+            
+            return EfficientFrontier(
+                returns=np.array(frontier_returns),
+                risks=np.array(frontier_risks),
+                sharpe_ratios=np.array(frontier_sharpe),
+                weights=np.array(frontier_weights),
+                assets=assets,
+                risk_free_rate=self.portfolio_config.default_risk_free_rate
+            )
     
     def calculate_metrics(
         self,
@@ -451,24 +497,12 @@ class PortfolioOptimizer:
         cov_matrix: Optional[np.ndarray] = None,
         benchmark_returns: Optional[np.ndarray] = None
     ) -> PortfolioMetrics:
-        """
-        Calculate comprehensive portfolio performance metrics.
-        
-        Args:
-            weights: Portfolio weights
-            returns: Historical returns (time x assets)
-            mean_returns: Expected returns (if pre-computed)
-            cov_matrix: Covariance matrix (if pre-computed)
-            benchmark_returns: Benchmark returns for relative metrics
-        
-        Returns:
-            PortfolioMetrics with all calculated metrics
-        """
+        """Calculate comprehensive portfolio performance metrics."""
         # Calculate mean returns and covariance if not provided
         if mean_returns is None:
-            mean_returns = np.mean(returns, axis=0) * self.periods_per_year
+            mean_returns = np.mean(returns, axis=0) * self.portfolio_config.periods_per_year
         if cov_matrix is None:
-            cov_matrix = np.cov(returns.T) * self.periods_per_year
+            cov_matrix = np.cov(returns.T) * self.portfolio_config.periods_per_year
         
         # Portfolio returns
         portfolio_returns = returns @ weights
@@ -478,12 +512,12 @@ class PortfolioOptimizer:
         volatility = self._portfolio_volatility(weights, cov_matrix)
         
         # Sharpe ratio
-        sharpe_ratio = (expected_return - self.risk_free_rate) / volatility if volatility > 0 else 0.0
+        sharpe_ratio = (expected_return - self.portfolio_config.default_risk_free_rate) / volatility if volatility > 0 else 0.0
         
-        # Sortino ratio (downside deviation)
+        # Sortino ratio
         downside_returns = portfolio_returns[portfolio_returns < 0]
-        downside_std = np.std(downside_returns) * np.sqrt(self.periods_per_year) if len(downside_returns) > 0 else volatility
-        sortino_ratio = (expected_return - self.risk_free_rate) / downside_std if downside_std > 0 else 0.0
+        downside_std = np.std(downside_returns) * np.sqrt(self.portfolio_config.periods_per_year) if len(downside_returns) > 0 else volatility
+        sortino_ratio = (expected_return - self.portfolio_config.default_risk_free_rate) / downside_std if downside_std > 0 else 0.0
         
         # Maximum drawdown
         cumulative_returns = np.cumprod(1 + portfolio_returns)
@@ -505,22 +539,18 @@ class PortfolioOptimizer:
         treynor_ratio = None
         
         if benchmark_returns is not None and len(benchmark_returns) == len(portfolio_returns):
-            # Beta
             covariance = np.cov(portfolio_returns, benchmark_returns)[0, 1]
             benchmark_variance = np.var(benchmark_returns)
             beta = covariance / benchmark_variance if benchmark_variance > 0 else 1.0
             
-            # Alpha (Jensen's alpha)
-            benchmark_return = np.mean(benchmark_returns) * self.periods_per_year
-            alpha = expected_return - (self.risk_free_rate + beta * (benchmark_return - self.risk_free_rate))
+            benchmark_return = np.mean(benchmark_returns) * self.portfolio_config.periods_per_year
+            alpha = expected_return - (self.portfolio_config.default_risk_free_rate + beta * (benchmark_return - self.portfolio_config.default_risk_free_rate))
             
-            # Information ratio
             active_returns = portfolio_returns - benchmark_returns
-            tracking_error = np.std(active_returns) * np.sqrt(self.periods_per_year)
-            information_ratio = np.mean(active_returns) * self.periods_per_year / tracking_error if tracking_error > 0 else 0.0
+            tracking_error = np.std(active_returns) * np.sqrt(self.portfolio_config.periods_per_year)
+            information_ratio = np.mean(active_returns) * self.portfolio_config.periods_per_year / tracking_error if tracking_error > 0 else 0.0
             
-            # Treynor ratio
-            treynor_ratio = (expected_return - self.risk_free_rate) / beta if beta > 0 else 0.0
+            treynor_ratio = (expected_return - self.portfolio_config.default_risk_free_rate) / beta if beta > 0 else 0.0
         
         return PortfolioMetrics(
             expected_return=expected_return,
@@ -549,23 +579,20 @@ class PortfolioOptimizer:
         """Calculate portfolio Sharpe ratio."""
         ret = self._portfolio_return(weights, mean_returns)
         vol = self._portfolio_volatility(weights, cov_matrix)
-        return (ret - self.risk_free_rate) / vol if vol > 0 else 0.0
+        return (ret - self.portfolio_config.default_risk_free_rate) / vol if vol > 0 else 0.0
     
     def _portfolio_cvar(self, weights: np.ndarray, returns: np.ndarray, alpha: float = 0.05) -> float:
         """Calculate portfolio Conditional VaR."""
         portfolio_returns = returns @ weights
         var = np.percentile(portfolio_returns, alpha * 100)
         cvar = np.mean(portfolio_returns[portfolio_returns <= var])
-        return -cvar  # Return positive value for minimization
+        return -cvar
     
     def _risk_parity_objective(self, weights: np.ndarray, cov_matrix: np.ndarray) -> float:
         """Risk parity optimization objective."""
-        # Risk contribution of each asset
         portfolio_vol = self._portfolio_volatility(weights, cov_matrix)
         marginal_contrib = np.dot(cov_matrix, weights)
         risk_contrib = weights * marginal_contrib / portfolio_vol
-        
-        # Minimize variance of risk contributions (equal risk)
         target_risk = portfolio_vol / len(weights)
         return np.sum((risk_contrib - target_risk) ** 2)
     
@@ -577,14 +604,15 @@ class PortfolioOptimizer:
         target_risk: Optional[float],
         mean_returns: np.ndarray
     ) -> List[Dict]:
-        """Setup optimization constraints."""
+        """Setup optimization constraints using configuration."""
         cons = []
         
-        # Weights sum to 1 (fully invested)
-        cons.append({
-            'type': 'eq',
-            'fun': lambda w: np.sum(w) - 1.0
-        })
+        # Fully invested constraint (from config)
+        if self.portfolio_config.fully_invested:
+            cons.append({
+                'type': 'eq',
+                'fun': lambda w: np.sum(w) - 1.0
+            })
         
         # Target return constraint
         if target_return is not None:
@@ -597,14 +625,12 @@ class PortfolioOptimizer:
         if constraints:
             for constraint_type, constraint_value in constraints.items():
                 if constraint_type == 'max_weight':
-                    # Maximum weight per asset
                     for i in range(n_assets):
                         cons.append({
                             'type': 'ineq',
                             'fun': lambda w, i=i: constraint_value - w[i]
                         })
                 elif constraint_type == 'min_weight':
-                    # Minimum weight per asset
                     for i in range(n_assets):
                         cons.append({
                             'type': 'ineq',
@@ -615,35 +641,70 @@ class PortfolioOptimizer:
     
     def _check_constraints(self, weights: np.ndarray) -> bool:
         """Check if portfolio weights satisfy basic constraints."""
-        # Check weights sum to approximately 1
         if not np.isclose(np.sum(weights), 1.0, atol=1e-3):
             return False
-        
-        # Check non-negative weights (long-only)
-        if np.any(weights < -1e-6):
+        if self.portfolio_config.long_only and np.any(weights < -1e-6):
             return False
+        return True
+    
+    def calculate(self, **kwargs) -> ModelResult:
+        """
+        Core calculation method (required by BaseFinancialModel).
         
+        Delegates to optimize() method.
+        """
+        result = self.optimize(**kwargs)
+        return ModelResult(
+            value=result,
+            metadata=self._create_metadata(result.computation_time),
+            success=result.success,
+            error_message=result.message if not result.success else None
+        )
+    
+    def validate_inputs(self, **kwargs) -> bool:
+        """Validate optimization inputs."""
+        returns = kwargs.get('returns')
+        if returns is None:
+            raise ValueError("Returns data is required")
         return True
 
 
-# Convenience functions
+# Backward compatibility: Static methods
+class MarkowitzOptimizer:
+    """
+    Backward compatibility wrapper for Markowitz optimization.
+    
+    Maintains old API while using new architecture internally.
+    """
+    
+    @staticmethod
+    def optimize_max_sharpe(
+        returns: Union[pd.DataFrame, np.ndarray],
+        risk_free_rate: float = 0.02
+    ) -> OptimizationResult:
+        """Maximize Sharpe ratio (backward compatible)."""
+        config = PortfolioConfig(default_risk_free_rate=risk_free_rate)
+        optimizer = PortfolioOptimizer(config=config)
+        return optimizer.optimize(returns, method=OptimizationMethod.MAX_SHARPE)
+    
+    @staticmethod
+    def optimize_min_volatility(
+        returns: Union[pd.DataFrame, np.ndarray]
+    ) -> OptimizationResult:
+        """Minimize volatility (backward compatible)."""
+        optimizer = PortfolioOptimizer()
+        return optimizer.optimize(returns, method=OptimizationMethod.MIN_VOLATILITY)
+
+
+# Convenience functions (backward compatibility)
 def markowitz_optimization(
     returns: Union[pd.DataFrame, np.ndarray],
     risk_free_rate: float = 0.02,
     method: OptimizationMethod = OptimizationMethod.MAX_SHARPE
 ) -> OptimizationResult:
-    """
-    Quick Markowitz mean-variance optimization.
-    
-    Args:
-        returns: Historical returns
-        risk_free_rate: Risk-free rate
-        method: Optimization objective
-    
-    Returns:
-        OptimizationResult with optimal portfolio
-    """
-    optimizer = PortfolioOptimizer(risk_free_rate=risk_free_rate)
+    """Quick Markowitz mean-variance optimization."""
+    config = PortfolioConfig(default_risk_free_rate=risk_free_rate)
+    optimizer = PortfolioOptimizer(config=config)
     return optimizer.optimize(returns, method=method)
 
 
@@ -652,17 +713,7 @@ def calculate_sharpe_ratio(
     risk_free_rate: float = 0.02,
     periods_per_year: int = 252
 ) -> float:
-    """
-    Calculate Sharpe ratio for a return series.
-    
-    Args:
-        returns: Return series
-        risk_free_rate: Annual risk-free rate
-        periods_per_year: Trading periods per year
-    
-    Returns:
-        Sharpe ratio
-    """
+    """Calculate Sharpe ratio for a return series."""
     returns_array = np.array(returns)
     excess_returns = returns_array - (risk_free_rate / periods_per_year)
     return np.mean(excess_returns) / np.std(returns_array) * np.sqrt(periods_per_year)
@@ -673,17 +724,7 @@ def calculate_sortino_ratio(
     risk_free_rate: float = 0.02,
     periods_per_year: int = 252
 ) -> float:
-    """
-    Calculate Sortino ratio (downside risk-adjusted return).
-    
-    Args:
-        returns: Return series
-        risk_free_rate: Annual risk-free rate
-        periods_per_year: Trading periods per year
-    
-    Returns:
-        Sortino ratio
-    """
+    """Calculate Sortino ratio (downside risk-adjusted return)."""
     returns_array = np.array(returns)
     excess_returns = returns_array - (risk_free_rate / periods_per_year)
     downside_returns = excess_returns[excess_returns < 0]
@@ -692,15 +733,7 @@ def calculate_sortino_ratio(
 
 
 def calculate_max_drawdown(returns: Union[np.ndarray, pd.Series]) -> float:
-    """
-    Calculate maximum drawdown.
-    
-    Args:
-        returns: Return series
-    
-    Returns:
-        Maximum drawdown (negative value)
-    """
+    """Calculate maximum drawdown."""
     returns_array = np.array(returns)
     cumulative = np.cumprod(1 + returns_array)
     running_max = np.maximum.accumulate(cumulative)
@@ -716,6 +749,7 @@ __all__ = [
     "OptimizationResult",
     "EfficientFrontier",
     "PortfolioOptimizer",
+    "MarkowitzOptimizer",
     "markowitz_optimization",
     "calculate_sharpe_ratio",
     "calculate_sortino_ratio",

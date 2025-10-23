@@ -18,6 +18,10 @@ from axiom.integrations.search_tools.firecrawl_client import FirecrawlClient
 from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import AxiomLogger
+
+# Initialize logger for this module
+logger = AxiomLogger("ma.risk_assessment")
 
 
 class RiskCategory(BaseModel):
@@ -108,7 +112,9 @@ class MAAdvancedRiskAssessment:
         """Execute comprehensive M&A risk assessment."""
 
         start_time = datetime.now()
-        print(f"⚠️ Starting Advanced Risk Assessment for {target_company}")
+        logger.info("Starting advanced risk assessment",
+                   target=target_company,
+                   deal_value=deal_value)
 
         try:
             # Execute all risk assessments in parallel
@@ -126,23 +132,23 @@ class MAAdvancedRiskAssessment:
 
             # Handle exceptions
             if isinstance(financial_risk, Exception):
-                print(f"⚠️ Financial risk assessment failed: {str(financial_risk)}")
+                logger.warning("Financial risk assessment failed", error=str(financial_risk))
                 financial_risk = self._create_default_risk_category("financial", "MEDIUM")
 
             if isinstance(operational_risk, Exception):
-                print(f"⚠️ Operational risk assessment failed: {str(operational_risk)}")
+                logger.warning("Operational risk assessment failed", error=str(operational_risk))
                 operational_risk = self._create_default_risk_category("operational", "MEDIUM")
 
             if isinstance(market_risk, Exception):
-                print(f"⚠️ Market risk assessment failed: {str(market_risk)}")
+                logger.warning("Market risk assessment failed", error=str(market_risk))
                 market_risk = self._create_default_risk_category("market", "MEDIUM")
 
             if isinstance(regulatory_risk, Exception):
-                print(f"⚠️ Regulatory risk assessment failed: {str(regulatory_risk)}")
+                logger.warning("Regulatory risk assessment failed", error=str(regulatory_risk))
                 regulatory_risk = self._create_default_risk_category("regulatory", "LOW")
 
             if isinstance(integration_risk, Exception):
-                print(f"⚠️ Integration risk assessment failed: {str(integration_risk)}")
+                logger.warning("Integration risk assessment failed", error=str(integration_risk))
                 integration_risk = self._create_default_risk_category("integration", "HIGH")
 
             # Create comprehensive result
@@ -168,9 +174,13 @@ class MAAdvancedRiskAssessment:
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
 
-            print(f"✅ Advanced Risk Assessment completed in {execution_time:.1f}s")
-            print(f"⚠️ Overall Risk: {result.overall_risk_rating} | Score: {result.overall_risk_score:.2f}")
-            print(f"🎯 Deal Probability: {result.deal_probability:.0%} | Recommendation: {result.investment_recommendation}")
+            logger.info("Advanced risk assessment completed",
+                       duration=execution_time,
+                       target=target_company,
+                       overall_risk=result.overall_risk_rating,
+                       risk_score=result.overall_risk_score,
+                       deal_probability=result.deal_probability,
+                       recommendation=result.investment_recommendation)
 
             return result
 
@@ -184,7 +194,7 @@ class MAAdvancedRiskAssessment:
     async def _assess_financial_risks(self, company: str, deal_value: float | None) -> RiskCategory:
         """Assess comprehensive financial risks."""
 
-        print(f"💰 Analyzing Financial Risks for {company}")
+        logger.info("Analyzing financial risks", company=company)
 
         # Gather financial risk intelligence
         financial_data = await self._gather_financial_risk_data(company)
@@ -224,7 +234,7 @@ class MAAdvancedRiskAssessment:
     async def _assess_operational_risks(self, company: str, context: dict) -> RiskCategory:
         """Assess operational and management risks."""
 
-        print(f"⚙️ Analyzing Operational Risks for {company}")
+        logger.info("Analyzing operational risks", company=company)
 
         return RiskCategory(
             category="Operational Risk",
@@ -259,7 +269,7 @@ class MAAdvancedRiskAssessment:
     async def _assess_market_risks(self, company: str, context: dict) -> RiskCategory:
         """Assess market and competitive risks."""
 
-        print(f"📊 Analyzing Market Risks for {company}")
+        logger.info("Analyzing market risks", company=company)
 
         return RiskCategory(
             category="Market Risk",
@@ -294,7 +304,7 @@ class MAAdvancedRiskAssessment:
     async def _assess_regulatory_risks(self, company: str, deal_value: float | None) -> RiskCategory:
         """Assess regulatory and compliance risks."""
 
-        print(f"📜 Analyzing Regulatory Risks for {company}")
+        logger.info("Analyzing regulatory risks", company=company)
 
         # Determine HSR filing requirements
         hsr_required = deal_value and deal_value > 101_000_000  # $101M HSR threshold
@@ -335,7 +345,7 @@ class MAAdvancedRiskAssessment:
     async def _assess_integration_risks(self, company: str, context: dict) -> RiskCategory:
         """Assess post-merger integration risks."""
 
-        print(f"🤝 Analyzing Integration Risks for {company}")
+        logger.info("Analyzing integration risks", company=company)
 
         return RiskCategory(
             category="Integration Risk",
@@ -548,7 +558,7 @@ Provide:
             result.executive_summary = '. '.join(sentences).strip() + '.'
 
         except Exception as e:
-            print(f"⚠️ Executive synthesis failed: {str(e)}")
+            logger.warning("Executive synthesis failed", error=str(e))
             result.investment_recommendation = "proceed_with_caution"
             result.executive_summary = f"Comprehensive risk assessment completed for {result.target_company} with overall {result.overall_risk_rating.lower()} risk profile."
 
@@ -588,7 +598,7 @@ Provide:
                         )
                         financial_data["evidence"].append(evidence)
             except Exception as e:
-                print(f"⚠️ Financial risk data search failed for query: {e}")
+                logger.warning("Financial risk data search failed", query=query, error=str(e))
                 continue
 
         return financial_data
@@ -647,7 +657,7 @@ Focus on deal-breaking financial risks that could jeopardize transaction success
             response = await provider.generate_response_async(messages, max_tokens=1500, temperature=0.05)
             return self._parse_financial_risk_analysis(response.content)
         except Exception as e:
-            print(f"⚠️ AI financial risk analysis failed: {str(e)}")
+            logger.error("AI financial risk analysis failed", error=str(e))
             return {
                 "risk_level": "MEDIUM",
                 "risk_score": 0.5,

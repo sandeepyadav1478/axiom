@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 from axiom.config.schemas import Evidence
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import workflow_logger
 
 
 class MonteCarloResult(BaseModel):
@@ -147,7 +148,7 @@ class MAAdvancedModelingWorkflow:
         """Execute comprehensive advanced financial modeling."""
 
         start_time = datetime.now()
-        print(f"📊 Starting Advanced Financial Modeling for {target_company}")
+        workflow_logger.info(f"Starting Advanced Financial Modeling for {target_company}")
 
         try:
             # Execute advanced modeling components in parallel
@@ -163,15 +164,15 @@ class MAAdvancedModelingWorkflow:
 
             # Handle exceptions
             if isinstance(monte_carlo, Exception):
-                print(f"⚠️ Monte Carlo simulation failed: {str(monte_carlo)}")
+                workflow_logger.warning(f"Monte Carlo simulation failed: {str(monte_carlo)}")
                 monte_carlo = self._create_default_monte_carlo(base_dcf_valuation)
 
             if isinstance(stress_testing, Exception):
-                print(f"⚠️ Stress testing failed: {str(stress_testing)}")
+                workflow_logger.warning(f"Stress testing failed: {str(stress_testing)}")
                 stress_testing = self._create_default_stress_test(base_dcf_valuation)
 
             if isinstance(scenario_analysis, Exception):
-                print(f"⚠️ Scenario analysis failed: {str(scenario_analysis)}")
+                workflow_logger.warning(f"Scenario analysis failed: {str(scenario_analysis)}")
                 scenario_analysis = self._create_default_scenario_analysis(base_dcf_valuation)
 
             # Create comprehensive result
@@ -195,10 +196,10 @@ class MAAdvancedModelingWorkflow:
             execution_time = (datetime.now() - start_time).total_seconds()
             result.modeling_duration = execution_time
 
-            print(f"✅ Advanced Modeling completed in {execution_time:.1f}s")
-            print(f"📊 Monte Carlo Mean: ${result.monte_carlo.mean_valuation/1e9:.2f}B")
-            print(f"⚠️ VaR (5%): ${result.monte_carlo.value_at_risk_5pct/1e6:.0f}M downside")
-            print(f"🎯 Model Grade: {result.validation_grade}")
+            workflow_logger.info(f"Advanced Modeling completed in {execution_time:.1f}s",
+                               monte_carlo_mean=f"${result.monte_carlo.mean_valuation/1e9:.2f}B",
+                               var_5pct=f"${result.monte_carlo.value_at_risk_5pct/1e6:.0f}M",
+                               model_grade=result.validation_grade)
 
             return result
 
@@ -216,7 +217,7 @@ class MAAdvancedModelingWorkflow:
     ) -> MonteCarloResult:
         """Run Monte Carlo valuation simulation."""
 
-        print("🎲 Running Monte Carlo Valuation Simulation...")
+        workflow_logger.info("Running Monte Carlo Valuation Simulation...")
 
         # Define key variable distributions
         revenue_growth_dist = {"mean": 0.20, "std": 0.08, "min": 0.05, "max": 0.50}
@@ -301,7 +302,7 @@ class MAAdvancedModelingWorkflow:
     async def _run_comprehensive_stress_testing(self, company: str, base_valuation: float) -> StressTestResult:
         """Run comprehensive stress testing scenarios."""
 
-        print(f"🧪 Running Comprehensive Stress Testing for {company}")
+        workflow_logger.info(f"Running Comprehensive Stress Testing for {company}")
 
         # Economic stress scenarios
         recession_impact = {
@@ -394,7 +395,7 @@ class MAAdvancedModelingWorkflow:
     async def _run_scenario_analysis(self, company: str, base_valuation: float) -> ScenarioAnalysis:
         """Run comprehensive scenario analysis."""
 
-        print(f"📈 Running Scenario Analysis for {company}")
+        workflow_logger.info(f"Running Scenario Analysis for {company}")
 
         scenarios = {
             "base_case": {

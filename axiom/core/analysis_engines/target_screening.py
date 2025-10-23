@@ -18,6 +18,7 @@ from axiom.integrations.search_tools.firecrawl_client import FirecrawlClient
 from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import workflow_logger
 
 
 class TargetCriteria(BaseModel):
@@ -162,30 +163,30 @@ class MATargetScreeningWorkflow:
 
         try:
             # Step 1: Industry Analysis & Market Mapping
-            print("🔍 Phase 1: Industry Analysis & Market Mapping...")
+            workflow_logger.info("Phase 1: Industry Analysis & Market Mapping...")
             market_intelligence = await self._analyze_industry_landscape(criteria)
             result.market_insights.extend(market_intelligence["insights"])
             result.evidence.extend(market_intelligence["evidence"])
 
             # Step 2: Target Identification
-            print("🎯 Phase 2: Target Identification...")
+            workflow_logger.info("Phase 2: Target Identification...")
             potential_targets = await self._identify_potential_targets(criteria)
             result.targets_screened = len(potential_targets)
 
             # Step 3: Financial Screening
-            print("💰 Phase 3: Financial Screening...")
+            workflow_logger.info("Phase 3: Financial Screening...")
             qualified_targets = await self._apply_financial_screening(
                 potential_targets, criteria
             )
 
             # Step 4: Strategic Fit Analysis
-            print("🎯 Phase 4: Strategic Fit Analysis...")
+            workflow_logger.info("Phase 4: Strategic Fit Analysis...")
             analyzed_targets = await self._analyze_strategic_fit(
                 qualified_targets, criteria
             )
 
             # Step 5: Prioritization & Ranking
-            print("📊 Phase 5: Target Prioritization...")
+            workflow_logger.info("Phase 5: Target Prioritization...")
             final_targets = self._prioritize_targets(analyzed_targets)
 
             result.targets_identified = final_targets
@@ -204,9 +205,8 @@ class MATargetScreeningWorkflow:
             execution_time = (datetime.now() - start_time).total_seconds()
             result.execution_time = execution_time
 
-            print(
-                f"✅ Screening completed: {result.targets_qualified}/{result.targets_screened} targets qualified"
-            )
+            workflow_logger.info(f"Screening completed: {result.targets_qualified}/{result.targets_screened} targets qualified",
+                               execution_time=execution_time)
 
             return result
 
@@ -307,9 +307,7 @@ class MATargetScreeningWorkflow:
                     qualified_targets.append(enhanced_target)
 
             except Exception as e:
-                print(
-                    f"⚠️  Error processing target {target_data.get('company_name')}: {str(e)}"
-                )
+                workflow_logger.warning(f"Error processing target {target_data.get('company_name')}: {str(e)}")
                 continue
 
         return qualified_targets
@@ -323,7 +321,7 @@ class MATargetScreeningWorkflow:
         provider = get_layer_provider(AnalysisLayer.MA_STRATEGIC_FIT)
 
         if not provider:
-            print("⚠️  No AI provider available for strategic fit analysis")
+            workflow_logger.warning("No AI provider available for strategic fit analysis")
             return targets
 
         for target in targets:
@@ -381,9 +379,7 @@ Please provide:
                 analyzed_targets.append(target)
 
             except Exception as e:
-                print(
-                    f"⚠️  Strategic fit analysis failed for {target.company_name}: {str(e)}"
-                )
+                workflow_logger.warning(f"Strategic fit analysis failed for {target.company_name}: {str(e)}")
                 target.strategic_fit_score = 0.5  # Default neutral score
                 analyzed_targets.append(target)
 
@@ -745,8 +741,8 @@ Please provide:
                 target.confidence_level = min(target.confidence_level + 0.15, 1.0)
 
         except Exception as e:
-            logger.error("Could not enhance financial data",
-                        company=target.company_name, error=str(e))
+            workflow_logger.error("Could not enhance financial data",
+                                company=target.company_name, error=str(e))
 
         return target
 

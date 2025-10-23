@@ -16,6 +16,7 @@ from axiom.config.schemas import Evidence
 from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import workflow_logger
 
 
 class CurrencyHedgingStrategy(BaseModel):
@@ -152,7 +153,7 @@ class MACrossBorderWorkflow:
         """Execute comprehensive cross-border M&A analysis."""
 
         start_time = datetime.now()
-        print(f"🌍 Starting Cross-Border M&A Analysis for {target_company} ({target_country})")
+        workflow_logger.info(f"Starting Cross-Border M&A Analysis for {target_company} ({target_country})")
 
         try:
             # Execute cross-border analyses in parallel
@@ -174,15 +175,15 @@ class MACrossBorderWorkflow:
 
             # Handle exceptions
             if isinstance(currency_strategy, Exception):
-                print(f"⚠️ Currency analysis failed: {str(currency_strategy)}")
+                workflow_logger.warning(f"Currency analysis failed: {str(currency_strategy)}")
                 currency_strategy = self._create_default_currency_strategy(target_country, transaction_value)
 
             if isinstance(tax_strategy, Exception):
-                print(f"⚠️ Tax strategy failed: {str(tax_strategy)}")
+                workflow_logger.warning(f"Tax strategy failed: {str(tax_strategy)}")
                 tax_strategy = self._create_default_tax_strategy(target_country, transaction_value)
 
             if isinstance(regulatory_framework, Exception):
-                print(f"⚠️ Regulatory framework failed: {str(regulatory_framework)}")
+                workflow_logger.warning(f"Regulatory framework failed: {str(regulatory_framework)}")
                 regulatory_framework = self._create_default_regulatory_framework(target_country)
 
             # Create comprehensive result
@@ -208,10 +209,10 @@ class MACrossBorderWorkflow:
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
 
-            print(f"✅ Cross-Border Analysis completed in {execution_time:.1f}s")
-            print(f"🌍 Complexity Level: {result.cross_border_complexity}")
-            print(f"💰 Additional Costs: ${result.additional_costs/1e6:.1f}M")
-            print(f"📊 Success Probability: {result.success_probability:.0%}")
+            workflow_logger.info(f"Cross-Border Analysis completed in {execution_time:.1f}s",
+                               complexity=result.cross_border_complexity,
+                               additional_costs=f"${result.additional_costs/1e6:.1f}M",
+                               success_probability=result.success_probability)
 
             return result
 
@@ -230,7 +231,7 @@ class MACrossBorderWorkflow:
     ) -> CurrencyHedgingStrategy:
         """Analyze currency risk and develop hedging strategy."""
 
-        print(f"💱 Analyzing Currency Hedging Strategy ({target_country} to {acquirer_country})")
+        workflow_logger.info(f"Analyzing Currency Hedging Strategy ({target_country} to {acquirer_country})")
 
         # Currency mapping
         currency_map = {
@@ -297,7 +298,7 @@ class MACrossBorderWorkflow:
     ) -> TaxOptimizationStrategy:
         """Develop international tax optimization strategy."""
 
-        print(f"🏛️ Developing Tax Optimization Strategy ({target_country} acquisition)")
+        workflow_logger.info(f"Developing Tax Optimization Strategy ({target_country} acquisition)")
 
         # Tax rate mapping (simplified - actual rates vary by specific circumstances)
         corporate_tax_rates = {
@@ -365,7 +366,7 @@ class MACrossBorderWorkflow:
     ) -> InternationalRegulatoryFramework:
         """Coordinate international regulatory requirements."""
 
-        print(f"📜 Coordinating International Regulatory Framework ({target_country} to {acquirer_country})")
+        workflow_logger.info(f"Coordinating International Regulatory Framework ({target_country} to {acquirer_country})")
 
         # Regulatory requirements by jurisdiction
         regulatory_requirements = {
@@ -592,7 +593,7 @@ Provide optimization recommendations:
             result.analysis_confidence = 0.85
 
         except Exception as e:
-            print(f"⚠️ AI cross-border optimization failed: {str(e)}")
+            workflow_logger.error(f"AI cross-border optimization failed: {str(e)}")
             result.analysis_confidence = 0.70
 
         return result

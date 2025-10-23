@@ -24,6 +24,9 @@ This directory contains demonstration files showing how to use the Axiom investm
 ### Quantitative Finance Demos
 - **[`demo_var_risk_models.py`](demo_var_risk_models.py)** - Value at Risk models and risk calculations
 - **[`demo_portfolio_optimization.py`](demo_portfolio_optimization.py)** - Portfolio optimization strategies
+- **[`demo_var_models.py`](demo_var_models.py)** ⭐ **NEW!** - Refactored VaR models with factory pattern
+- **[`demo_time_series.py`](demo_time_series.py)** ⭐ **NEW!** - Time series models (ARIMA, GARCH, EWMA) with configuration
+- **[`demo_configuration.py`](demo_configuration.py)** ⭐ **NEW!** - Configuration system demonstration
 
 ### Provider & Integration Demos
 - **[`demo_financial_provider_integration.py`](demo_financial_provider_integration.py)** - Financial data provider integrations

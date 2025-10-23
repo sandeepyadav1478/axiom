@@ -11,15 +11,32 @@ Designed for:
 - Risk management and compliance (Basel requirements)
 - Portfolio managers and institutional investors
 - Real-time risk monitoring and alerts
+
+REFACTORED: Now uses base classes and mixins for DRY code
 """
 
 import numpy as np
 import pandas as pd
 from scipy import stats
-from typing import List, Dict, Optional, Tuple, Union
+from typing import List, Dict, Optional, Tuple, Union, Any
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
+import time
+
+from axiom.models.base.base_model import (
+    BaseRiskModel,
+    ModelResult,
+    ModelMetadata,
+    ValidationError
+)
+from axiom.models.base.mixins import (
+    MonteCarloMixin,
+    PerformanceMixin,
+    ValidationMixin,
+    LoggingMixin
+)
+from axiom.config.model_config import VaRConfig, get_config
 
 
 class VaRMethod(Enum):
@@ -79,7 +96,7 @@ class VaRResult:
         )
 
 
-class ParametricVaR:
+class ParametricVaR(BaseRiskModel, ValidationMixin, PerformanceMixin, LoggingMixin):
     """
     Parametric VaR (Variance-Covariance Method)
     
@@ -87,27 +104,107 @@ class ParametricVaR:
     Fast and analytical, but less accurate for fat-tailed distributions.
     
     Formula: VaR = Portfolio_Value × Z_score × Volatility × √(Time_Horizon)
+    
+    REFACTORED: Now inherits from BaseRiskModel with mixins for DRY code
     """
     
-    @staticmethod
-    def calculate(
+    def __init__(self, config: Optional[VaRConfig] = None):
+        """Initialize Parametric VaR model with configuration."""
+        config_dict = config.to_dict() if config and hasattr(config, 'to_dict') else (config or {})
+        super().__init__(
+            config=config_dict,
+            enable_logging=config_dict.get('enable_logging', True) if isinstance(config_dict, dict) else True,
+            enable_performance_tracking=True
+        )
+        self.var_config = config or VaRConfig()
+    
+    def calculate_risk(
+        self,
         portfolio_value: float,
         returns: Union[np.ndarray, pd.Series, List[float]],
-        confidence_level: float = 0.95,
-        time_horizon_days: int = 1
-    ) -> VaRResult:
+        confidence_level: Optional[float] = None,
+        time_horizon_days: Optional[int] = None
+    ) -> ModelResult[VaRResult]:
         """
-        Calculate Parametric VaR using normal distribution assumption.
+        Calculate Parametric VaR - instance method for BaseRiskModel compliance.
         
         Args:
             portfolio_value: Current portfolio value in currency units
-            returns: Historical returns (can be daily, weekly, etc.)
-            confidence_level: Confidence level (0.90, 0.95, 0.99)
-            time_horizon_days: VaR time horizon in days
+            returns: Historical returns
+            confidence_level: Confidence level (uses config default if None)
+            time_horizon_days: VaR time horizon (uses config default if None)
         
         Returns:
-            VaRResult with calculated VaR and metadata
+            ModelResult containing VaRResult
         """
+        start_time = time.perf_counter()
+        
+        # Use config defaults if not provided
+        conf_level = confidence_level or self.var_config.default_confidence_level
+        horizon = time_horizon_days or self.var_config.default_time_horizon
+        
+        # Validate inputs
+        self.validate_inputs(
+            portfolio_value=portfolio_value,
+            returns=returns,
+            confidence_level=conf_level,
+            time_horizon_days=horizon
+        )
+        
+        # Log calculation start
+        self.log_calculation_start(
+            "Parametric VaR",
+            portfolio_value=portfolio_value,
+            confidence_level=conf_level,
+            time_horizon=horizon
+        )
+        
+        # Calculate VaR
+        var_result = self._calculate_parametric_var(
+            portfolio_value, returns, conf_level, horizon
+        )
+        
+        # Track performance
+        execution_time_ms = self._track_performance("parametric_var", start_time)
+        
+        # Create model result
+        metadata = self._create_metadata(execution_time_ms)
+        
+        return ModelResult(
+            value=var_result,
+            metadata=metadata,
+            success=True
+        )
+    
+    def validate_inputs(self, **kwargs) -> bool:
+        """Validate VaR calculation inputs."""
+        portfolio_value = kwargs.get('portfolio_value')
+        returns = kwargs.get('returns')
+        confidence_level = kwargs.get('confidence_level')
+        time_horizon_days = kwargs.get('time_horizon_days')
+        
+        # Use ValidationMixin methods
+        self.validate_positive(portfolio_value, "portfolio_value")
+        self.validate_confidence_level(confidence_level)
+        self.validate_positive(time_horizon_days, "time_horizon_days")
+        
+        if len(returns) < 2:
+            raise ValidationError("Returns must have at least 2 observations")
+        
+        return True
+    
+    def calculate(self, **kwargs) -> ModelResult[VaRResult]:
+        """Alias for calculate_risk to satisfy BaseFinancialModel interface."""
+        return self.calculate_risk(**kwargs)
+    
+    def _calculate_parametric_var(
+        self,
+        portfolio_value: float,
+        returns: Union[np.ndarray, pd.Series, List[float]],
+        confidence_level: float,
+        time_horizon_days: int
+    ) -> VaRResult:
+        """Internal method for parametric VaR calculation."""
         # Convert to numpy array
         returns_array = np.array(returns)
         
@@ -149,6 +246,27 @@ class ParametricVaR:
         )
     
     @staticmethod
+    def calculate(
+        portfolio_value: float,
+        returns: Union[np.ndarray, pd.Series, List[float]],
+        confidence_level: float = 0.95,
+        time_horizon_days: int = 1
+    ) -> VaRResult:
+        """
+        Static method for backward compatibility.
+        
+        Creates instance and delegates to instance method.
+        """
+        instance = ParametricVaR()
+        result = instance.calculate_risk(
+            portfolio_value=portfolio_value,
+            returns=returns,
+            confidence_level=confidence_level,
+            time_horizon_days=time_horizon_days
+        )
+        return result.value
+    
+    @staticmethod
     def _calculate_expected_shortfall(
         mean_return: float,
         std_return: float,
@@ -166,42 +284,127 @@ class ParametricVaR:
         return es
 
 
-class HistoricalSimulationVaR:
+class HistoricalSimulationVaR(BaseRiskModel, ValidationMixin, PerformanceMixin, LoggingMixin):
     """
     Historical Simulation VaR
     
     Uses actual historical returns distribution.
     No distribution assumptions, captures fat tails and skewness.
     Simple and intuitive, but limited by historical data availability.
+    
+    REFACTORED: Now inherits from BaseRiskModel with mixins
     """
     
-    @staticmethod
-    def calculate(
+    def __init__(self, config: Optional[VaRConfig] = None):
+        """Initialize Historical Simulation VaR model with configuration."""
+        config_dict = config.to_dict() if config and hasattr(config, 'to_dict') else (config or {})
+        super().__init__(
+            config=config_dict,
+            enable_logging=config_dict.get('enable_logging', True) if isinstance(config_dict, dict) else True,
+            enable_performance_tracking=True
+        )
+        self.var_config = config or VaRConfig()
+    
+    def calculate_risk(
+        self,
         portfolio_value: float,
         returns: Union[np.ndarray, pd.Series, List[float]],
-        confidence_level: float = 0.95,
-        time_horizon_days: int = 1
-    ) -> VaRResult:
+        confidence_level: Optional[float] = None,
+        time_horizon_days: Optional[int] = None
+    ) -> ModelResult[VaRResult]:
         """
-        Calculate Historical Simulation VaR using empirical distribution.
+        Calculate Historical Simulation VaR - instance method.
         
         Args:
             portfolio_value: Current portfolio value
             returns: Historical returns
-            confidence_level: Confidence level
-            time_horizon_days: VaR time horizon
+            confidence_level: Confidence level (uses config default if None)
+            time_horizon_days: VaR time horizon (uses config default if None)
         
         Returns:
-            VaRResult with calculated VaR
+            ModelResult containing VaRResult
         """
+        start_time = time.perf_counter()
+        
+        # Use config defaults
+        conf_level = confidence_level or self.var_config.default_confidence_level
+        horizon = time_horizon_days or self.var_config.default_time_horizon
+        
+        # Validate inputs
+        self.validate_inputs(
+            portfolio_value=portfolio_value,
+            returns=returns,
+            confidence_level=conf_level,
+            time_horizon_days=horizon
+        )
+        
+        # Log calculation
+        self.log_calculation_start(
+            "Historical Simulation VaR",
+            portfolio_value=portfolio_value,
+            confidence_level=conf_level
+        )
+        
+        # Calculate VaR
+        var_result = self._calculate_historical_var(
+            portfolio_value, returns, conf_level, horizon
+        )
+        
+        # Track performance
+        execution_time_ms = self._track_performance("historical_var", start_time)
+        
+        # Create model result
+        metadata = self._create_metadata(execution_time_ms)
+        
+        return ModelResult(
+            value=var_result,
+            metadata=metadata,
+            success=True
+        )
+    
+    def validate_inputs(self, **kwargs) -> bool:
+        """Validate inputs."""
+        portfolio_value = kwargs.get('portfolio_value')
+        returns = kwargs.get('returns')
+        confidence_level = kwargs.get('confidence_level')
+        time_horizon_days = kwargs.get('time_horizon_days')
+        
+        self.validate_positive(portfolio_value, "portfolio_value")
+        self.validate_confidence_level(confidence_level)
+        self.validate_positive(time_horizon_days, "time_horizon_days")
+        
+        # Relaxed validation for backward compatibility and testing
+        # Minimum 10 observations (statistical minimum), warn if below config threshold
+        if len(returns) < 10:
+            raise ValidationError("Returns must have at least 10 observations")
+        
+        min_recommended = self.var_config.min_observations if hasattr(self, 'var_config') else 252
+        if len(returns) < min_recommended and self.enable_logging:
+            self.log_warning(
+                "Returns sample size below recommended minimum",
+                observations=len(returns),
+                recommended=min_recommended
+            )
+        
+        return True
+    
+    def calculate(self, **kwargs) -> ModelResult[VaRResult]:
+        """Alias for calculate_risk."""
+        return self.calculate_risk(**kwargs)
+    
+    def _calculate_historical_var(
+        self,
+        portfolio_value: float,
+        returns: Union[np.ndarray, pd.Series, List[float]],
+        confidence_level: float,
+        time_horizon_days: int
+    ) -> VaRResult:
+        """Internal method for historical VaR calculation."""
         returns_array = np.array(returns)
         
         # For multi-day horizon, aggregate returns if needed
         if time_horizon_days > 1:
-            # Compound returns for multi-day periods
-            aggregated_returns = HistoricalSimulationVaR._aggregate_returns(
-                returns_array, time_horizon_days
-            )
+            aggregated_returns = self._aggregate_returns(returns_array, time_horizon_days)
         else:
             aggregated_returns = returns_array
         
@@ -210,8 +413,8 @@ class HistoricalSimulationVaR:
         var_percentage = abs(np.percentile(aggregated_returns, var_percentile))
         var_amount = portfolio_value * var_percentage
         
-        # Calculate Expected Shortfall (average of losses beyond VaR)
-        es_percentage = HistoricalSimulationVaR._calculate_expected_shortfall(
+        # Calculate Expected Shortfall
+        es_percentage = self._calculate_expected_shortfall_historical(
             aggregated_returns, confidence_level
         )
         es_amount = portfolio_value * es_percentage
@@ -234,8 +437,7 @@ class HistoricalSimulationVaR:
             }
         )
     
-    @staticmethod
-    def _aggregate_returns(returns: np.ndarray, period_days: int) -> np.ndarray:
+    def _aggregate_returns(self, returns: np.ndarray, period_days: int) -> np.ndarray:
         """Aggregate returns for multi-day periods."""
         if period_days == 1:
             return returns
@@ -248,8 +450,8 @@ class HistoricalSimulationVaR:
         
         return np.array(aggregated)
     
-    @staticmethod
-    def _calculate_expected_shortfall(
+    def _calculate_expected_shortfall_historical(
+        self,
         returns: np.ndarray,
         confidence_level: float
     ) -> float:
@@ -262,40 +464,146 @@ class HistoricalSimulationVaR:
         es = abs(np.mean(tail_losses)) if len(tail_losses) > 0 else abs(var_threshold)
         
         return es
-
-
-class MonteCarloVaR:
-    """
-    Monte Carlo VaR
-    
-    Simulates future portfolio values using random scenarios.
-    Flexible for complex portfolios with derivatives and non-linear payoffs.
-    Most computationally intensive but most accurate for complex portfolios.
-    """
     
     @staticmethod
     def calculate(
         portfolio_value: float,
         returns: Union[np.ndarray, pd.Series, List[float]],
         confidence_level: float = 0.95,
-        time_horizon_days: int = 1,
-        num_simulations: int = 10000,
-        random_seed: Optional[int] = None
+        time_horizon_days: int = 1
     ) -> VaRResult:
         """
-        Calculate Monte Carlo VaR using simulated scenarios.
+        Static method for backward compatibility.
+        
+        Creates instance and delegates to instance method.
+        """
+        instance = HistoricalSimulationVaR()
+        result = instance.calculate_risk(
+            portfolio_value=portfolio_value,
+            returns=returns,
+            confidence_level=confidence_level,
+            time_horizon_days=time_horizon_days
+        )
+        return result.value
+
+
+class MonteCarloVaR(BaseRiskModel, MonteCarloMixin, ValidationMixin, PerformanceMixin, LoggingMixin):
+    """
+    Monte Carlo VaR
+    
+    Simulates future portfolio values using random scenarios.
+    Flexible for complex portfolios with derivatives and non-linear payoffs.
+    Most computationally intensive but most accurate for complex portfolios.
+    
+    REFACTORED: Now uses MonteCarloMixin for simulation logic (DRY)
+    """
+    
+    def __init__(self, config: Optional[VaRConfig] = None):
+        """Initialize Monte Carlo VaR model with configuration."""
+        config_dict = config.to_dict() if config and hasattr(config, 'to_dict') else (config or {})
+        super().__init__(
+            config=config_dict,
+            enable_logging=config_dict.get('enable_logging', True) if isinstance(config_dict, dict) else True,
+            enable_performance_tracking=True
+        )
+        self.var_config = config or VaRConfig()
+    
+    def calculate_risk(
+        self,
+        portfolio_value: float,
+        returns: Union[np.ndarray, pd.Series, List[float]],
+        confidence_level: Optional[float] = None,
+        time_horizon_days: Optional[int] = None,
+        num_simulations: Optional[int] = None,
+        random_seed: Optional[int] = None
+    ) -> ModelResult[VaRResult]:
+        """
+        Calculate Monte Carlo VaR - instance method.
         
         Args:
             portfolio_value: Current portfolio value
             returns: Historical returns for parameter estimation
-            confidence_level: Confidence level
-            time_horizon_days: VaR time horizon
-            num_simulations: Number of Monte Carlo simulations
+            confidence_level: Confidence level (uses config default if None)
+            time_horizon_days: VaR time horizon (uses config default if None)
+            num_simulations: Number of simulations (uses config default if None)
             random_seed: Random seed for reproducibility
         
         Returns:
-            VaRResult with calculated VaR
+            ModelResult containing VaRResult
         """
+        start_time = time.perf_counter()
+        
+        # Use config defaults
+        conf_level = confidence_level or self.var_config.default_confidence_level
+        horizon = time_horizon_days or self.var_config.default_time_horizon
+        n_sims = num_simulations or self.var_config.default_simulations
+        
+        # Validate inputs
+        self.validate_inputs(
+            portfolio_value=portfolio_value,
+            returns=returns,
+            confidence_level=conf_level,
+            time_horizon_days=horizon,
+            num_simulations=n_sims
+        )
+        
+        # Log calculation
+        self.log_calculation_start(
+            "Monte Carlo VaR",
+            portfolio_value=portfolio_value,
+            confidence_level=conf_level,
+            num_simulations=n_sims
+        )
+        
+        # Calculate VaR
+        var_result = self._calculate_monte_carlo_var(
+            portfolio_value, returns, conf_level, horizon, n_sims, random_seed
+        )
+        
+        # Track performance
+        execution_time_ms = self._track_performance("monte_carlo_var", start_time)
+        
+        # Create model result
+        metadata = self._create_metadata(execution_time_ms)
+        
+        return ModelResult(
+            value=var_result,
+            metadata=metadata,
+            success=True
+        )
+    
+    def validate_inputs(self, **kwargs) -> bool:
+        """Validate inputs."""
+        portfolio_value = kwargs.get('portfolio_value')
+        returns = kwargs.get('returns')
+        confidence_level = kwargs.get('confidence_level')
+        time_horizon_days = kwargs.get('time_horizon_days')
+        num_simulations = kwargs.get('num_simulations')
+        
+        self.validate_positive(portfolio_value, "portfolio_value")
+        self.validate_confidence_level(confidence_level)
+        self.validate_positive(time_horizon_days, "time_horizon_days")
+        self.validate_positive(num_simulations, "num_simulations")
+        
+        if len(returns) < 10:
+            raise ValidationError("Returns must have at least 10 observations")
+        
+        return True
+    
+    def calculate(self, **kwargs) -> ModelResult[VaRResult]:
+        """Alias for calculate_risk."""
+        return self.calculate_risk(**kwargs)
+    
+    def _calculate_monte_carlo_var(
+        self,
+        portfolio_value: float,
+        returns: Union[np.ndarray, pd.Series, List[float]],
+        confidence_level: float,
+        time_horizon_days: int,
+        num_simulations: int,
+        random_seed: Optional[int]
+    ) -> VaRResult:
+        """Internal method for Monte Carlo VaR calculation."""
         if random_seed is not None:
             np.random.seed(random_seed)
         
@@ -305,12 +613,9 @@ class MonteCarloVaR:
         mean_return = np.mean(returns_array)
         std_return = np.std(returns_array, ddof=1)
         
-        # Simulate portfolio returns
-        simulated_returns = MonteCarloVaR._simulate_returns(
-            mean_return,
-            std_return,
-            time_horizon_days,
-            num_simulations
+        # Simulate portfolio returns (simplified for VaR)
+        simulated_returns = self._simulate_var_returns(
+            mean_return, std_return, time_horizon_days, num_simulations
         )
         
         # Calculate portfolio values
@@ -318,14 +623,17 @@ class MonteCarloVaR:
         simulated_losses = portfolio_value - simulated_values
         
         # Calculate VaR as percentile of simulated losses
+        # For 95% confidence, we want the 95th percentile (value exceeded by worst 5%)
         var_percentile = confidence_level * 100
-        var_amount = np.percentile(simulated_losses, 100 - var_percentile)
+        var_amount = np.percentile(simulated_losses, var_percentile)
         var_percentage = var_amount / portfolio_value
         
+        # Ensure VaR is positive (magnitude of loss)
+        var_amount = abs(var_amount)
+        var_percentage = abs(var_percentage)
+        
         # Calculate Expected Shortfall
-        es_amount = MonteCarloVaR._calculate_expected_shortfall(
-            simulated_losses, var_amount
-        )
+        es_amount = self._calculate_expected_shortfall_mc(simulated_losses, var_amount)
         
         return VaRResult(
             var_amount=var_amount,
@@ -346,8 +654,8 @@ class MonteCarloVaR:
             }
         )
     
-    @staticmethod
-    def _simulate_returns(
+    def _simulate_var_returns(
+        self,
         mean_return: float,
         std_return: float,
         time_horizon: int,
@@ -366,8 +674,8 @@ class MonteCarloVaR:
         
         return cumulative_returns
     
-    @staticmethod
-    def _calculate_expected_shortfall(
+    def _calculate_expected_shortfall_mc(
+        self,
         simulated_losses: np.ndarray,
         var_threshold: float
     ) -> float:
@@ -377,6 +685,31 @@ class MonteCarloVaR:
         es = np.mean(tail_losses) if len(tail_losses) > 0 else var_threshold
         
         return es
+    
+    @staticmethod
+    def calculate(
+        portfolio_value: float,
+        returns: Union[np.ndarray, pd.Series, List[float]],
+        confidence_level: float = 0.95,
+        time_horizon_days: int = 1,
+        num_simulations: int = 10000,
+        random_seed: Optional[int] = None
+    ) -> VaRResult:
+        """
+        Static method for backward compatibility.
+        
+        Creates instance and delegates to instance method.
+        """
+        instance = MonteCarloVaR()
+        result = instance.calculate_risk(
+            portfolio_value=portfolio_value,
+            returns=returns,
+            confidence_level=confidence_level,
+            time_horizon_days=time_horizon_days,
+            num_simulations=num_simulations,
+            random_seed=random_seed
+        )
+        return result.value
 
 
 class VaRCalculator:

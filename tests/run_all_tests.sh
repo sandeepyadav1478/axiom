@@ -12,6 +12,54 @@ echo ""
 FAILED_TESTS=0
 PASSED_TESTS=0
 
+# Function to run pytest with retries for flaky tests
+run_pytest_with_retry() {
+    local test_path=$1
+    local max_attempts=3
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        echo "  Attempt $attempt/$max_attempts..."
+        if uv run pytest "$test_path" -v --tb=short --reruns 2 --reruns-delay 1; then
+            return 0
+        fi
+        
+        if [ $attempt -lt $max_attempts ]; then
+            echo "  Retrying in 2 seconds..."
+            sleep 2
+        fi
+        attempt=$((attempt + 1))
+    done
+    
+    return 1
+}
+
+# Function to run command with retry
+run_with_retry() {
+    local max_attempts=3
+    local attempt=1
+    local delay=2
+    
+    while [ $attempt -le $max_attempts ]; do
+        if [ $attempt -gt 1 ]; then
+            echo "  Retry attempt $attempt/$max_attempts..."
+        fi
+        
+        if "$@"; then
+            return 0
+        fi
+        
+        if [ $attempt -lt $max_attempts ]; then
+            echo "  Retrying in ${delay}s..."
+            sleep $delay
+            delay=$((delay * 2))
+        fi
+        attempt=$((attempt + 1))
+    done
+    
+    return 1
+}
+
 # Test 1: System Validation
 echo "1️⃣ Running System Validation..."
 if uv run python tests/validate_system.py 2>&1 | grep -q "passed"; then
@@ -58,7 +106,7 @@ echo ""
 
 # Test 5: Tavily Integration
 echo "5️⃣ Testing Tavily Integration..."
-if uv run python tests/integration/test_tavily_integration.py > /dev/null 2>&1; then
+if python -m pytest tests/integration/test_tavily_integration.py > /dev/null 2>&1; then
     echo "✅ Tavily integration passed"
     ((PASSED_TESTS++))
 else

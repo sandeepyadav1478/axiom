@@ -75,13 +75,97 @@ python -m axiom.main "Semiconductor industry M&A consolidation trends and valuat
 
 ## ⚙️ Configuration Options
 
+### 🎯 Quantitative Finance Configuration
+
+**Factory Pattern Usage:**
+```python
+from axiom.models.base.factory import ModelFactory, ModelType
+
+# Create VaR model with default config
+var_model = ModelFactory.create(ModelType.HISTORICAL_VAR)
+result = var_model.calculate_risk(
+    portfolio_value=1_000_000,
+    returns=historical_returns,
+    confidence_level=0.95
+)
+
+# Create time series model
+arima_model = ModelFactory.create(ModelType.ARIMA)
+forecast = arima_model.calculate(data=price_data, forecast_horizon=5)
+```
+
+**Configuration Profiles:**
+```python
+from axiom.config.model_config import ModelConfig
+
+# Basel III compliance
+config = ModelConfig.for_basel_iii_compliance()
+
+# High performance (speed-optimized)
+config = ModelConfig.for_high_performance()
+
+# High precision (accuracy-optimized)
+config = ModelConfig.for_high_precision()
+
+# Trading style presets
+from axiom.config.model_config import TimeSeriesConfig
+intraday_config = TimeSeriesConfig.for_intraday_trading()
+swing_config = TimeSeriesConfig.for_swing_trading()
+position_config = TimeSeriesConfig.for_position_trading()
+```
+
+**Custom Configuration:**
+```python
+from axiom.config.model_config import VaRConfig, TimeSeriesConfig
+
+# Custom VaR configuration
+var_config = VaRConfig(
+    default_confidence_level=0.99,
+    default_method="monte_carlo",
+    default_simulations=50000,
+    parallel_mc=True
+)
+
+# Custom time series configuration
+ts_config = TimeSeriesConfig(
+    ewma_decay_factor=0.96,
+    forecast_horizon=10,
+    arima_auto_select=True
+)
+
+# Use with factory
+model = ModelFactory.create(ModelType.MONTE_CARLO_VAR, config=var_config)
+```
+
+### Environment Variables (47+ Parameters)
+
+**VaR Configuration:**
+```env
+VAR_CONFIDENCE=0.99
+VAR_METHOD=historical
+VAR_MIN_OBS=252
+```
+
+**Time Series Configuration:**
+```env
+TS_EWMA_LAMBDA=0.94
+TS_FORECAST_HORIZON=5
+```
+
+**Portfolio Configuration:**
+```env
+PORTFOLIO_RISK_FREE_RATE=0.03
+PORTFOLIO_METHOD=max_sharpe
+PORTFOLIO_LONG_ONLY=true
+```
+
 ### AI Provider Setup
 ```env
 # Option 1: OpenAI Only
 OPENAI_API_KEY=sk-your_key_here
 OPENAI_MODEL_NAME=gpt-4o-mini
 
-# Option 2: Claude Only  
+# Option 2: Claude Only
 CLAUDE_API_KEY=sk-ant-your_key_here
 CLAUDE_MODEL_NAME=claude-3-sonnet-20240229
 
@@ -102,7 +186,7 @@ RISK_ANALYSIS_ENABLED=true
 
 # Conservative AI Settings (Pre-configured)
 # M&A Due Diligence: Temperature=0.03, Consensus=true
-# M&A Valuation: Temperature=0.05, Consensus=true  
+# M&A Valuation: Temperature=0.05, Consensus=true
 # Observer Synthesis: Temperature=0.02
 ```
 

@@ -13,6 +13,7 @@ from axiom.dspy_modules.multi_query import (
     InvestmentBankingMultiQueryModule,
     setup_dspy_with_provider,
 )
+from axiom.core.logging.axiom_logger import ai_logger
 
 
 class InvestmentBankingOptimizer:
@@ -22,7 +23,7 @@ class InvestmentBankingOptimizer:
         try:
             setup_dspy_with_provider()
         except Exception as e:
-            print(f"DSPy setup warning: {e}")
+            ai_logger.warning("DSPy optimizer setup encountered issue", error=str(e))
 
         self.ib_multi_query = InvestmentBankingMultiQueryModule()
         self.ib_hyde = InvestmentBankingHyDEModule()
@@ -141,11 +142,11 @@ class InvestmentBankingOptimizer:
             )
 
             self.compiled_modules["ib_multi_query"] = compiled_ib_multi_query
-            print("✅ Investment banking multi-query optimization complete")
+            ai_logger.info("Investment banking multi-query optimization complete", num_trials=num_trials)
             return compiled_ib_multi_query
 
         except Exception as e:
-            print(f"Multi-query optimization failed: {e}")
+            ai_logger.error("Multi-query optimization failed", error=str(e))
             return self.ib_multi_query
 
     def optimize_investment_banking_hyde(
@@ -167,11 +168,11 @@ class InvestmentBankingOptimizer:
             )
 
             self.compiled_modules["ib_hyde"] = compiled_ib_hyde
-            print("✅ Investment banking HyDE optimization complete")
+            ai_logger.info("Investment banking HyDE optimization complete", num_trials=num_trials)
             return compiled_ib_hyde
 
         except Exception as e:
-            print(f"HyDE optimization failed: {e}")
+            ai_logger.error("HyDE optimization failed", error=str(e))
             return self.ib_hyde
 
     def _investment_banking_multi_query_metric(
@@ -300,10 +301,10 @@ class InvestmentBankingOptimizer:
             with open(path, "w") as f:
                 json.dump(module_info, f, indent=2)
 
-            print(f"📁 Investment banking optimized modules metadata saved to {path}")
+            ai_logger.info("Investment banking optimized modules metadata saved", path=path, modules=list(self.compiled_modules.keys()))
 
         except Exception as e:
-            print(f"Save modules error: {e}")
+            ai_logger.error("Failed to save optimized modules", error=str(e), path=path)
 
     def load_optimized_modules(
         self, path: str = "investment_banking_optimized_modules.json"
@@ -315,16 +316,14 @@ class InvestmentBankingOptimizer:
                 with open(path) as f:
                     module_info = json.load(f)
 
-                print(
-                    f"📂 Loaded investment banking modules: {module_info.get('modules_optimized', [])}"
-                )
+                ai_logger.info("Loaded investment banking optimized modules", path=path, modules=module_info.get('modules_optimized', []))
                 return module_info
             else:
-                print(f"No saved modules found at {path}")
+                ai_logger.warning("No saved optimized modules found", path=path)
                 return None
 
         except Exception as e:
-            print(f"Load modules error: {e}")
+            ai_logger.error("Failed to load optimized modules", error=str(e), path=path)
             return None
 
     def evaluate_modules(self) -> dict[str, float]:
@@ -359,7 +358,7 @@ class InvestmentBankingOptimizer:
                 results["hyde_avg_score"] = sum(hyde_scores) / len(hyde_scores)
 
         except Exception as e:
-            print(f"Evaluation error: {e}")
+            ai_logger.error("Module evaluation failed", error=str(e))
 
         return results
 
@@ -369,31 +368,27 @@ def run_investment_banking_optimization():
 
     optimizer = InvestmentBankingOptimizer()
 
-    print("🏦 Starting Investment Banking DSPy optimization...")
-    print("Focus: M&A Analysis, Financial Due Diligence, Valuation")
+    ai_logger.info("Starting Investment Banking DSPy optimization", focus="M&A Analysis, Financial Due Diligence, Valuation")
 
     # Optimize investment banking multi-query expansion
-    print("📊 Optimizing investment banking multi-query expansion...")
+    ai_logger.info("Optimizing investment banking multi-query expansion")
     optimizer.optimize_investment_banking_multi_query()
 
     # Optimize investment banking HyDE
-    print("📋 Optimizing investment banking HyDE module...")
+    ai_logger.info("Optimizing investment banking HyDE module")
     optimizer.optimize_investment_banking_hyde()
 
     # Evaluate results
-    print("📈 Evaluating optimized modules...")
+    ai_logger.info("Evaluating optimized modules")
     evaluation_results = optimizer.evaluate_modules()
 
     for metric, score in evaluation_results.items():
-        print(f"  {metric}: {score:.3f}")
+        ai_logger.info("Optimization metric", metric=metric, score=f"{score:.3f}")
 
     # Save results
     optimizer.save_optimized_modules()
 
-    print("✅ Investment Banking DSPy optimization complete!")
-    print(
-        "🎯 Modules optimized for M&A analysis, financial due diligence, and valuation"
-    )
+    ai_logger.info("Investment Banking DSPy optimization complete", modules="M&A analysis, financial due diligence, valuation")
 
     return optimizer
 

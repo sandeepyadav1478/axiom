@@ -17,6 +17,7 @@ from axiom.config.schemas import Evidence
 from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import workflow_logger
 
 
 class CompetitorProfile(BaseModel):
@@ -175,7 +176,7 @@ class MAMarketIntelligenceWorkflow:
         """Execute comprehensive market intelligence analysis."""
 
         start_time = datetime.now()
-        print(f"📊 Starting Market Intelligence Analysis for {target_company}")
+        workflow_logger.info(f"Starting Market Intelligence Analysis for {target_company}")
 
         try:
             # Execute market intelligence components in parallel
@@ -192,19 +193,19 @@ class MAMarketIntelligenceWorkflow:
 
             # Handle exceptions
             if isinstance(competitive_landscape, Exception):
-                print(f"⚠️ Competitive analysis failed: {str(competitive_landscape)}")
+                workflow_logger.warning(f"Competitive analysis failed: {str(competitive_landscape)}")
                 competitive_landscape = {"competitors": [], "intensity": "medium"}
 
             if isinstance(market_trends, Exception):
-                print(f"⚠️ Market trends analysis failed: {str(market_trends)}")
+                workflow_logger.warning(f"Market trends analysis failed: {str(market_trends)}")
                 market_trends = self._create_default_market_trends(industry_focus or "technology")
 
             if isinstance(disruption_assessment, Exception):
-                print(f"⚠️ Disruption assessment failed: {str(disruption_assessment)}")
+                workflow_logger.warning(f"Disruption assessment failed: {str(disruption_assessment)}")
                 disruption_assessment = self._create_default_disruption_assessment()
 
             if isinstance(strategic_positioning, Exception):
-                print(f"⚠️ Strategic positioning analysis failed: {str(strategic_positioning)}")
+                workflow_logger.warning(f"Strategic positioning analysis failed: {str(strategic_positioning)}")
                 strategic_positioning = {"position": "established player", "advantages": []}
 
             # Create comprehensive result
@@ -232,10 +233,10 @@ class MAMarketIntelligenceWorkflow:
             execution_time = (datetime.now() - start_time).total_seconds()
             result.analysis_duration = execution_time
 
-            print(f"✅ Market Intelligence completed in {execution_time:.1f}s")
-            print(f"🏢 Competitive Intensity: {result.competitive_intensity}")
-            print(f"⚠️ Disruption Risk: {result.disruption_assessment.disruption_risk_level}")
-            print(f"📊 Intelligence Confidence: {result.intelligence_confidence:.2f}")
+            workflow_logger.info(f"Market Intelligence completed in {execution_time:.1f}s",
+                               competitive_intensity=result.competitive_intensity,
+                               disruption_risk=result.disruption_assessment.disruption_risk_level,
+                               confidence=result.intelligence_confidence)
 
             return result
 
@@ -249,7 +250,7 @@ class MAMarketIntelligenceWorkflow:
     async def _analyze_competitive_landscape(self, target: str) -> dict[str, Any]:
         """Analyze comprehensive competitive landscape."""
 
-        print(f"🏢 Analyzing Competitive Landscape for {target}")
+        workflow_logger.info(f"Analyzing Competitive Landscape for {target}")
 
         competitive_data = {"direct": [], "indirect": [], "intensity": "medium", "evidence": []}
 
@@ -295,7 +296,7 @@ class MAMarketIntelligenceWorkflow:
                 competitive_data["intensity"] = "low"
 
         except Exception as e:
-            print(f"⚠️ Competitive landscape analysis failed: {e}")
+            workflow_logger.warning(f"Competitive landscape analysis failed: {e}")
 
         return competitive_data
 
@@ -303,7 +304,7 @@ class MAMarketIntelligenceWorkflow:
     async def _analyze_market_trends(self, target: str, industry: str | None) -> MarketTrendAnalysis:
         """Analyze comprehensive market trends and dynamics."""
 
-        print(f"📈 Analyzing Market Trends for {target}")
+        workflow_logger.info(f"Analyzing Market Trends for {target}")
 
         industry_sector = industry or "technology"
 
@@ -346,7 +347,7 @@ class MAMarketIntelligenceWorkflow:
     async def _assess_disruption_risks(self, target: str, industry: str | None) -> DisruptionAssessment:
         """Assess comprehensive disruption risks and threats."""
 
-        print(f"⚡ Assessing Disruption Risks for {target}")
+        workflow_logger.info(f"Assessing Disruption Risks for {target}")
 
         # Gather disruption intelligence
         disruption_data = await self._gather_disruption_intelligence(target, industry)
@@ -496,7 +497,7 @@ class MAMarketIntelligenceWorkflow:
                         )
                         trend_data["evidence"].append(evidence)
         except Exception as e:
-            print(f"⚠️ Market trend data gathering failed: {e}")
+            workflow_logger.warning(f"Market trend data gathering failed: {e}")
 
         return trend_data
 
@@ -548,7 +549,7 @@ Focus on factors affecting M&A valuation and strategic positioning."""
             response = await provider.generate_response_async(messages, max_tokens=1500, temperature=0.1)
             return self._parse_market_trend_analysis(response.content)
         except Exception as e:
-            print(f"⚠️ AI market trend analysis failed: {str(e)}")
+            workflow_logger.error(f"AI market trend analysis failed: {str(e)}")
             return self._create_default_trend_analysis()
 
     async def _parse_competitors_from_intelligence(self, evidence: list[Evidence]) -> list[CompetitorProfile]:
@@ -562,8 +563,8 @@ Focus on factors affecting M&A valuation and strategic positioning."""
             content_lower = ev.content.lower()
             if any(word in content_lower for word in ["competitor", "rival", "competes with"]):
                 # Extract company names (simplified)
-                logger.debug("Extracting competitors from evidence",
-                            source=ev.source)
+                workflow_logger.debug("Extracting competitors from evidence",
+                                    source=ev.source)
 
         # Common competitor patterns for technology companies (fallback)
         tech_competitors = [
@@ -580,8 +581,8 @@ Focus on factors affecting M&A valuation and strategic positioning."""
         market_data_map = {}
         if tickers_to_enhance:
             try:
-                logger.info("Fetching market data for competitors",
-                           ticker_count=len(tickers_to_enhance))
+                workflow_logger.info("Fetching market data for competitors",
+                                   ticker_count=len(tickers_to_enhance))
                 
                 market_response = await self.financial_aggregator.get_market_data(
                     symbols=tickers_to_enhance
@@ -589,12 +590,12 @@ Focus on factors affecting M&A valuation and strategic positioning."""
                 
                 if market_response and market_response.data_payload:
                     market_data_map = market_response.data_payload.get("market_data", {})
-                    logger.info("Retrieved competitor market data",
-                               symbols_retrieved=len(market_data_map))
+                    workflow_logger.info("Retrieved competitor market data",
+                                       symbols_retrieved=len(market_data_map))
             
             except Exception as e:
-                logger.warning("Could not fetch competitor market data",
-                              error=str(e))
+                workflow_logger.warning("Could not fetch competitor market data",
+                                      error=str(e))
 
         # Build competitor profiles
         for comp_data in tech_competitors:
@@ -617,8 +618,8 @@ Focus on factors affecting M&A valuation and strategic positioning."""
                 comp_profile.revenue_estimate = ticker_data.get("annual_revenue")
                 comp_profile.analysis_confidence = min(0.85, comp_profile.analysis_confidence + 0.15)
                 
-                logger.debug("Enhanced competitor with market data",
-                            competitor=comp_data["name"], ticker=ticker)
+                workflow_logger.debug("Enhanced competitor with market data",
+                                    competitor=comp_data["name"], ticker=ticker)
             
             competitors.append(comp_profile)
 
@@ -697,7 +698,7 @@ Focus on factors affecting M&A valuation and strategic positioning."""
                         )
                         disruption_data["evidence"].append(evidence)
         except Exception as e:
-            print(f"⚠️ Disruption intelligence gathering failed: {e}")
+            workflow_logger.warning(f"Disruption intelligence gathering failed: {e}")
 
         return disruption_data
 
@@ -748,7 +749,7 @@ Focus on factors that could materially impact M&A investment returns."""
             response = await provider.generate_response_async(messages, max_tokens=1200, temperature=0.1)
             return self._parse_disruption_analysis(response.content)
         except Exception as e:
-            print(f"⚠️ AI disruption analysis failed: {str(e)}")
+            workflow_logger.error(f"AI disruption analysis failed: {str(e)}")
             return {"risk_level": "MEDIUM", "probability": 0.35, "timeline": "3-5 years"}
 
     def _parse_disruption_analysis(self, content: str) -> dict[str, Any]:

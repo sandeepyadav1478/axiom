@@ -15,6 +15,7 @@ from axiom.integrations.ai_providers import get_layer_provider
 from axiom.config.ai_layer_config import AnalysisLayer
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.validation.error_handling import FinancialDataError
+from axiom.core.logging.axiom_logger import workflow_logger
 
 
 class DealPerformanceMetrics(BaseModel):
@@ -183,7 +184,7 @@ class MAExecutiveDashboardWorkflow:
         start_time = datetime.now()
         period = reporting_period or f"Q{((datetime.now().month - 1) // 3) + 1} {datetime.now().year}"
 
-        print(f"📊 Generating Executive M&A Dashboard for {period}")
+        workflow_logger.info(f"Generating Executive M&A Dashboard for {period}")
 
         try:
             # Generate dashboard components in parallel
@@ -200,19 +201,19 @@ class MAExecutiveDashboardWorkflow:
 
             # Handle exceptions
             if isinstance(portfolio_analytics, Exception):
-                print(f"⚠️ Portfolio analytics failed: {str(portfolio_analytics)}")
+                workflow_logger.warning(f"Portfolio analytics failed: {str(portfolio_analytics)}")
                 portfolio_analytics = self._create_default_portfolio_analytics()
 
             if isinstance(deals_performance, Exception):
-                print(f"⚠️ Deal performance analysis failed: {str(deals_performance)}")
+                workflow_logger.warning(f"Deal performance analysis failed: {str(deals_performance)}")
                 deals_performance = {"active": [], "high_priority": [], "at_risk": []}
 
             if isinstance(synergy_dashboard, Exception):
-                print(f"⚠️ Synergy dashboard failed: {str(synergy_dashboard)}")
+                workflow_logger.warning(f"Synergy dashboard failed: {str(synergy_dashboard)}")
                 synergy_dashboard = self._create_default_synergy_dashboard()
 
             if isinstance(strategic_insights, Exception):
-                print(f"⚠️ Strategic insights failed: {str(strategic_insights)}")
+                workflow_logger.warning(f"Strategic insights failed: {str(strategic_insights)}")
                 strategic_insights = {"insights": [], "recommendations": []}
 
             # Create comprehensive dashboard
@@ -239,10 +240,10 @@ class MAExecutiveDashboardWorkflow:
 
             execution_time = (datetime.now() - start_time).total_seconds()
 
-            print(f"✅ Executive Dashboard completed in {execution_time:.1f}s")
-            print(f"📊 Portfolio Value: ${dashboard.portfolio_metrics.total_pipeline_value/1e9:.1f}B")
-            print(f"🎯 Success Rate: {dashboard.portfolio_metrics.portfolio_success_rate:.0%}")
-            print(f"💰 Average ROI: {dashboard.portfolio_metrics.average_roi:.1%}")
+            workflow_logger.info(f"Executive Dashboard completed in {execution_time:.1f}s",
+                               portfolio_value=f"${dashboard.portfolio_metrics.total_pipeline_value/1e9:.1f}B",
+                               success_rate=dashboard.portfolio_metrics.portfolio_success_rate,
+                               average_roi=dashboard.portfolio_metrics.average_roi)
 
             return dashboard
 
@@ -255,7 +256,7 @@ class MAExecutiveDashboardWorkflow:
     async def _analyze_portfolio_performance(self) -> PortfolioAnalytics:
         """Analyze comprehensive M&A portfolio performance."""
 
-        print("📊 Analyzing M&A Portfolio Performance...")
+        workflow_logger.info("Analyzing M&A Portfolio Performance...")
 
         # Simulate portfolio analytics (in production, this would connect to deal database)
         return PortfolioAnalytics(
@@ -302,7 +303,7 @@ class MAExecutiveDashboardWorkflow:
     async def _analyze_active_deals_performance(self) -> dict[str, list[DealPerformanceMetrics]]:
         """Analyze performance of active M&A deals."""
 
-        print("🎯 Analyzing Active Deal Performance...")
+        workflow_logger.info("Analyzing Active Deal Performance...")
 
         # Sample active deals portfolio
         active_deals = [
@@ -377,7 +378,7 @@ class MAExecutiveDashboardWorkflow:
     async def _track_synergy_realization(self) -> SynergyRealizationDashboard:
         """Track comprehensive synergy realization across portfolio."""
 
-        print("💰 Tracking Portfolio Synergy Realization...")
+        workflow_logger.info("Tracking Portfolio Synergy Realization...")
 
         return SynergyRealizationDashboard(
             total_synergy_target=2_100_000_000,    # $2.1B total targets
@@ -413,7 +414,7 @@ class MAExecutiveDashboardWorkflow:
     async def _generate_strategic_insights(self) -> dict[str, list[str]]:
         """Generate strategic insights and recommendations."""
 
-        print("🎯 Generating Strategic Portfolio Insights...")
+        workflow_logger.info("Generating Strategic Portfolio Insights...")
 
         return {
             "insights": [

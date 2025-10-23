@@ -56,6 +56,7 @@ class TestParametricVaR:
     def test_parametric_var_time_scaling(self):
         """Test that VaR scales with time horizon."""
         portfolio_value = 1_000_000
+        np.random.seed(42)  # Fixed seed for reproducibility
         returns = np.random.normal(0.001, 0.02, 252)
         
         var_1d = ParametricVaR.calculate(portfolio_value, returns, 0.95, 1)

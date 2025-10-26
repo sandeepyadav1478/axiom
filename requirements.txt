@@ -51,4 +51,87 @@ chromadb>=0.4.0
 # Numerical and Data Processing
 numpy>=1.24.0
 pandas>=2.0.0
+statsmodels>=0.14.0
+
+# Quantitative Finance Libraries
+QuantLib-Python>=1.32
+PyPortfolioOpt>=1.5.5
+TA-Lib>=0.4.28
+pandas-ta>=0.3.14
+arch>=6.2.0
+
+# Financial Data Libraries  
+openbb>=4.1.0
+nasdaq-data-link>=1.0.4
+
+# Visualization
+plotly>=5.18.0
+matplotlib>=3.7.0
+seaborn>=0.13.0
+
+# ===== Week 2 MCP Server Dependencies =====
+
+# Redis MCP Server (Storage)
+redis[hiredis]>=5.0.1
+
+# Docker MCP Server (DevOps)
+docker>=7.0.0
+docker-compose>=1.29.2
+
+# Prometheus MCP Server (Monitoring)
+prometheus-client>=0.19.0
+
+# PDF Processing MCP Server (Documents)
+pdfplumber>=0.10.3
+PyPDF2>=3.0.1
+pytesseract>=0.3.10
+tabula-py>=2.8.2
+pdf2image>=1.16.3
+Pillow>=10.0.0  # Required by pdf2image
+
+# Excel/Spreadsheet MCP Server (Documents)
+openpyxl>=3.1.2
+xlrd>=2.0.1
+xlwt>=1.3.0
+
+# ===== Week 3 MCP Server Dependencies =====
+
+# AWS MCP Server (Cloud)
+boto3>=1.34.0
+botocore>=1.34.0
+
+# GCP MCP Server (Cloud)
+google-cloud-storage>=2.14.0
+google-cloud-compute>=1.16.0
+google-cloud-bigquery>=3.17.0
+
+# Notification MCP Server (Communication)
+sendgrid>=6.11.0
+twilio>=8.11.0
+
+# Vector DB MCP Server (Storage) - Additional providers
+qdrant-client>=1.7.0
+
+# Kubernetes MCP Server (DevOps)
+kubernetes>=28.1.0
 scipy>=1.11.0
+
+# High-Priority External Package Replacements
+
+## 1. pmdarima - Better ARIMA Implementation
+pmdarima>=2.0.4
+
+## 2. ChromaDB - Vector Database Container
+chromadb>=0.4.22
+
+
+
+# High-Priority External Package Replacements
+
+## 1. pmdarima - Better ARIMA Implementation
+pmdarima>=2.0.4
+
+## 2. ChromaDB - Vector Database Container
+chromadb>=0.4.22
+
+

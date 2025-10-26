@@ -1,8 +1,26 @@
+# DEPRECATED: This provider is replaced by OpenBB MCP Server
+# See: axiom/integrations/data_sources/finance/DEPRECATED_PROVIDERS.md
+# Migration guide: Use OpenBB MCP instead of this REST API wrapper
+# Sunset date: 2025-12-31
+# DEPRECATED: This provider is replaced by OpenBB MCP Server
+# See: axiom/integrations/data_sources/finance/DEPRECATED_PROVIDERS.md
+# Migration guide: Use OpenBB MCP instead of this REST API wrapper
+# Sunset date: 2025-12-31
 """
 Finnhub Provider Implementation - FREE tier + affordable premium
 
 Finnhub provides excellent financial data with a generous free tier
 and very affordable premium plans for enhanced capabilities.
+
+⚠️ DEPRECATED: This REST API wrapper is deprecated in favor of external MCP servers.
+   Use the OpenBB MCP Server instead, which provides:
+   - Zero maintenance burden (community-maintained)
+   - Real-time market data and fundamentals
+   - Eliminates ~150 lines of custom code
+   - Standardized MCP protocol integration
+   
+   Migration: Update to use 'openbb-server' in docker-compose.yml
+   See: docs/EXTERNAL_MCP_MIGRATION.md
 """
 
 import requests

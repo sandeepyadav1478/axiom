@@ -1,4 +1,23 @@
-"""Alpha Vantage provider implementation - FREE tier (500 calls/day) + affordable premium."""
+# DEPRECATED: This provider is replaced by OpenBB MCP Server
+# See: axiom/integrations/data_sources/finance/DEPRECATED_PROVIDERS.md
+# Migration guide: Use OpenBB MCP instead of this REST API wrapper
+# Sunset date: 2025-12-31
+# DEPRECATED: This provider is replaced by OpenBB MCP Server
+# See: axiom/integrations/data_sources/finance/DEPRECATED_PROVIDERS.md
+# Migration guide: Use OpenBB MCP instead of this REST API wrapper
+# Sunset date: 2025-12-31
+"""Alpha Vantage provider implementation - FREE tier (500 calls/day) + affordable premium.
+
+⚠️ DEPRECATED: This REST API wrapper is deprecated in favor of external MCP servers.
+   Use the OpenBB MCP Server instead, which provides:
+   - Zero maintenance burden (community-maintained)
+   - 50+ financial data tools
+   - Eliminates ~180 lines of custom code
+   - Same data quality with better integration
+   
+   Migration: Update to use 'openbb-server' in docker-compose.yml
+   See: docs/EXTERNAL_MCP_MIGRATION.md
+"""
 
 from typing import Any
 

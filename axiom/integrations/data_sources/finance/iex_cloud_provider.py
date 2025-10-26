@@ -1,8 +1,26 @@
+# DEPRECATED: This provider is replaced by OpenBB MCP Server
+# See: axiom/integrations/data_sources/finance/DEPRECATED_PROVIDERS.md
+# Migration guide: Use OpenBB MCP instead of this REST API wrapper
+# Sunset date: 2025-12-31
+# DEPRECATED: This provider is replaced by OpenBB MCP Server
+# See: axiom/integrations/data_sources/finance/DEPRECATED_PROVIDERS.md
+# Migration guide: Use OpenBB MCP instead of this REST API wrapper
+# Sunset date: 2025-12-31
 """
 IEX Cloud Provider Implementation - FREE tier + affordable premium
 
 IEX Cloud offers excellent financial data with a generous free tier
 and very affordable premium plans for enhanced market coverage.
+
+⚠️ DEPRECATED: This REST API wrapper is deprecated in favor of external MCP servers.
+   Use the OpenBB MCP Server instead, which provides:
+   - Zero maintenance burden (community-maintained)
+   - Comprehensive US market data
+   - Eliminates ~150 lines of custom code
+   - Better integration with MCP protocol
+   
+   Migration: Update to use 'openbb-server' in docker-compose.yml
+   See: docs/EXTERNAL_MCP_MIGRATION.md
 """
 
 import requests

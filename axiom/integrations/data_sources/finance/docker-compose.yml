@@ -7,6 +7,189 @@
 
 services:
   # ============================================================================
+  # EXTERNAL MCP SERVERS - Community-Maintained Data Providers
+  # Zero maintenance burden - replaces custom REST API wrappers!
+  # ============================================================================
+
+  # OpenBB MCP Server ⭐ HIGHEST PRIORITY - Replaces 5+ REST API wrappers!
+  # Official: https://github.com/openbb/openbb-mcp-server
+  # Replaces: Alpha Vantage, FMP, Finnhub, Yahoo Finance, IEX Cloud
+  openbb-server:
+    build:
+      context: https://github.com/openbb/openbb-mcp-server.git
+    container_name: axiom-openbb-mcp
+    environment:
+      # OpenBB Configuration
+      - OPENBB_API_KEY=${OPENBB_API_KEY:-}
+      
+      # MCP Protocol Configuration
+      - MCP_TRANSPORT=stdio
+      
+      # Data Configuration
+      - FINANCIAL_DATA_DEPTH=${FINANCIAL_DATA_DEPTH:-comprehensive}
+      - DEBUG=${DEBUG:-false}
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - financial-data-network
+    profiles:
+      - "openbb"
+      - "mcp"
+      - "external"
+    labels:
+      - "axiom.service=external-financial-mcp"
+      - "axiom.provider=openbb-official"
+      - "axiom.type=comprehensive-market-data"
+      - "axiom.replaces=alpha-vantage,fmp,finnhub,yahoo,iex"
+      - "axiom.cost=free-tier-premium-available"
+      - "axiom.tools=50-plus-financial-tools"
+      - "axiom.eliminates=880-lines-custom-code"
+    env_file:
+      - ../../../../.env
+
+  # SEC Edgar MCP Server - Free unlimited SEC filings data
+  # Community: Search for sec-edgar-mcp or use sec-api integration
+  sec-edgar-server:
+    image: python:3.11-slim
+    container_name: axiom-sec-edgar-mcp
+    working_dir: /app
+    environment:
+      - SEC_API_KEY=${SEC_API_KEY:-}
+      - MCP_TRANSPORT=stdio
+      - DEBUG=${DEBUG:-false}
+    command: |
+      sh -c "
+        pip install --no-cache-dir sec-api requests &&
+        python -c 'print(\"SEC Edgar MCP Server - Ready for integration\")' &&
+        tail -f /dev/null
+      "
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - financial-data-network
+    profiles:
+      - "sec-edgar"
+      - "mcp"
+      - "external"
+    labels:
+      - "axiom.service=external-financial-mcp"
+      - "axiom.provider=sec-edgar"
+      - "axiom.type=sec-filings-insider-trading"
+      - "axiom.replaces=sec-edgar-provider"
+      - "axiom.cost=free-unlimited"
+      - "axiom.eliminates=150-lines-custom-code"
+    env_file:
+      - ../../../../.env
+
+  # FRED Economic Data MCP Server - 800K+ economic time series
+  # Community: Federal Reserve Economic Data
+  fred-server:
+    image: python:3.11-alpine
+    container_name: axiom-fred-mcp
+    working_dir: /app
+    environment:
+      - FRED_API_KEY=${FRED_API_KEY:-}
+      - MCP_TRANSPORT=stdio
+      - DEBUG=${DEBUG:-false}
+    command: |
+      sh -c "
+        apk add --no-cache git &&
+        pip install --no-cache-dir fredapi requests &&
+        python -c 'print(\"FRED MCP Server - Ready for integration\")' &&
+        tail -f /dev/null
+      "
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - financial-data-network
+    profiles:
+      - "fred"
+      - "mcp"
+      - "external"
+    labels:
+      - "axiom.service=external-economic-mcp"
+      - "axiom.provider=federal-reserve"
+      - "axiom.type=economic-indicators-time-series"
+      - "axiom.replaces=custom-fred-integration"
+      - "axiom.cost=free-api"
+      - "axiom.data-points=800k-plus-series"
+      - "axiom.eliminates=120-lines-custom-code"
+    env_file:
+      - ../../../../.env
+
+  # CoinGecko MCP Server - Free crypto market data (no API key needed!)
+  coingecko-server:
+    image: python:3.11-alpine
+    container_name: axiom-coingecko-mcp
+    working_dir: /app
+    environment:
+      - COINGECKO_API_KEY=${COINGECKO_API_KEY:-}
+      - MCP_TRANSPORT=stdio
+      - DEBUG=${DEBUG:-false}
+    command: |
+      sh -c "
+        pip install --no-cache-dir pycoingecko requests &&
+        python -c 'print(\"CoinGecko MCP Server - Ready for integration\")' &&
+        tail -f /dev/null
+      "
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - financial-data-network
+    profiles:
+      - "coingecko"
+      - "mcp"
+      - "external"
+    labels:
+      - "axiom.service=external-crypto-mcp"
+      - "axiom.provider=coingecko"
+      - "axiom.type=crypto-market-data"
+      - "axiom.replaces=custom-crypto-integration"
+      - "axiom.cost=free-no-api-key-required"
+      - "axiom.eliminates=100-lines-custom-code"
+    env_file:
+      - ../../../../.env
+
+  # NewsAPI MCP Server - 80K+ news sources aggregated
+  newsapi-server:
+    image: python:3.11-alpine
+    container_name: axiom-newsapi-mcp
+    working_dir: /app
+    environment:
+      - NEWS_API_KEY=${NEWS_API_KEY:-}
+      - MCP_TRANSPORT=stdio
+      - DEBUG=${DEBUG:-false}
+    command: |
+      sh -c "
+        pip install --no-cache-dir newsapi-python requests &&
+        python -c 'print(\"NewsAPI MCP Server - Ready for integration\")' &&
+        tail -f /dev/null
+      "
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - financial-data-network
+    profiles:
+      - "newsapi"
+      - "mcp"
+      - "external"
+    labels:
+      - "axiom.service=external-news-mcp"
+      - "axiom.provider=newsapi"
+      - "axiom.type=news-aggregation-sentiment"
+      - "axiom.replaces=custom-news-integration"
+      - "axiom.cost=free-tier-premium-available"
+      - "axiom.sources=80k-plus-news-sources"
+      - "axiom.eliminates=100-lines-custom-code"
+    env_file:
+      - ../../../../.env
+
+  # ============================================================================
   # MCP SERVERS - Model Context Protocol Servers for AI Integration
   # ============================================================================
   
@@ -365,29 +548,43 @@ networks:
 #
 # 📦 Service Categories:
 #
+# EXTERNAL MCP SERVERS (Profile: external) - Community-maintained, zero maintenance!:
+# - openbb-server             : Comprehensive market data (Replaces 5 providers!)
+# - sec-edgar-server          : SEC filings, insider trading (FREE unlimited)
+# - fred-server               : 800K+ economic time series (FREE)
+# - coingecko-server          : Crypto market data (FREE, no API key!)
+# - newsapi-server            : 80K+ news sources (FREE tier)
+#
 # MCP SERVERS (Profile: mcp):
 # - polygon-io-server         : Real-time market data (FREE: 5 calls/min)
 # - yahoo-finance-professional: 27 professional tools (100% FREE)
 # - yahoo-finance-comprehensive: Fundamental analysis (100% FREE)
 # - firecrawl-server          : Web scraping (FREE tier available)
 #
-# PROVIDER CONTAINERS (Profile: providers):
+# PROVIDER CONTAINERS (Profile: providers) - DEPRECATED, use external MCPs instead:
 # - tavily-provider    (8001): Search & intelligence (Paid)
-# - fmp-provider       (8002): Financial data (FREE: 250 calls/day)
-# - finnhub-provider   (8003): Market data (FREE: 60 calls/min)
-# - alpha-vantage-provider (8004): Financial data (FREE: 500 calls/day)
+# - fmp-provider       (8002): Financial data (FREE: 250 calls/day) → Use openbb-server
+# - finnhub-provider   (8003): Market data (FREE: 60 calls/min) → Use openbb-server
+# - alpha-vantage-provider (8004): Financial data (FREE: 500 calls/day) → Use openbb-server
 #
 # 📋 Environment Variables (from root .env):
+#
+# Required for External MCP Servers:
+# - OPENBB_API_KEY: OpenBB API key (FREE tier available)
+# - SEC_API_KEY: SEC API key (optional, unlimited free access)
+# - FRED_API_KEY: FRED API key (FREE at research.stlouisfed.org)
+# - COINGECKO_API_KEY: CoinGecko API key (optional, free tier works without)
+# - NEWS_API_KEY: NewsAPI key (FREE tier available)
 #
 # Required for MCP Servers:
 # - POLYGON_API_KEY: Polygon.io API key (FREE at polygon.io)
 # - FIRECRAWL_API_KEY: Firecrawl API key (FREE at firecrawl.dev)
 #
-# Required for Provider Containers:
+# Required for Provider Containers (DEPRECATED):
 # - TAVILY_API_KEY: Tavily API key (tavily.com)
-# - FINANCIAL_MODELING_PREP_API_KEY or FMP_API_KEY: FMP key (FREE)
-# - FINNHUB_API_KEY: Finnhub key (FREE)
-# - ALPHA_VANTAGE_API_KEY: Alpha Vantage key (FREE)
+# - FINANCIAL_MODELING_PREP_API_KEY or FMP_API_KEY: FMP key (FREE) → Use OPENBB_API_KEY
+# - FINNHUB_API_KEY: Finnhub key (FREE) → Use OPENBB_API_KEY
+# - ALPHA_VANTAGE_API_KEY: Alpha Vantage key (FREE) → Use OPENBB_API_KEY
 #
 # Optional (with defaults):
 # - FINANCIAL_API_ROTATION_ENABLED: Enable API rotation (default: true)

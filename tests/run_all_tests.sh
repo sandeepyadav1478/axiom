@@ -106,7 +106,7 @@ echo ""
 
 # Test 5: Tavily Integration
 echo "5️⃣ Testing Tavily Integration..."
-if python -m pytest tests/integration/test_tavily_integration.py > /dev/null 2>&1; then
+if uv run pytest tests/integration/test_tavily_integration.py > /dev/null 2>&1; then
     echo "✅ Tavily integration passed"
     ((PASSED_TESTS++))
 else
@@ -117,7 +117,7 @@ echo ""
 
 # Test 6: Pytest Suite
 echo "6️⃣ Running Pytest Suite..."
-if uv run pytest tests/ -v > /dev/null 2>&1; then
+if uv run pytest tests/ -q > /dev/null 2>&1; then
     echo "✅ Pytest suite passed"
     ((PASSED_TESTS++))
 else

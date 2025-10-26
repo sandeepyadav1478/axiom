@@ -1,0 +1,1157 @@
+{
+  "metadata": {
+    "generated_at": "2025-10-24T11:31:05.382743",
+    "portfolio_value": 1022990.5366012811,
+    "pnl": 22990.536601281143
+  },
+  "data_ingestion": {
+    "quotes": {
+      "AAPL": {
+        "symbol": "AAPL",
+        "price": 437.05090396373487,
+        "open": 436.98672780597644,
+        "high": 442.5707777048588,
+        "low": 434.51886400838083,
+        "volume": 7648711,
+        "change": 0.6432216710462466,
+        "change_percent": 0.08070115828271396,
+        "timestamp": "2025-10-24T11:30:04.528100"
+      },
+      "GOOGL": {
+        "symbol": "GOOGL",
+        "price": 445.1655546952373,
+        "open": 443.6810916926264,
+        "high": 443.28790985311684,
+        "low": 440.44387171342635,
+        "volume": 1056804,
+        "change": -1.0107112747280294,
+        "change_percent": -1.415766327245847,
+        "timestamp": "2025-10-24T11:30:04.629248"
+      },
+      "MSFT": {
+        "symbol": "MSFT",
+        "price": 431.8936159372299,
+        "open": 433.6689537047791,
+        "high": 433.16306833494093,
+        "low": 424.8174230397302,
+        "volume": 3939230,
+        "change": -0.4250410975972998,
+        "change_percent": 0.8676235065001103,
+        "timestamp": "2025-10-24T11:30:04.730359"
+      },
+      "AMZN": {
+        "symbol": "AMZN",
+        "price": 494.8636763479188,
+        "open": 496.873337201046,
+        "high": 505.4482754130539,
+        "low": 495.9219503724097,
+        "volume": 5146074,
+        "change": 1.0252245355568528,
+        "change_percent": -0.947272976366214,
+        "timestamp": "2025-10-24T11:30:04.831608"
+      },
+      "NVDA": {
+        "symbol": "NVDA",
+        "price": 162.73928741159654,
+        "open": 157.43334196725135,
+        "high": 163.58732968795712,
+        "low": 156.70191935777984,
+        "volume": 3348491,
+        "change": 0.07813470048633508,
+        "change_percent": -1.9437084599326528,
+        "timestamp": "2025-10-24T11:30:04.932972"
+      },
+      "TSLA": {
+        "symbol": "TSLA",
+        "price": 306.8897625729336,
+        "open": 311.7766405782102,
+        "high": 319.6244189559861,
+        "low": 300.8445560589621,
+        "volume": 1306381,
+        "change": 0.5452518999327376,
+        "change_percent": 0.8875436350692274,
+        "timestamp": "2025-10-24T11:30:05.033446"
+      },
+      "META": {
+        "symbol": "META",
+        "price": 314.7244168677932,
+        "open": 315.372741269977,
+        "high": 322.50641281389653,
+        "low": 307.2653664186475,
+        "volume": 6296428,
+        "change": 0.3740235882034799,
+        "change_percent": -0.5898099195656843,
+        "timestamp": "2025-10-24T11:30:05.134423"
+      },
+      "NFLX": {
+        "symbol": "NFLX",
+        "price": 304.6965733007947,
+        "open": 307.385599510398,
+        "high": 313.75333317508193,
+        "low": 300.3654172889426,
+        "volume": 2645940,
+        "change": -0.7750975601252232,
+        "change_percent": 1.3096773860429396,
+        "timestamp": "2025-10-24T11:30:05.235569"
+      }
+    },
+    "economic": {
+      "gdp": {
+        "series_id": "GDP",
+        "value": 77.56581212637116
+      },
+      "unemployment": {
+        "series_id": "UNRATE",
+        "value": 14.24968776740728
+      },
+      "inflation": {
+        "series_id": "CPIAUCSL",
+        "value": 8.830232519121834
+      },
+      "timestamp": "2025-10-24T11:30:04.730374"
+    },
+    "filings": {
+      "ticker": "AAPL",
+      "filing_type": "10-K",
+      "filing_date": "2025-07-26T11:30:04.528142",
+      "url": "https://sec.gov/edgar/browse/?CIK=AAPL",
+      "summary": "Annual report for AAPL fiscal year 2024"
+    },
+    "news": {
+      "query": "technology stocks",
+      "total_results": 50,
+      "articles": [
+        {
+          "title": "Article 1: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-24T11:30:04.528510",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 2: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-24T10:30:04.528534",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 3: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-24T09:30:04.528550",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 4: technology stocks analysis",
+          "source": "WSJ",
+          "published_at": "2025-10-24T08:30:04.528564",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 5: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-24T07:30:04.528579",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 6: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-24T06:30:04.528591",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 7: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-24T05:30:04.528602",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 8: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-24T04:30:04.528612",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 9: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-24T03:30:04.528623",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 10: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-24T02:30:04.528634",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 11: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-24T01:30:04.528644",
+          "sentiment": "positive"
+        },
+        {
+          "title": "Article 12: technology stocks analysis",
+          "source": "WSJ",
+          "published_at": "2025-10-24T00:30:04.528655",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 13: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-23T23:30:04.528665",
+          "sentiment": "positive"
+        },
+        {
+          "title": "Article 14: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-23T22:30:04.528676",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 15: technology stocks analysis",
+          "source": "WSJ",
+          "published_at": "2025-10-23T21:30:04.528687",
+          "sentiment": "positive"
+        },
+        {
+          "title": "Article 16: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-23T20:30:04.528697",
+          "sentiment": "positive"
+        },
+        {
+          "title": "Article 17: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-23T19:30:04.528708",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 18: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-23T18:30:04.528718",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 19: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-23T17:30:04.528728",
+          "sentiment": "positive"
+        },
+        {
+          "title": "Article 20: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-23T16:30:04.528739",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 21: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-23T15:30:04.528749",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 22: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-23T14:30:04.528759",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 23: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-23T13:30:04.528769",
+          "sentiment": "positive"
+        },
+        {
+          "title": "Article 24: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-23T12:30:04.528779",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 25: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-23T11:30:04.528789",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 26: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-23T10:30:04.528799",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 27: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-23T09:30:04.528809",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 28: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-23T08:30:04.528820",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 29: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-23T07:30:04.528830",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 30: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-23T06:30:04.528840",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 31: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-23T05:30:04.528850",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 32: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-23T04:30:04.528860",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 33: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-23T03:30:04.528869",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 34: technology stocks analysis",
+          "source": "WSJ",
+          "published_at": "2025-10-23T02:30:04.528879",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 35: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-23T01:30:04.528889",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 36: technology stocks analysis",
+          "source": "WSJ",
+          "published_at": "2025-10-23T00:30:04.528899",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 37: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-22T23:30:04.528909",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 38: technology stocks analysis",
+          "source": "WSJ",
+          "published_at": "2025-10-22T22:30:04.528919",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 39: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-22T21:30:04.528934",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 40: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-22T20:30:04.528943",
+          "sentiment": "positive"
+        },
+        {
+          "title": "Article 41: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-22T19:30:04.528953",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 42: technology stocks analysis",
+          "source": "WSJ",
+          "published_at": "2025-10-22T18:30:04.528963",
+          "sentiment": "positive"
+        },
+        {
+          "title": "Article 43: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-22T17:30:04.528973",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 44: technology stocks analysis",
+          "source": "WSJ",
+          "published_at": "2025-10-22T16:30:04.528983",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 45: technology stocks analysis",
+          "source": "Reuters",
+          "published_at": "2025-10-22T15:30:04.528993",
+          "sentiment": "positive"
+        },
+        {
+          "title": "Article 46: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-22T14:30:04.529003",
+          "sentiment": "neutral"
+        },
+        {
+          "title": "Article 47: technology stocks analysis",
+          "source": "WSJ",
+          "published_at": "2025-10-22T13:30:04.529012",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 48: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-22T12:30:04.529022",
+          "sentiment": "negative"
+        },
+        {
+          "title": "Article 49: technology stocks analysis",
+          "source": "CNBC",
+          "published_at": "2025-10-22T11:30:04.529032",
+          "sentiment": "positive"
+        },
+        {
+          "title": "Article 50: technology stocks analysis",
+          "source": "Bloomberg",
+          "published_at": "2025-10-22T10:30:04.529042",
+          "sentiment": "positive"
+        }
+      ]
+    },
+    "timestamp": "2025-10-24T11:30:05.237445"
+  },
+  "quantitative_analysis": {
+    "options": {
+      "spot": 437.05090396373487,
+      "strike": 458.9034491619216,
+      "price": 12.45,
+      "greeks": {
+        "delta": 0.55,
+        "gamma": 0.03,
+        "vega": 0.25
+      }
+    },
+    "portfolio": {
+      "markowitz": {
+        "weights": {
+          "AAPL": 0.125,
+          "GOOGL": 0.125,
+          "MSFT": 0.125,
+          "AMZN": 0.125,
+          "NVDA": 0.125,
+          "TSLA": 0.125,
+          "META": 0.125,
+          "NFLX": 0.125
+        },
+        "sharpe_ratio": 1.5
+      },
+      "risk_parity": {
+        "weights": {
+          "AAPL": 0.125,
+          "GOOGL": 0.125,
+          "MSFT": 0.125,
+          "AMZN": 0.125,
+          "NVDA": 0.125,
+          "TSLA": 0.125,
+          "META": 0.125,
+          "NFLX": 0.125
+        }
+      }
+    },
+    "var": {
+      "parametric": {
+        "var_amount": 18500.0,
+        "var_percentage": 0.0185
+      },
+      "historical": {
+        "var_amount": 18500.0,
+        "var_percentage": 0.0185
+      },
+      "monte_carlo": {
+        "var_amount": 18500.0,
+        "var_percentage": 0.0185
+      }
+    },
+    "forecast": {
+      "arima": {
+        "forecast": [
+          150,
+          151,
+          152,
+          153,
+          154
+        ],
+        "model": "ARIMA(1,1,1)"
+      },
+      "garch": {
+        "volatility_forecast": [
+          0.02,
+          0.02,
+          0.02,
+          0.02,
+          0.02
+        ],
+        "model": "GARCH(1,1)"
+      }
+    },
+    "bonds": {
+      "price": 1015.5,
+      "ytm": 0.0425,
+      "duration": 7.8,
+      "convexity": 85.5
+    },
+    "ma": {
+      "synergies": {
+        "cost_savings": 37000000,
+        "revenue_uplift": 25000000,
+        "total_value": 62000000,
+        "npv": 52700000.0
+      },
+      "lbo": {
+        "purchase_price": 500000000,
+        "debt": 350000000,
+        "equity": 150000000,
+        "leverage": 0.7
+      }
+    },
+    "timestamp": "2025-10-24T11:30:05.285225"
+  },
+  "trading_signals": {
+    "technical": {
+      "rsi": {},
+      "macd": {}
+    },
+    "rebalancing": {
+      "needs_rebalance": false,
+      "trades": {}
+    },
+    "position_sizing": {
+      "position_sizes": {
+        "AAPL": 78.02969056972834,
+        "GOOGL": 86.17140526978832,
+        "MSFT": 99.30749031107233,
+        "AMZN": 83.58596630287717,
+        "NVDA": 288.56942969883465,
+        "TSLA": 174.10264862508075,
+        "META": 156.21666583716055,
+        "NFLX": 124.46874725809349
+      }
+    },
+    "entry_exit": {
+      "entry_signals": [],
+      "exit_signals": []
+    },
+    "timestamp": "2025-10-24T11:30:05.288356"
+  },
+  "monitoring": {
+    "final_value": 1022990.5366012811,
+    "final_pnl": 22990.536601281143,
+    "updates": [
+      {
+        "timestamp": "2025-10-24T11:30:05.289230",
+        "portfolio_value": 999043.1804658893,
+        "pnl": -956.8195341107203,
+        "var": {
+          "var_amount": 18482.29883861895,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 1
+      },
+      {
+        "timestamp": "2025-10-24T11:30:06.289928",
+        "portfolio_value": 998391.39838741,
+        "pnl": -1608.6016125900205,
+        "var": {
+          "var_amount": 18470.240870167083,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 2
+      },
+      {
+        "timestamp": "2025-10-24T11:30:07.291234",
+        "portfolio_value": 997529.4063134752,
+        "pnl": -2470.5936865247786,
+        "var": {
+          "var_amount": 18454.29401679929,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 3
+      },
+      {
+        "timestamp": "2025-10-24T11:30:08.292487",
+        "portfolio_value": 996651.5927204321,
+        "pnl": -3348.4072795679094,
+        "var": {
+          "var_amount": 18438.054465327994,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 4
+      },
+      {
+        "timestamp": "2025-10-24T11:30:09.293944",
+        "portfolio_value": 998217.9744724651,
+        "pnl": -1782.02552753489,
+        "var": {
+          "var_amount": 18467.032527740605,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 5
+      },
+      {
+        "timestamp": "2025-10-24T11:30:10.295452",
+        "portfolio_value": 999328.9480506051,
+        "pnl": -671.0519493948668,
+        "var": {
+          "var_amount": 18487.585538936193,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 6
+      },
+      {
+        "timestamp": "2025-10-24T11:30:11.296880",
+        "portfolio_value": 999751.4695378671,
+        "pnl": -248.53046213288326,
+        "var": {
+          "var_amount": 18495.40218645054,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 7
+      },
+      {
+        "timestamp": "2025-10-24T11:30:12.298285",
+        "portfolio_value": 999044.9720198201,
+        "pnl": -955.0279801798752,
+        "var": {
+          "var_amount": 18482.33198236667,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 8
+      },
+      {
+        "timestamp": "2025-10-24T11:30:13.299371",
+        "portfolio_value": 999519.8196451706,
+        "pnl": -480.18035482941195,
+        "var": {
+          "var_amount": 18491.116663435656,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 9
+      },
+      {
+        "timestamp": "2025-10-24T11:30:14.300715",
+        "portfolio_value": 999940.2349575122,
+        "pnl": -59.76504248776473,
+        "var": {
+          "var_amount": 18498.894346713976,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 10
+      },
+      {
+        "timestamp": "2025-10-24T11:30:15.304029",
+        "portfolio_value": 999459.8405672422,
+        "pnl": -540.1594327577623,
+        "var": {
+          "var_amount": 18490.00705049398,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 11
+      },
+      {
+        "timestamp": "2025-10-24T11:30:16.305460",
+        "portfolio_value": 999761.3955149562,
+        "pnl": -238.6044850437902,
+        "var": {
+          "var_amount": 18495.585817026687,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 12
+      },
+      {
+        "timestamp": "2025-10-24T11:30:17.306889",
+        "portfolio_value": 999956.9097181483,
+        "pnl": -43.090281851706095,
+        "var": {
+          "var_amount": 18499.202829785743,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 13
+      },
+      {
+        "timestamp": "2025-10-24T11:30:18.308298",
+        "portfolio_value": 1000804.460012305,
+        "pnl": 804.4600123049458,
+        "var": {
+          "var_amount": 18514.882510227642,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 14
+      },
+      {
+        "timestamp": "2025-10-24T11:30:19.309688",
+        "portfolio_value": 1001709.7409649079,
+        "pnl": 1709.74096490792,
+        "var": {
+          "var_amount": 18531.630207850794,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 15
+      },
+      {
+        "timestamp": "2025-10-24T11:30:20.310958",
+        "portfolio_value": 1000845.6529942241,
+        "pnl": 845.6529942241032,
+        "var": {
+          "var_amount": 18515.644580393146,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 16
+      },
+      {
+        "timestamp": "2025-10-24T11:30:21.312309",
+        "portfolio_value": 1000969.4908381035,
+        "pnl": 969.490838103462,
+        "var": {
+          "var_amount": 18517.935580504913,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 17
+      },
+      {
+        "timestamp": "2025-10-24T11:30:22.313710",
+        "portfolio_value": 1001847.0705852462,
+        "pnl": 1847.0705852461979,
+        "var": {
+          "var_amount": 18534.170805827052,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 18
+      },
+      {
+        "timestamp": "2025-10-24T11:30:23.315146",
+        "portfolio_value": 1002356.4793609865,
+        "pnl": 2356.479360986501,
+        "var": {
+          "var_amount": 18543.59486817825,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 19
+      },
+      {
+        "timestamp": "2025-10-24T11:30:24.316576",
+        "portfolio_value": 1003925.9488845514,
+        "pnl": 3925.9488845514134,
+        "var": {
+          "var_amount": 18572.6300543642,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 20
+      },
+      {
+        "timestamp": "2025-10-24T11:30:25.319786",
+        "portfolio_value": 1004902.0297794082,
+        "pnl": 4902.0297794082435,
+        "var": {
+          "var_amount": 18590.68755091905,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 21
+      },
+      {
+        "timestamp": "2025-10-24T11:30:26.321091",
+        "portfolio_value": 1004390.8330606525,
+        "pnl": 4390.833060652483,
+        "var": {
+          "var_amount": 18581.23041162207,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 22
+      },
+      {
+        "timestamp": "2025-10-24T11:30:27.323648",
+        "portfolio_value": 1003602.5393028538,
+        "pnl": 3602.539302853751,
+        "var": {
+          "var_amount": 18566.646977102795,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 23
+      },
+      {
+        "timestamp": "2025-10-24T11:30:28.325039",
+        "portfolio_value": 1004529.7971374727,
+        "pnl": 4529.797137472662,
+        "var": {
+          "var_amount": 18583.801247043244,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 24
+      },
+      {
+        "timestamp": "2025-10-24T11:30:29.325851",
+        "portfolio_value": 1003609.3310690975,
+        "pnl": 3609.331069097505,
+        "var": {
+          "var_amount": 18566.772624778303,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 25
+      },
+      {
+        "timestamp": "2025-10-24T11:30:30.326372",
+        "portfolio_value": 1004366.6578129178,
+        "pnl": 4366.657812917838,
+        "var": {
+          "var_amount": 18580.78316953898,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 26
+      },
+      {
+        "timestamp": "2025-10-24T11:30:31.327014",
+        "portfolio_value": 1006187.3485371927,
+        "pnl": 6187.34853719268,
+        "var": {
+          "var_amount": 18614.465947938064,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 27
+      },
+      {
+        "timestamp": "2025-10-24T11:30:32.328427",
+        "portfolio_value": 1006913.7710708203,
+        "pnl": 6913.771070820279,
+        "var": {
+          "var_amount": 18627.904764810173,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 28
+      },
+      {
+        "timestamp": "2025-10-24T11:30:33.329945",
+        "portfolio_value": 1007078.2808494398,
+        "pnl": 7078.2808494397905,
+        "var": {
+          "var_amount": 18630.948195714634,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 29
+      },
+      {
+        "timestamp": "2025-10-24T11:30:34.331349",
+        "portfolio_value": 1008008.1455047668,
+        "pnl": 8008.145504766842,
+        "var": {
+          "var_amount": 18648.150691838186,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 30
+      },
+      {
+        "timestamp": "2025-10-24T11:30:35.334417",
+        "portfolio_value": 1008382.9041762414,
+        "pnl": 8382.904176241369,
+        "var": {
+          "var_amount": 18655.083727260466,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 31
+      },
+      {
+        "timestamp": "2025-10-24T11:30:36.335706",
+        "portfolio_value": 1009019.7545441892,
+        "pnl": 9019.7545441892,
+        "var": {
+          "var_amount": 18666.8654590675,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 32
+      },
+      {
+        "timestamp": "2025-10-24T11:30:37.337105",
+        "portfolio_value": 1010844.1489705187,
+        "pnl": 10844.148970518727,
+        "var": {
+          "var_amount": 18700.616755954594,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 33
+      },
+      {
+        "timestamp": "2025-10-24T11:30:38.338316",
+        "portfolio_value": 1011002.456883921,
+        "pnl": 11002.456883921055,
+        "var": {
+          "var_amount": 18703.545452352537,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 34
+      },
+      {
+        "timestamp": "2025-10-24T11:30:39.338767",
+        "portfolio_value": 1012886.0285753928,
+        "pnl": 12886.02857539279,
+        "var": {
+          "var_amount": 18738.391528644766,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 35
+      },
+      {
+        "timestamp": "2025-10-24T11:30:40.340036",
+        "portfolio_value": 1014602.0805012609,
+        "pnl": 14602.080501260934,
+        "var": {
+          "var_amount": 18770.138489273326,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 36
+      },
+      {
+        "timestamp": "2025-10-24T11:30:41.341407",
+        "portfolio_value": 1014189.4539056289,
+        "pnl": 14189.453905628878,
+        "var": {
+          "var_amount": 18762.504897254134,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 37
+      },
+      {
+        "timestamp": "2025-10-24T11:30:42.342798",
+        "portfolio_value": 1013397.5378082544,
+        "pnl": 13397.537808254361,
+        "var": {
+          "var_amount": 18747.854449452705,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 38
+      },
+      {
+        "timestamp": "2025-10-24T11:30:43.343328",
+        "portfolio_value": 1012699.8718123867,
+        "pnl": 12699.871812386671,
+        "var": {
+          "var_amount": 18734.947628529153,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 39
+      },
+      {
+        "timestamp": "2025-10-24T11:30:44.344073",
+        "portfolio_value": 1011754.5372893413,
+        "pnl": 11754.53728934133,
+        "var": {
+          "var_amount": 18717.458939852815,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 40
+      },
+      {
+        "timestamp": "2025-10-24T11:30:45.347339",
+        "portfolio_value": 1011037.8661716091,
+        "pnl": 11037.866171609145,
+        "var": {
+          "var_amount": 18704.20052417477,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 41
+      },
+      {
+        "timestamp": "2025-10-24T11:30:46.348762",
+        "portfolio_value": 1012086.8864918582,
+        "pnl": 12086.886491858168,
+        "var": {
+          "var_amount": 18723.607400099376,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 42
+      },
+      {
+        "timestamp": "2025-10-24T11:30:47.350021",
+        "portfolio_value": 1011300.4524372389,
+        "pnl": 11300.452437238884,
+        "var": {
+          "var_amount": 18709.05837008892,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 43
+      },
+      {
+        "timestamp": "2025-10-24T11:30:48.351096",
+        "portfolio_value": 1011257.3793281202,
+        "pnl": 11257.37932812015,
+        "var": {
+          "var_amount": 18708.261517570223,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 44
+      },
+      {
+        "timestamp": "2025-10-24T11:30:49.352497",
+        "portfolio_value": 1012792.0052610285,
+        "pnl": 12792.005261028535,
+        "var": {
+          "var_amount": 18736.652097329028,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 45
+      },
+      {
+        "timestamp": "2025-10-24T11:30:50.353921",
+        "portfolio_value": 1011861.821068236,
+        "pnl": 11861.821068236022,
+        "var": {
+          "var_amount": 18719.443689762367,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 46
+      },
+      {
+        "timestamp": "2025-10-24T11:30:51.354521",
+        "portfolio_value": 1013305.2265160028,
+        "pnl": 13305.22651600279,
+        "var": {
+          "var_amount": 18746.14669054605,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 47
+      },
+      {
+        "timestamp": "2025-10-24T11:30:52.355796",
+        "portfolio_value": 1013150.790840323,
+        "pnl": 13150.790840322967,
+        "var": {
+          "var_amount": 18743.289630545973,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 48
+      },
+      {
+        "timestamp": "2025-10-24T11:30:53.356312",
+        "portfolio_value": 1012505.2853231879,
+        "pnl": 12505.285323187942,
+        "var": {
+          "var_amount": 18731.347778478976,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 49
+      },
+      {
+        "timestamp": "2025-10-24T11:30:54.356741",
+        "portfolio_value": 1013595.4968192804,
+        "pnl": 13595.496819280437,
+        "var": {
+          "var_amount": 18751.51669115669,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 50
+      },
+      {
+        "timestamp": "2025-10-24T11:30:55.359439",
+        "portfolio_value": 1014482.32535962,
+        "pnl": 14482.325359620037,
+        "var": {
+          "var_amount": 18767.92301915297,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 51
+      },
+      {
+        "timestamp": "2025-10-24T11:30:56.360654",
+        "portfolio_value": 1016114.7414002012,
+        "pnl": 16114.741400201223,
+        "var": {
+          "var_amount": 18798.122715903723,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 52
+      },
+      {
+        "timestamp": "2025-10-24T11:30:57.361439",
+        "portfolio_value": 1017319.9545316129,
+        "pnl": 17319.954531612922,
+        "var": {
+          "var_amount": 18820.419158834837,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 53
+      },
+      {
+        "timestamp": "2025-10-24T11:30:58.362875",
+        "portfolio_value": 1018730.3973227674,
+        "pnl": 18730.397322767414,
+        "var": {
+          "var_amount": 18846.512350471196,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 54
+      },
+      {
+        "timestamp": "2025-10-24T11:30:59.363669",
+        "portfolio_value": 1018576.5010404814,
+        "pnl": 18576.50104048138,
+        "var": {
+          "var_amount": 18843.665269248904,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 55
+      },
+      {
+        "timestamp": "2025-10-24T11:31:00.365069",
+        "portfolio_value": 1018108.8196718205,
+        "pnl": 18108.8196718205,
+        "var": {
+          "var_amount": 18835.013163928677,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 56
+      },
+      {
+        "timestamp": "2025-10-24T11:31:01.366481",
+        "portfolio_value": 1019360.6639267431,
+        "pnl": 19360.663926743087,
+        "var": {
+          "var_amount": 18858.172282644748,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 57
+      },
+      {
+        "timestamp": "2025-10-24T11:31:02.367888",
+        "portfolio_value": 1020781.1681445449,
+        "pnl": 20781.168144544936,
+        "var": {
+          "var_amount": 18884.45161067408,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 58
+      },
+      {
+        "timestamp": "2025-10-24T11:31:03.369307",
+        "portfolio_value": 1022752.6835705469,
+        "pnl": 22752.683570546913,
+        "var": {
+          "var_amount": 18920.92464605512,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 59
+      },
+      {
+        "timestamp": "2025-10-24T11:31:04.370605",
+        "portfolio_value": 1022990.5366012811,
+        "pnl": 22990.536601281143,
+        "var": {
+          "var_amount": 18925.3249271237,
+          "var_percentage": 0.0185
+        },
+        "elapsed": 60
+      }
+    ]
+  }
+}

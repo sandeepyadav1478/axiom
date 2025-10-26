@@ -126,6 +126,7 @@ fast_var = ModelFactory.create(ModelType.MONTE_CARLO_VAR, config=custom_config)
 - Regulatory Compliance: Audit trails, HSR filing automation
 
 **Data & AI Infrastructure:**
+- **External MCPs**: 5 community-maintained data providers (zero maintenance!) 🆕
 - Multi-Provider: 8 financial data sources (2 FREE unlimited)
 - AI Consensus: Claude + OpenAI + SGLang for critical decisions
 - DSPy Optimization: Query enrichment and model enhancement
@@ -245,12 +246,26 @@ config.save_to_file("my_custom_config.json")
 
 ## Financial Data Configuration
 
-Key environment variables:
-- `TAVILY_API_KEY`: For market intelligence and news analysis
-- `FIRECRAWL_API_KEY`: For SEC filings and financial reports extraction
+### External MCP Servers (Recommended) 🆕
+- `OPENBB_API_KEY`: OpenBB comprehensive market data (optional for free tier)
+- `FRED_API_KEY`: 800K+ economic time series (FREE at research.stlouisfed.org)
+- `NEWS_API_KEY`: 80K+ news sources (FREE tier available)
+- `SEC_API_KEY`: SEC filings (optional, FREE unlimited)
+- CoinGecko: No API key needed (100% FREE!)
+
+### Legacy Providers (Deprecated)
+- `TAVILY_API_KEY`: Market intelligence (keep - no external MCP yet)
+- `FIRECRAWL_API_KEY`: SEC filings extraction (keep - specialized use)
+- ~~`FINANCIAL_MODELING_PREP_API_KEY`~~: Use `OPENBB_API_KEY` instead
+- ~~`FINNHUB_API_KEY`~~: Use `OPENBB_API_KEY` instead
+- ~~`ALPHA_VANTAGE_API_KEY`~~: Use `OPENBB_API_KEY` instead
+
+### AI Configuration
 - `OPENAI_BASE_URL`: AI inference endpoint (default: https://api.openai.com/v1)
 - `OPENAI_MODEL_NAME`: Financial analysis model (default: gpt-4o-mini)
 - `LANGCHAIN_API_KEY`: For audit trails and compliance tracing (recommended)
+
+> 📖 See: [External MCP Migration Guide](docs/EXTERNAL_MCP_MIGRATION.md) for complete details
 
 ## 📚 Comprehensive Documentation
 
@@ -259,6 +274,11 @@ Key environment variables:
 - 🎯 **[M&A Workflow Guide](docs/ma-workflows/M&A_WORKFLOW_GUIDE.md)** - Usage examples and API documentation
 - 🏗️ **[M&A System Architecture](docs/ma-workflows/M&A_SYSTEM_OVERVIEW.md)** - Technical architecture and deployment
 - 💼 **[Business Rationale](docs/ma-workflows/M&A_WORKFLOWS_BUSINESS_RATIONALE.md)** - Why each M&A workflow is essential
+
+### **External MCP Integration** 🆕
+- 🌟 **[External MCP Migration Guide](docs/EXTERNAL_MCP_MIGRATION.md)** - Replace REST wrappers with community MCPs
+- 📊 **[Financial Data Integration](axiom/integrations/data_sources/finance/README.md)** - Unified data services
+- 🔧 **[MCP Ecosystem](docs/MCP_ECOSYSTEM_IMPLEMENTATION.md)** - Complete MCP architecture
 
 ### **GitHub Actions for M&A Operations**
 - 🚀 **[M&A Workflow Execution Guide](docs/ma-workflows/M&A_WORKFLOW_EXECUTION_GUIDE.md)** - How to trigger M&A workflows

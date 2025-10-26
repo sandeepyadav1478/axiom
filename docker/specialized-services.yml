@@ -1,0 +1,254 @@
+version: '3.8'
+
+# Docker Compose for Specialized MCP Server Services
+# Provides containerized deployment for research, code quality, ML ops, and analytics
+
+services:
+  # ============================================
+  # arXiv Research MCP Server
+  # ============================================
+  arxiv-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.arxiv
+    container_name: axiom-arxiv-server
+    environment:
+      - DOWNLOAD_DIR=/data/arxiv_papers
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - arxiv-data:/data/arxiv_papers
+      - ../axiom:/app/axiom:ro
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+    networks:
+      - axiom-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import arxiv; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # Linting & Code Quality MCP Server
+  # ============================================
+  linting-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.linting
+    container_name: axiom-linting-server
+    environment:
+      - PROJECT_ROOT=/workspace
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../axiom:/workspace/axiom:rw
+      - ../tests:/workspace/tests:rw
+      - linting-cache:/root/.cache
+    ports:
+      - "8002:8000"
+    restart: unless-stopped
+    networks:
+      - axiom-network
+
+  # ============================================
+  # Model Serving MCP Server
+  # ============================================
+  model-serving:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.model-serving
+    container_name: axiom-model-serving
+    environment:
+      - MODELS_DIR=/models
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - model-storage:/models
+      - ../axiom:/app/axiom:ro
+    ports:
+      - "8003:8000"
+    restart: unless-stopped
+    networks:
+      - axiom-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # ============================================
+  # SQL Analytics MCP Server
+  # ============================================
+  sql-analytics:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.sql-analytics
+    container_name: axiom-sql-analytics
+    environment:
+      - DB_PATH=/data/analytics.duckdb
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - analytics-data:/data
+      - ../axiom:/app/axiom:ro
+    ports:
+      - "8004:8000"
+    restart: unless-stopped
+    networks:
+      - axiom-network
+
+  # ============================================
+  # MLflow Tracking Server (for future MLflow MCP)
+  # ============================================
+  mlflow-server:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: axiom-mlflow
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:///mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5000
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow-server:5000
+    volumes:
+      - mlflow-data:/mlflow
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    networks:
+      - axiom-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # JupyterHub (for analytics and exploration)
+  # ============================================
+  jupyterhub:
+    image: jupyterhub/jupyterhub:latest
+    container_name: axiom-jupyterhub
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - jupyter-data:/home
+      - ../axiom:/workspace/axiom:ro
+      - ../notebooks:/workspace/notebooks:rw
+    ports:
+      - "8888:8000"
+    restart: unless-stopped
+    networks:
+      - axiom-network
+    command: >
+      jupyterhub
+      --ip=0.0.0.0
+      --port=8000
+      --no-ssl
+
+  # ============================================
+  # Redis Cache (for model serving and analytics)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: axiom-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - axiom-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # Nginx Reverse Proxy
+  # ============================================
+  nginx:
+    image: nginx:alpine
+    container_name: axiom-nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    networks:
+      - axiom-network
+    depends_on:
+      - arxiv-server
+      - linting-server
+      - model-serving
+      - sql-analytics
+      - mlflow-server
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  axiom-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  arxiv-data:
+    driver: local
+  model-storage:
+    driver: local
+  analytics-data:
+    driver: local
+  mlflow-data:
+    driver: local
+  jupyter-data:
+    driver: local
+  redis-data:
+    driver: local
+  linting-cache:
+    driver: local
+
+# ============================================
+# Usage
+# ============================================
+# 
+# Start all services:
+#   docker-compose -f docker/specialized-services.yml up -d
+#
+# Start specific service:
+#   docker-compose -f docker/specialized-services.yml up -d arxiv-server
+#
+# View logs:
+#   docker-compose -f docker/specialized-services.yml logs -f arxiv-server
+#
+# Stop all services:
+#   docker-compose -f docker/specialized-services.yml down
+#
+# Remove volumes (data):
+#   docker-compose -f docker/specialized-services.yml down -v
+#
+# Rebuild images:
+#   docker-compose -f docker/specialized-services.yml build --no-cache
+#
+# ============================================
+# Service URLs
+# ============================================
+#
+# arXiv Server:        http://localhost:8001
+# Linting Server:      http://localhost:8002
+# Model Serving:       http://localhost:8003
+# SQL Analytics:       http://localhost:8004
+# MLflow UI:           http://localhost:5000
+# JupyterHub:          http://localhost:8888
+# Redis:               localhost:6379
+# Nginx (Load Balancer): http://localhost:80

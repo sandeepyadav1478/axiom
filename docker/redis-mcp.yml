@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  redis-mcp:
+    image: redis:7-alpine
+    container_name: axiom-redis-mcp
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-mcp-data:/data
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - axiom-network
+    restart: unless-stopped
+    labels:
+      - "axiom.service=redis-mcp"
+      - "axiom.category=storage"
+
+volumes:
+  redis-mcp-data:
+    driver: local
+
+networks:
+  axiom-network:
+    external: true

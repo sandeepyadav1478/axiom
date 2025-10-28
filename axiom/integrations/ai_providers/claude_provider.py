@@ -14,7 +14,7 @@ class ClaudeProvider(BaseAIProvider):
         self,
         api_key: str,
         base_url: str | None = None,
-        model_name: str = "claude-3-sonnet-20240229",
+        model_name: str = "claude-sonnet-4-20250514",
         **kwargs,
     ):
         super().__init__(api_key, base_url, model_name, **kwargs)

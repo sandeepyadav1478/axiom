@@ -15,6 +15,16 @@ from axiom.integrations.search_tools.tavily_client import TavilyClient
 from axiom.tracing.langsmith_tracer import trace_node
 from axiom.core.logging.axiom_logger import workflow_logger
 
+# Import DSPy HyDE module
+try:
+    from axiom.dspy_modules.hyde import InvestmentBankingHyDEModule
+    from axiom.dspy_modules.multi_query import setup_dspy_with_provider
+    DSPY_HYDE_AVAILABLE = True
+    workflow_logger.info("DSPy HyDE module available for search enhancement")
+except Exception as e:
+    DSPY_HYDE_AVAILABLE = False
+    workflow_logger.warning(f"DSPy HyDE not available: {e}")
+
 
 @trace_node("investment_banking_task_runner")
 async def task_runner_node(state: AxiomState) -> dict[str, Any]:
@@ -34,13 +44,43 @@ async def task_runner_node(state: AxiomState) -> dict[str, Any]:
         if not provider:
             raise Exception("No available AI provider for task execution")
 
+        # 🔥 DSPy HyDE INTEGRATION: Generate hypothetical documents to enhance search
+        hyde_docs = {}
+        if DSPY_HYDE_AVAILABLE:
+            try:
+                # Don't reconfigure - DSPy already configured in planner
+                # Just use existing configuration
+                hyde = InvestmentBankingHyDEModule()
+                workflow_logger.info("Using existing DSPy configuration for HyDE")
+                
+                for task_plan in state["task_plans"]:
+                    # Generate hypothetical document for this task
+                    hyde_doc = hyde.forward(
+                        query=state["query"],
+                        analysis_type=task_plan.task_id,
+                        target_company=state.get("company_name", ""),
+                        analysis_focus=task_plan.task_id.split("_")[-1]
+                    )
+                    hyde_docs[task_plan.task_id] = hyde_doc
+                    workflow_logger.info(f"Generated HyDE doc for {task_plan.task_id}: {len(hyde_doc)} chars")
+            except Exception as e:
+                workflow_logger.warning(f"HyDE generation failed: {e}")
+        
         # Execute searches for all investment banking task plans
         search_tasks = []
         for task_plan in state["task_plans"]:
             for query in task_plan.queries:
+                # Enhance query with HyDE document if available
+                enhanced_query = query.query
+                if task_plan.task_id in hyde_docs:
+                    # Append HyDE snippet to query for better semantic search
+                    hyde_snippet = hyde_docs[task_plan.task_id][:200]
+                    enhanced_query = f"{query.query} {hyde_snippet}"
+                    workflow_logger.info(f"Enhanced query with HyDE for {task_plan.task_id}")
+                
                 # Add investment banking specific search parameters
                 search_task = tavily.search(
-                    query.query,
+                    enhanced_query,
                     include_domains=[
                         "sec.gov",
                         "bloomberg.com",

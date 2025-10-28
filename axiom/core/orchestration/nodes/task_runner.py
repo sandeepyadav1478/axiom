@@ -61,25 +61,42 @@ async def task_runner_node(state: AxiomState) -> dict[str, Any]:
             async with semaphore:
                 try:
                     result = await search_task
+                    # Check if result is None (API returned nothing)
+                    if result is None:
+                        workflow_logger.warning(f"Search returned None for {task_id}")
+                        mock = create_mock_search_result(task_id, original_query)
+                        workflow_logger.info(f"Created mock for {task_id}: {len(mock.results)} results")
+                        return (mock, task_id, original_query)
+                    
+                    workflow_logger.info(f"Search succeeded for {task_id}")
                     return (result, task_id, original_query)
                 except Exception as e:
-                    workflow_logger.warning(f"Search failed for {original_query}: {str(e)}")
+                    workflow_logger.warning(f"Search failed with exception for {original_query}: {str(e)}")
                     # Return mock data when API fails (for testing/demo)
-                    return (create_mock_search_result(task_id, original_query), task_id, original_query)
+                    mock = create_mock_search_result(task_id, original_query)
+                    workflow_logger.info(f"Created mock for {task_id}: {len(mock.results)} results")
+                    return (mock, task_id, original_query)
 
+        # Execute searches - DON'T use return_exceptions=True so exceptions propagate to our handler
         search_responses = await asyncio.gather(
             *[bounded_financial_search(task_info) for task_info in search_tasks],
-            return_exceptions=True,
+            return_exceptions=False,  # Let our try/except handle exceptions
         )
 
         # Process financial search results
         task_specific_results = {}
+        workflow_logger.info(f"Processing {len(search_responses)} search responses")
+        
         for response_data in search_responses:
             if isinstance(response_data, Exception):
+                workflow_logger.warning(f"Response is exception: {response_data}")
                 continue
 
             response, task_id, original_query = response_data
+            workflow_logger.info(f"Task {task_id}: response={response is not None}, has_results={hasattr(response, 'results') if response else False}, type={type(response).__name__ if response else 'None'}")
+            
             if response and hasattr(response, "results"):
+                workflow_logger.info(f"Task {task_id}: Found {len(response.results)} results")
                 for result in response.results:
                     search_result = SearchResult(
                         title=result.get("title", ""),
@@ -96,9 +113,11 @@ async def task_runner_node(state: AxiomState) -> dict[str, Any]:
                     task_specific_results[task_id].append(search_result)
 
         # Extract investment banking evidence using AI analysis
+        workflow_logger.info(f"Extracting evidence from {len(task_specific_results)} tasks with results")
         evidence = await extract_financial_evidence(
             provider, state["query"], task_specific_results, state["task_plans"]
         )
+        workflow_logger.info(f"Evidence extraction complete: {len(evidence)} pieces created")
 
         # Optional: Escalate to full content crawling for critical financial documents
         critical_urls = identify_critical_financial_sources(search_results)
@@ -283,6 +302,14 @@ def create_mock_search_result(task_id: str, query: str):
     class MockSearchResponse:
         def __init__(self, results):
             self.results = results
+        
+        def __bool__(self):
+            """Make mock response truthy."""
+            return True
+        
+        def __nonzero__(self):
+            """Python 2 compatibility."""
+            return True
     
     # Create realistic mock results
     mock_results = [

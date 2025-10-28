@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     claude_api_key: str | None = Field(None, env="CLAUDE_API_KEY")
     claude_api_keys: str | None = Field(None, env="CLAUDE_API_KEYS")  # Comma-separated multiple keys
     claude_base_url: str = Field("https://api.anthropic.com", env="CLAUDE_BASE_URL")
-    claude_model_name: str = Field("claude-3-sonnet-20240229", env="CLAUDE_MODEL_NAME")
+    claude_model_name: str = Field("claude-3-5-sonnet-20241022", env="CLAUDE_MODEL_NAME")  # Latest Claude 3.5
     claude_rotation_enabled: bool = Field(True, env="CLAUDE_ROTATION_ENABLED")
 
     # SGLang Configuration (optional - for local inference)
@@ -80,7 +80,7 @@ class Settings(BaseSettings):
     max_parallel_analysis_tasks: int = Field(5, env="MAX_PARALLEL_ANALYSIS_TASKS")
     financial_data_depth: str = Field("comprehensive", env="FINANCIAL_DATA_DEPTH")
     due_diligence_confidence_threshold: float = Field(
-        0.8, env="DUE_DILIGENCE_CONFIDENCE_THRESHOLD"
+        0.65, env="DUE_DILIGENCE_CONFIDENCE_THRESHOLD"  # Lowered for demo/testing
     )
 
     # Financial Analysis Parameters

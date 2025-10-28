@@ -10,6 +10,17 @@ from axiom.config.ai_layer_config import AnalysisLayer
 from axiom.config.schemas import SearchQuery, TaskPlan
 from axiom.core.orchestration.state import AxiomState
 from axiom.tracing.langsmith_tracer import trace_node
+from axiom.core.logging.axiom_logger import workflow_logger
+
+# Import DSPy modules
+try:
+    from axiom.dspy_modules.multi_query import InvestmentBankingMultiQueryModule, setup_dspy_with_provider
+    from axiom.dspy_modules.hyde import InvestmentBankingHyDEModule
+    DSPY_AVAILABLE = True
+    workflow_logger.info("DSPy modules available for query optimization")
+except Exception as e:
+    DSPY_AVAILABLE = False
+    workflow_logger.warning(f"DSPy modules not available: {e}")
 
 
 def detect_analysis_type(query: str) -> str:
@@ -68,6 +79,27 @@ async def planner_node(state: AxiomState) -> dict[str, Any]:
         # Detect analysis type and extract company info
         analysis_type = detect_analysis_type(state["query"])
         company_info = extract_company_info(state["query"])
+        
+        # 🔥 DSPy INTEGRATION: Use multi-query expansion if available
+        expanded_queries = []
+        if DSPY_AVAILABLE:
+            try:
+                # Initialize DSPy
+                setup_dspy_with_provider()
+                multi_query = InvestmentBankingMultiQueryModule()
+                
+                # Expand queries using DSPy
+                expanded_queries = multi_query.forward(
+                    query=state["query"],
+                    analysis_type=analysis_type,
+                    company_context=company_info.get('name', '')
+                )
+                
+                workflow_logger.info(f"DSPy query expansion: {len(expanded_queries)} queries generated")
+                
+            except Exception as e:
+                workflow_logger.warning(f"DSPy query expansion failed, using fallback: {e}")
+                expanded_queries = []
 
         # Create investment banking planning prompt
         planning_messages = [
@@ -113,9 +145,13 @@ Create a comprehensive research plan with parallel tasks:""",
         plan_text = response.content
 
         # Create structured investment banking task plans
+        # Pass DSPy-expanded queries to task creation
         task_plans = create_ib_task_plans(
-            state["query"], analysis_type, company_info, plan_text
+            state["query"], analysis_type, company_info, plan_text, dspy_queries=expanded_queries
         )
+        
+        if expanded_queries:
+            workflow_logger.info(f"Task plans enhanced with {len(expanded_queries)} DSPy-optimized queries")
 
         return {
             "task_plans": task_plans,
@@ -137,11 +173,15 @@ Create a comprehensive research plan with parallel tasks:""",
 
 
 def create_ib_task_plans(
-    query: str, analysis_type: str, company_info: dict, plan_text: str
+    query: str, analysis_type: str, company_info: dict, plan_text: str, dspy_queries: list[str] = None
 ) -> list[TaskPlan]:
-    """Create structured investment banking task plans."""
+    """Create structured investment banking task plans with optional DSPy-enhanced queries."""
 
     company_name = company_info.get("name", "target company")
+    
+    # Log DSPy enhancement
+    if dspy_queries:
+        workflow_logger.info(f"Creating task plans with {len(dspy_queries)} DSPy-enhanced queries")
 
     # M&A-focused task templates
     task_templates = {

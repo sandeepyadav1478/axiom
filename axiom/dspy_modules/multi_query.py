@@ -293,30 +293,34 @@ def setup_dspy_with_provider():
         provider_name = providers[0]
         config = settings.get_provider_config(provider_name)
 
-        # Configure DSPy
-        dspy.configure(
-            lm=dspy.OpenAI(
-                model=config["model_name"],
-                api_base=config["base_url"],
-                api_key=config["api_key"],
-                max_tokens=1500,
-                temperature=0.1,  # Conservative for financial analysis
-            )
+        # Configure DSPy (updated for DSPy 3.0+)
+        from dspy import LM
+        
+        lm = LM(
+            model=f"openai/{config['model_name']}",
+            api_base=config["base_url"],
+            api_key=config["api_key"],
+            max_tokens=1500,
+            temperature=0.1,  # Conservative for financial analysis
         )
+        
+        dspy.configure(lm=lm)
 
         ai_logger.info("DSPy configured for investment banking analysis", provider=provider_name)
 
     except Exception as e:
         ai_logger.warning("DSPy setup using fallback configuration", error=str(e))
         # Fallback configuration
-        dspy.configure(
-            lm=dspy.OpenAI(
-                model=settings.openai_model_name,
-                api_base=settings.openai_base_url,
-                api_key=settings.openai_api_key or "placeholder",
-                max_tokens=1500,
-            )
+        from dspy import LM
+        
+        lm = LM(
+            model=f"openai/{settings.openai_model_name}",
+            api_base=settings.openai_base_url,
+            api_key=settings.openai_api_key or "placeholder",
+            max_tokens=1500,
         )
+        
+        dspy.configure(lm=lm)
 
 
 # Legacy aliases

@@ -41,6 +41,7 @@ class ModelType(Enum):
     PARAMETRIC_VAR = "parametric_var"
     HISTORICAL_VAR = "historical_var"
     MONTE_CARLO_VAR = "monte_carlo_var"
+    RL_GARCH_VAR = "rl_garch_var"  # 2025 cutting-edge: RL + GARCH
     
     # Portfolio Models
     MARKOWITZ_OPTIMIZER = "markowitz_optimizer"
@@ -264,6 +265,21 @@ def _init_builtin_models():
             config_key="var",
             description="Monte Carlo VaR with simulated scenarios"
         )
+        
+        # RL-GARCH VaR (2025 research paper)
+        try:
+            from axiom.models.risk.rl_garch_var import RLGARCHVaR
+            
+            ModelFactory.register_model(
+                ModelType.RL_GARCH_VAR.value,
+                RLGARCHVaR,
+                config_key="var",
+                description="RL-GARCH VaR combining GARCH volatility with Deep RL (arXiv:2504.16635, April 2025)"
+            )
+        except ImportError:
+            # PyTorch or arch not available
+            pass
+            
     except ImportError as e:
         # Models not yet available, skip registration
         pass

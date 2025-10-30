@@ -4,11 +4,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends gcc
 RUN apt-get clean
 
-COPY axiom/mcp_servers/requirements-mcp-only.txt /app/requirements.txt
+COPY axiom/mcp_final/servers/requirements-mcp-only.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY axiom/mcp_final/servers/shared /app/axiom/mcp_final/servers/shared
-COPY axiom/mcp_servers/compliance/regulatory /app/axiom/mcp_final/servers/compliance/regulatory
+COPY axiom/mcp_final/servers/public/compliance/regulatory /app/axiom/mcp_final/servers/compliance/regulatory
 RUN echo "# Minimal" > /app/axiom/__init__.py
 COPY axiom/mcp_final/servers/__init__.py /app/axiom/mcp_final/servers/__init__.py
 RUN mkdir -p /app/axiom/mcp_final/servers/compliance && touch /app/axiom/mcp_final/servers/compliance/__init__.py

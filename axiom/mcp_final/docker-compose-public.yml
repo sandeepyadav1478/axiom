@@ -6,7 +6,7 @@ version: '3.8'
 services:
   pricing-greeks-mcp:
     build:
-      context: ../../..
+      context: ../..
       dockerfile: axiom/mcp_final/servers/public/trading/pricing_greeks/Dockerfile
     container_name: pricing-greeks-mcp
     stdin_open: true
@@ -19,7 +19,7 @@ services:
 
   portfolio-risk-mcp:
     build:
-      context: ../../..
+      context: ../..
       dockerfile: axiom/mcp_final/servers/public/trading/portfolio_risk/Dockerfile
     container_name: portfolio-risk-mcp
     stdin_open: true
@@ -32,7 +32,7 @@ services:
 
   strategy-gen-mcp:
     build:
-      context: ../../..
+      context: ../..
       dockerfile: axiom/mcp_final/servers/public/trading/strategy_gen/Dockerfile
     container_name: strategy-gen-mcp
     stdin_open: true
@@ -45,7 +45,7 @@ services:
 
   execution-mcp:
     build:
-      context: ../../..
+      context: ../..
       dockerfile: axiom/mcp_final/servers/public/trading/execution/Dockerfile
     container_name: execution-mcp
     stdin_open: true
@@ -58,7 +58,7 @@ services:
 
   hedging-mcp:
     build:
-      context: ../../..
+      context: ../..
       dockerfile: axiom/mcp_final/servers/public/trading/hedging/Dockerfile
     container_name: hedging-mcp
     stdin_open: true
@@ -71,7 +71,7 @@ services:
 
   performance-mcp:
     build:
-      context: ../../..
+      context: ../..
       dockerfile: axiom/mcp_final/servers/public/analytics/performance/Dockerfile
     container_name: performance-mcp
     stdin_open: true
@@ -84,7 +84,7 @@ services:
 
   market-data-mcp:
     build:
-      context: ../../..
+      context: ../..
       dockerfile: axiom/mcp_final/servers/public/analytics/market_data/Dockerfile
     container_name: market-data-mcp
     stdin_open: true
@@ -97,7 +97,7 @@ services:
 
   volatility-mcp:
     build:
-      context: ../../..
+      context: ../..
       dockerfile: axiom/mcp_final/servers/public/analytics/volatility/Dockerfile
     container_name: volatility-mcp
     stdin_open: true
@@ -110,7 +110,7 @@ services:
 
   regulatory-mcp:
     build:
-      context: ../../..
+      context: ../..
       dockerfile: axiom/mcp_final/servers/public/compliance/regulatory/Dockerfile
     container_name: regulatory-mcp
     stdin_open: true

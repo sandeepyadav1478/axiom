@@ -1,59 +1,37 @@
 """
-Portfolio Optimization Module
+Portfolio Models Module
 
-Comprehensive portfolio management toolkit:
-- Markowitz Mean-Variance Optimization
-- Efficient Frontier Generation
-- Portfolio Performance Metrics (Sharpe, Sortino, Calmar)
-- Asset Allocation Strategies (Risk Parity, Black-Litterman, HRP)
-- VaR-Integrated Risk Management
-- Portfolio Rebalancing
-
-Production-ready for quantitative traders and portfolio managers.
+This module contains portfolio optimization and management models.
 """
 
-from .optimization import (
-    PortfolioOptimizer,
-    OptimizationMethod,
-    ConstraintType,
-    PortfolioMetrics,
-    OptimizationResult,
-    EfficientFrontier,
-    markowitz_optimization,
-    calculate_sharpe_ratio,
-    calculate_sortino_ratio,
-    calculate_max_drawdown
-)
+from typing import TYPE_CHECKING
 
-from .allocation import (
-    AssetAllocator,
-    AllocationStrategy,
-    AssetClass,
-    AllocationResult,
-    equal_weight_allocation,
-    risk_parity_allocation
-)
+# Lazy imports to avoid unnecessary dependencies
+if TYPE_CHECKING:
+    from .rl_portfolio_manager import (
+        RLPortfolioManager,
+        PortfolioConfig,
+        CNNFeatureExtractor,
+        PortfolioActorCritic,
+        PortfolioEnvironment,
+    )
 
 __all__ = [
-    # Optimization
-    "PortfolioOptimizer",
-    "OptimizationMethod",
-    "ConstraintType",
-    "PortfolioMetrics",
-    "OptimizationResult",
-    "EfficientFrontier",
-    "markowitz_optimization",
-    "calculate_sharpe_ratio",
-    "calculate_sortino_ratio",
-    "calculate_max_drawdown",
-    
-    # Allocation
-    "AssetAllocator",
-    "AllocationStrategy",
-    "AssetClass",
-    "AllocationResult",
-    "equal_weight_allocation",
-    "risk_parity_allocation",
+    'RLPortfolioManager',
+    'PortfolioConfig',
+    'CNNFeatureExtractor',
+    'PortfolioActorCritic',
+    'PortfolioEnvironment',
 ]
 
-__version__ = "1.0.0"
+
+def get_rl_portfolio_manager():
+    """Lazy import of RLPortfolioManager"""
+    from .rl_portfolio_manager import RLPortfolioManager
+    return RLPortfolioManager
+
+
+def get_portfolio_config():
+    """Lazy import of PortfolioConfig"""
+    from .rl_portfolio_manager import PortfolioConfig
+    return PortfolioConfig

@@ -1,0 +1,6 @@
+# This directory contains benchmark visualization charts
+# 
+# Generate charts by running:
+#   python benchmarks/generate_visualizations.py
+#
+# Charts will be created in this directory and embedded in README.md

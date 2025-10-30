@@ -6,6 +6,7 @@ from langgraph.graph import END, StateGraph
 from axiom.core.orchestration.nodes.observer import observer_node
 from axiom.core.orchestration.nodes.planner import planner_node
 from axiom.core.orchestration.nodes.task_runner import task_runner_node
+from axiom.core.orchestration.nodes.ml_integration_node import ml_models_node
 from axiom.core.orchestration.state import AxiomState, create_initial_state
 
 
@@ -25,13 +26,14 @@ def should_continue_from_task_runner(state: AxiomState) -> str:
 
 
 def create_research_graph():
-    """Create the main research workflow graph."""
+    """Create the main research workflow graph with ML integration."""
 
     workflow = StateGraph(AxiomState)
 
-    # Add nodes
+    # Add nodes (including our ML integration!)
     workflow.add_node("planner", planner_node)
     workflow.add_node("task_runner", task_runner_node)
+    workflow.add_node("ml_models", ml_models_node)  # NEW: Apply our 35 models
     workflow.add_node("observer", observer_node)
 
     # Set entry point
@@ -44,8 +46,9 @@ def create_research_graph():
         {"task_runner": "task_runner", "observer": "observer"},
     )
 
-    # Task runner always goes to observer
-    workflow.add_edge("task_runner", "observer")
+    # Task runner → ML models → observer (NEW: ML integration in workflow!)
+    workflow.add_edge("task_runner", "ml_models")
+    workflow.add_edge("ml_models", "observer")
 
     # Observer always ends
     workflow.add_edge("observer", END)

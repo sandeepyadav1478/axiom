@@ -1,0 +1,152 @@
+{
+  "dashboard": {
+    "title": "Axiom Derivatives Platform - Performance Dashboard",
+    "tags": ["derivatives", "performance", "greeks"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Greeks Calculation Latency (Target: <100us)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(derivatives_greeks_latency_bucket[5m]))",
+            "legendFormat": "p50"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(derivatives_greeks_latency_bucket[5m]))",
+            "legendFormat": "p95 (SLA: <100us)"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(derivatives_greeks_latency_bucket[5m]))",
+            "legendFormat": "p99"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Latency (microseconds)",
+            "format": "µs"
+          }
+        ],
+        "alert": {
+          "name": "Greeks Latency SLA Breach",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [100],
+                "type": "gt"
+              },
+              "query": {
+                "model": "p95"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": 2,
+        "title": "Throughput (Calculations/Second)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(derivatives_greeks_requests_total[1m])",
+            "legendFormat": "Calculations/sec"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 10000,
+            "color": "green"
+          },
+          {
+            "value": 5000,
+            "color": "yellow"
+          },
+          {
+            "value": 1000,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "GPU Utilization",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "nvidia_gpu_utilization_percent",
+            "legendFormat": "GPU %"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Daily P&L",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "derivatives_daily_pnl_usd",
+            "legendFormat": "P&L ($)"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Portfolio Greeks",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "derivatives_portfolio_delta",
+            "legendFormat": "Delta"
+          },
+          {
+            "expr": "derivatives_portfolio_gamma",
+            "legendFormat": "Gamma"
+          },
+          {
+            "expr": "derivatives_portfolio_vega",
+            "legendFormat": "Vega"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "API Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(derivatives_api_errors_total[5m])",
+            "legendFormat": "Errors/sec"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Cache Hit Rate",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "derivatives_cache_hit_rate",
+            "legendFormat": "Hit Rate %"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Database Connections",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "pg_stat_activity_count",
+            "legendFormat": "Active connections"
+          }
+        ]
+      }
+    ],
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    }
+  }
+}

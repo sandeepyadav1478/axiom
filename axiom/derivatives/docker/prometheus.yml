@@ -1,0 +1,49 @@
+# Prometheus Configuration for Derivatives Platform
+# Scrapes metrics from API, monitors latency, throughput, errors
+
+global:
+  scrape_interval: 10s  # Scrape every 10 seconds (high frequency for latency monitoring)
+  evaluation_interval: 10s
+  external_labels:
+    cluster: 'derivatives-production'
+    environment: 'production'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Alert rules
+rule_files:
+  - '/etc/prometheus/alerts.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Derivatives API metrics
+  - job_name: 'derivatives-api'
+    static_configs:
+      - targets: ['derivatives-api:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 5s  # High frequency for latency monitoring
+
+  # PostgreSQL metrics
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Node metrics (system)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # GPU metrics (NVIDIA)
+  - job_name: 'nvidia-gpu'
+    static_configs:
+      - targets: ['dcgm-exporter:9400']

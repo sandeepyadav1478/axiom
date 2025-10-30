@@ -1,38 +1,29 @@
-# Prometheus configuration for Axiom API
-
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
-  external_labels:
-    monitor: 'axiom-api'
 
-# Alerting configuration
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets: []
-
-# Rule files
-rule_files:
-  # - "alerts.yml"
-
-# Scrape configurations
 scrape_configs:
-  # Axiom API metrics
   - job_name: 'axiom-api'
     static_configs:
       - targets: ['axiom-api:8000']
     metrics_path: '/metrics'
-    scrape_interval: 5s
-    scrape_timeout: 5s
 
-  # Prometheus self-monitoring
-  - job_name: 'prometheus'
+  - job_name: 'mlflow'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['mlflow:5000']
 
-  # Redis exporter (if enabled)
   - job_name: 'redis'
     static_configs:
       - targets: ['redis:6379']
-    metrics_path: '/metrics'
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+rule_files:
+  - 'alerts.yml'

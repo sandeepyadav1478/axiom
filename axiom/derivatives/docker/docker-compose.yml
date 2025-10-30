@@ -1,0 +1,177 @@
+# Docker Compose for Derivatives Platform Development
+# Complete stack: API + PostgreSQL + Redis + ChromaDB + Monitoring
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # Derivatives API (GPU-enabled)
+  # =============================================================================
+  derivatives-api:
+    build:
+      context: ../../..
+      dockerfile: axiom/derivatives/docker/Dockerfile
+    container_name: derivatives-api
+    ports:
+      - "8000:8000"  # API
+      - "9090:9090"  # Metrics
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=axiom_derivatives
+      - POSTGRES_USER=axiom_dev
+      - POSTGRES_PASSWORD=dev_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LOG_LEVEL=INFO
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - derivatives-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+  # =============================================================================
+  # PostgreSQL Database
+  # =============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: derivatives-postgres
+    environment:
+      - POSTGRES_DB=axiom_derivatives
+      - POSTGRES_USER=axiom_dev
+      - POSTGRES_PASSWORD=dev_password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - derivatives-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U axiom_dev -d axiom_derivatives"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # Redis Cache
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: derivatives-redis
+    command: redis-server --maxmemory 4gb --maxmemory-policy allkeys-lru --save 60 1000
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - derivatives-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # =============================================================================
+  # Prometheus Monitoring
+  # =============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: derivatives-prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    networks:
+      - derivatives-network
+    restart: unless-stopped
+
+  # =============================================================================
+  # Grafana Dashboards
+  # =============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: derivatives-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - derivatives-network
+    restart: unless-stopped
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  derivatives-network:
+    driver: bridge
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+# =============================================================================
+# USAGE
+# =============================================================================
+
+# Start all services:
+# docker-compose -f axiom/derivatives/docker/docker-compose.yml up -d
+
+# View logs:
+# docker-compose -f axiom/derivatives/docker/docker-compose.yml logs -f derivatives-api
+
+# Stop all services:
+# docker-compose -f axiom/derivatives/docker/docker-compose.yml down
+
+# Stop and remove volumes (clean state):
+# docker-compose -f axiom/derivatives/docker/docker-compose.yml down -v
+
+# Access services:
+# - API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+# - Prometheus: http://localhost:9091
+# - Grafana: http://localhost:3000 (admin/admin)
+# - PostgreSQL: localhost:5432
+# - Redis: localhost:6379
+
+# Test API:
+# curl http://localhost:8000/health
+# curl -X POST http://localhost:8000/greeks \
+#   -H "Content-Type: application/json" \
+#   -d '{"spot": 100, "strike": 100, "time_to_maturity": 1.0, "risk_free_rate": 0.03, "volatility": 0.25}'

@@ -1,0 +1,199 @@
+# Axiom Derivatives Platform - Production Dependencies
+# Senior quant-grade stack for sub-100 microsecond derivatives analytics
+
+# =============================================================================
+# CORE ML/AI STACK
+# =============================================================================
+
+# Deep Learning (PyTorch ecosystem - industry standard)
+torch>=2.0.0,<3.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# Ensure CUDA support (critical for <100us latency)
+# Install with: pip install torch --index-url https://download.pytorch.org/whl/cu118
+
+# Acceleration & Optimization
+onnx>=1.14.0  # Model export
+onnxruntime-gpu>=1.16.0  # Fast inference
+tensorrt>=8.6.0  # NVIDIA acceleration (2-5x speedup)
+# Note: TensorRT requires NVIDIA GPU and CUDA toolkit
+
+# Scientific Computing
+numpy>=1.24.0,<2.0.0
+scipy>=1.10.0
+pandas>=2.0.0
+
+# =============================================================================
+# AI ORCHESTRATION (Best-in-class tools)
+# =============================================================================
+
+# LangChain ecosystem (industry standard for LLM integration)
+langchain>=0.1.0
+langchain-openai>=0.0.2
+langchain-anthropic>=0.0.1
+langgraph>=0.0.20  # Workflow orchestration
+langsmith>=0.0.40  # Tracing and monitoring
+
+# Vector Database (ChromaDB - best open-source)
+chromadb>=0.4.0
+sentence-transformers>=2.2.0  # For embeddings
+
+# =============================================================================
+# DATABASES & CACHING
+# =============================================================================
+
+# PostgreSQL (structured data)
+psycopg2-binary>=2.9.0
+sqlalchemy>=2.0.0
+alembic>=1.12.0  # Database migrations
+
+# Redis (real-time caching - critical for speed)
+redis>=5.0.0
+hiredis>=2.2.0  # C parser for 10x faster Redis
+
+# =============================================================================
+# API & WEB
+# =============================================================================
+
+# FastAPI (high-performance API)
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# WebSockets (real-time data streaming)
+websockets>=12.0
+python-socketio>=5.10.0
+
+# =============================================================================
+# ML OPS & MONITORING
+# =============================================================================
+
+# Experiment Tracking
+mlflow>=2.8.0
+wandb>=0.16.0  # Alternative tracking
+
+# Monitoring
+prometheus-client>=0.17.0
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-instrumentation-fastapi>=0.41b0
+
+# Observability
+sentry-sdk>=1.30.0  # Error tracking
+loguru>=0.7.0  # Better logging
+
+# =============================================================================
+# DERIVATIVES-SPECIFIC
+# =============================================================================
+
+# Quantitative Finance Libraries (proven, don't reinvent)
+quantlib>=1.31  # Bond pricing, IR derivatives
+py_vollib>=1.0.1  # Implied volatility (fallback/validation)
+
+# Technical Indicators
+ta-lib>=0.4.28  # Battle-tested indicators
+
+# =============================================================================
+# TESTING & QUALITY
+# =============================================================================
+
+# Testing Framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-benchmark>=4.0.0
+pytest-xdist>=3.3.0  # Parallel testing
+
+# Load Testing
+locust>=2.15.0
+
+# Code Quality
+black>=23.0.0
+mypy>=1.5.0
+flake8>=6.1.0
+pylint>=3.0.0
+
+# =============================================================================
+# DATA SCIENCE & VISUALIZATION
+# =============================================================================
+
+# Plotting (for benchmarks and analysis)
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.17.0
+
+# Jupyter (for research and demos)
+jupyter>=1.0.0
+ipykernel>=6.25.0
+
+# =============================================================================
+# UTILITIES
+# =============================================================================
+
+# Configuration
+python-dotenv>=1.0.0
+pyyaml>=6.0
+
+# Date/Time
+python-dateutil>=2.8.0
+pytz>=2023.3
+
+# HTTP
+httpx>=0.25.0  # Modern HTTP client
+aiohttp>=3.9.0  # Async HTTP
+
+# Data Validation
+marshmallow>=3.20.0
+
+# =============================================================================
+# PERFORMANCE PROFILING
+# =============================================================================
+
+# Profiling Tools
+py-spy>=0.3.14  # Statistical profiler
+memory-profiler>=0.61.0
+line-profiler>=4.1.0
+
+# =============================================================================
+# DEPLOYMENT
+# =============================================================================
+
+# Container
+docker>=6.1.0
+docker-compose>=1.29.0
+
+# Cloud SDKs (optional, for cloud deployment)
+boto3>=1.28.0  # AWS
+google-cloud-storage>=2.10.0  # GCP
+azure-storage-blob>=12.18.0  # Azure
+
+# =============================================================================
+# INSTALLATION NOTES
+# =============================================================================
+
+# GPU Setup (CRITICAL for <100us latency):
+# 1. Install NVIDIA drivers
+# 2. Install CUDA Toolkit 11.8 or 12.x
+# 3. Install cuDNN
+# 4. Install PyTorch with CUDA: 
+#    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+# TensorRT Setup (OPTIONAL but recommended for 2-5x speedup):
+# 1. Download from NVIDIA: https://developer.nvidia.com/tensorrt
+# 2. Install: pip install tensorrt
+# 3. Requires CUDA and cuDNN
+
+# Quick Install (CPU-only for development):
+# pip install -r requirements-derivatives.txt
+
+# Production Install (GPU):
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+# pip install -r requirements-derivatives.txt
+# pip install tensorrt  # If NVIDIA GPU available
+
+# Verify Installation:
+# python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+# python -c "import chromadb; print('ChromaDB: OK')"
+# python -c "from langgraph.graph import StateGraph; print('LangGraph: OK')"

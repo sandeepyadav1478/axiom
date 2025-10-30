@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "portfolio-risk": {
+      "command": "python",
+      "args": ["-m", "axiom.mcp_servers.trading.portfolio_risk.server"],
+      "env": {
+        "USE_GPU": "false",
+        "LOG_LEVEL": "INFO"
+      },
+      "metadata": {
+        "name": "Portfolio Risk MCP Server",
+        "version": "1.0.0",
+        "description": "Real-time portfolio risk management with multiple VaR methods",
+        "author": "Axiom Derivatives",
+        "license": "Proprietary",
+        "capabilities": {
+          "tools": ["calculate_risk", "stress_test", "check_limits"],
+          "resources": ["risk://metrics", "risk://limits", "risk://history"],
+          "prompts": ["explain_risk", "var_explanation", "limit_help"]
+        },
+        "performance": {
+          "target_latency_ms": 5.0,
+          "conservative_approach": true,
+          "var_methods": ["parametric", "historical", "monte_carlo"]
+        },
+        "tags": ["risk", "var", "portfolio", "stress-test", "conservative"]
+      }
+    }
+  }
+}

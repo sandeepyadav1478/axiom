@@ -1,0 +1,1 @@
+{"mcpServers":{"performance-analytics":{"command":"python","args":["-m","axiom.mcp_servers.analytics.performance.server"],"metadata":{"name":"Performance Analytics MCP Server","version":"1.0.0","capabilities":{"tools":["calculate_pnl","generate_report"],"resources":["pnl://snapshot"],"prompts":["explain_pnl"]},"performance":{"target_latency_ms":10.0}}}}}

@@ -1,0 +1,465 @@
+# Kubernetes Deployment for Derivatives Platform
+# Production-grade configuration with GPU support, auto-scaling, monitoring
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: derivatives
+  labels:
+    name: derivatives
+    environment: production
+
+---
+# =============================================================================
+# ConfigMap for Application Configuration
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: derivatives-config
+  namespace: derivatives
+data:
+  POSTGRES_HOST: "derivatives-postgres-svc"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "axiom_derivatives"
+  REDIS_HOST: "derivatives-redis-svc"
+  REDIS_PORT: "6379"
+  LOG_LEVEL: "INFO"
+  TARGET_LATENCY_US: "100"
+  GPU_ENABLED: "true"
+
+---
+# =============================================================================
+# Secret for Sensitive Data
+# =============================================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: derivatives-secrets
+  namespace: derivatives
+type: Opaque
+stringData:
+  POSTGRES_USER: "axiom_prod"
+  POSTGRES_PASSWORD: "CHANGE_IN_PRODUCTION"
+  API_SECRET_KEY: "CHANGE_IN_PRODUCTION"
+  JWT_SECRET: "CHANGE_IN_PRODUCTION"
+
+---
+# =============================================================================
+# Derivatives API Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: derivatives-api
+  namespace: derivatives
+  labels:
+    app: derivatives-api
+    tier: application
+spec:
+  replicas: 3  # High availability
+  selector:
+    matchLabels:
+      app: derivatives-api
+  template:
+    metadata:
+      labels:
+        app: derivatives-api
+        tier: application
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      # GPU node selector
+      nodeSelector:
+        gpu: "true"
+        gpu-type: "nvidia-a100"
+      
+      # Tolerations for GPU nodes
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      
+      containers:
+      - name: api
+        image: axiom/derivatives:v1.0.0
+        imagePullPolicy: Always
+        
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        - containerPort: 9090
+          name: metrics
+          protocol: TCP
+        
+        # Resource limits (GPU + CPU + Memory)
+        resources:
+          requests:
+            memory: "8Gi"
+            cpu: "4000m"
+            nvidia.com/gpu: 1
+          limits:
+            memory: "16Gi"
+            cpu: "8000m"
+            nvidia.com/gpu: 1
+        
+        # Environment from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: derivatives-config
+        - secretRef:
+            name: derivatives-secrets
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 2
+        
+        # Startup probe (for slow GPU initialization)
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30  # 5 minutes max startup
+        
+        # Volume mounts
+        volumeMounts:
+        - name: model-weights
+          mountPath: /app/models
+          readOnly: true
+        - name: chroma-data
+          mountPath: /app/data/chroma_derivatives
+      
+      volumes:
+      - name: model-weights
+        persistentVolumeClaim:
+          claimName: model-weights-pvc
+      - name: chroma-data
+        persistentVolumeClaim:
+          claimName: chroma-data-pvc
+
+---
+# =============================================================================
+# Service for Derivatives API
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: derivatives-api-svc
+  namespace: derivatives
+  labels:
+    app: derivatives-api
+spec:
+  type: LoadBalancer
+  selector:
+    app: derivatives-api
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  sessionAffinity: ClientIP  # Sticky sessions for caching
+
+---
+# =============================================================================
+# Horizontal Pod Autoscaler
+# =============================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: derivatives-api-hpa
+  namespace: derivatives
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: derivatives-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  # CPU-based scaling
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  
+  # Custom metric: API latency
+  - type: Pods
+    pods:
+      metric:
+        name: derivatives_greeks_latency_p95
+      target:
+        type: AverageValue
+        averageValue: "100"  # Scale if p95 > 100us
+  
+  # Custom metric: Request rate
+  - type: Pods
+    pods:
+      metric:
+        name: derivatives_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "5000"  # Scale if >5K req/s per pod
+
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5 min before scale down
+      policies:
+      - type: Percent
+        value: 50  # Scale down max 50% at once
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0  # Scale up immediately
+      policies:
+      - type: Percent
+        value: 100  # Can double pods quickly
+        periodSeconds: 30
+
+---
+# =============================================================================
+# PostgreSQL Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: derivatives-postgres
+  namespace: derivatives
+spec:
+  serviceName: derivatives-postgres-svc
+  replicas: 1  # Single master (use Patroni for HA in production)
+  selector:
+    matchLabels:
+      app: derivatives-postgres
+  template:
+    metadata:
+      labels:
+        app: derivatives-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        envFrom:
+        - secretRef:
+            name: derivatives-secrets
+        env:
+        - name: POSTGRES_DB
+          value: "axiom_derivatives"
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: derivatives-postgres-svc
+  namespace: derivatives
+spec:
+  selector:
+    app: derivatives-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  clusterIP: None  # Headless service for StatefulSet
+
+---
+# =============================================================================
+# Redis Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: derivatives-redis
+  namespace: derivatives
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: derivatives-redis
+  template:
+    metadata:
+      labels:
+        app: derivatives-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command: ["redis-server", "--maxmemory", "8gb", "--maxmemory-policy", "allkeys-lru"]
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "8Gi"
+            cpu: "2000m"
+          limits:
+            memory: "16Gi"
+            cpu: "4000m"
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: redis-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: derivatives-redis-svc
+  namespace: derivatives
+spec:
+  selector:
+    app: derivatives-redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+
+---
+# =============================================================================
+# Persistent Volume Claims
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-weights-pvc
+  namespace: derivatives
+spec:
+  accessModes:
+    - ReadWriteMany  # Multiple pods can read
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chroma-data-pvc
+  namespace: derivatives
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: derivatives
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: fast-ssd
+
+---
+# =============================================================================
+# Ingress for External Access
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: derivatives-ingress
+  namespace: derivatives
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+spec:
+  tls:
+  - hosts:
+    - derivatives.axiom-platform.com
+    secretName: derivatives-tls
+  rules:
+  - host: derivatives.axiom-platform.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: derivatives-api-svc
+            port:
+              number: 80
+
+# =============================================================================
+# DEPLOYMENT INSTRUCTIONS
+# =============================================================================
+
+# 1. Create namespace:
+#    kubectl create namespace derivatives
+
+# 2. Apply secrets (after editing):
+#    kubectl apply -f deployment.yaml
+
+# 3. Deploy:
+#    kubectl apply -f deployment.yaml
+
+# 4. Verify:
+#    kubectl get pods -n derivatives
+#    kubectl logs -f deployment/derivatives-api -n derivatives
+
+# 5. Test:
+#    kubectl port-forward svc/derivatives-api-svc 8000:80 -n derivatives
+#    curl http://localhost:8000/health
+
+# 6. Scale manually:
+#    kubectl scale deployment/derivatives-api --replicas=5 -n derivatives
+
+# 7. View autoscaling:
+#    kubectl get hpa -n derivatives
+#    kubectl describe hpa derivatives-api-hpa -n derivatives

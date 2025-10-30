@@ -91,6 +91,36 @@ class ModelType(Enum):
     LBO_MODEL = "lbo_model"
     VALUATION_INTEGRATION = "valuation_integration"
     DEAL_SCREENING = "deal_screening"
+    
+    # Advanced Risk Models
+    CNN_LSTM_CREDIT = "cnn_lstm_credit"
+    ENSEMBLE_CREDIT = "ensemble_credit"
+    
+    # Advanced Portfolio Models
+    RL_PORTFOLIO_MANAGER = "rl_portfolio_manager"
+    LSTM_CNN_PORTFOLIO = "lstm_cnn_portfolio"
+    PORTFOLIO_TRANSFORMER = "portfolio_transformer"
+    
+    # Advanced Options Pricing Models
+    VAE_OPTION_PRICER = "vae_option_pricer"
+    ANN_GREEKS_CALCULATOR = "ann_greeks_calculator"
+    DRL_OPTION_HEDGER = "drl_option_hedger"
+    GAN_VOLATILITY_SURFACE = "gan_volatility_surface"
+    INFORMER_TRANSFORMER_PRICER = "informer_transformer_pricer"
+    
+    # Advanced M&A Models
+    ML_TARGET_SCREENER = "ml_target_screener"
+    NLP_SENTIMENT_MA = "nlp_sentiment_ma"
+    AI_DUE_DILIGENCE = "ai_due_diligence"
+    MA_SUCCESS_PREDICTOR = "ma_success_predictor"
+    
+    # Advanced Credit Risk - NLP/LLM/GNN
+    LLM_CREDIT_SCORING = "llm_credit_scoring"
+    TRANSFORMER_NLP_CREDIT = "transformer_nlp_credit"
+    GNN_CREDIT_NETWORK = "gnn_credit_network"
+    
+    # Advanced Portfolio - Multi-Objective
+    MILLION_PORTFOLIO = "million_portfolio"
 
 
 @dataclass
@@ -337,6 +367,249 @@ def _init_builtin_models():
         )
     except ImportError as e:
         # Portfolio models not yet available
+        pass
+    
+    # Advanced Portfolio Models
+    try:
+        from axiom.models.portfolio.rl_portfolio_manager import RLPortfolioManager
+        
+        ModelFactory.register_model(
+            ModelType.RL_PORTFOLIO_MANAGER.value,
+            RLPortfolioManager,
+            config_key="portfolio",
+            description="Reinforcement Learning portfolio manager using PPO with CNN feature extraction (Wu et al. 2024)"
+        )
+    except ImportError as e:
+        # RL Portfolio Manager not available (requires torch, gymnasium, stable-baselines3)
+        pass
+    
+    try:
+        from axiom.models.portfolio.lstm_cnn_predictor import LSTMCNNPortfolioPredictor
+        
+        ModelFactory.register_model(
+            ModelType.LSTM_CNN_PORTFOLIO.value,
+            LSTMCNNPortfolioPredictor,
+            config_key="portfolio",
+            description="LSTM+CNN portfolio predictor with three optimization frameworks (Nguyen 2025)"
+        )
+    except ImportError as e:
+        # LSTM+CNN Portfolio not available (requires torch, scipy, cvxpy)
+        pass
+    
+    try:
+        from axiom.models.portfolio.portfolio_transformer import PortfolioTransformer
+        
+        ModelFactory.register_model(
+            ModelType.PORTFOLIO_TRANSFORMER.value,
+            PortfolioTransformer,
+            config_key="portfolio",
+            description="Portfolio Transformer for attention-based asset allocation (Kisiel & Gorse 2023)"
+        )
+    except ImportError as e:
+        # Portfolio Transformer not available (requires torch)
+        pass
+    
+    # Advanced Options Pricing Models
+    try:
+        from axiom.models.pricing.vae_option_pricer import VAEMLPOptionPricer
+        
+        ModelFactory.register_model(
+            ModelType.VAE_OPTION_PRICER.value,
+            VAEMLPOptionPricer,
+            config_key="options",
+            description="VAE+MLP option pricer for exotic options with volatility surface compression (Ding et al. 2025)"
+        )
+    except ImportError as e:
+        # VAE Option Pricer not available (requires torch, scipy)
+        pass
+    
+    # Advanced Credit Risk Models
+    try:
+        from axiom.models.risk.cnn_lstm_credit_model import CNNLSTMCreditPredictor
+        
+        ModelFactory.register_model(
+            ModelType.CNN_LSTM_CREDIT.value,
+            CNNLSTMCreditPredictor,
+            config_key="credit",
+            description="CNN-LSTM-Attention credit default prediction with 16% improvement (Qiu & Wang 2025)"
+        )
+    except ImportError as e:
+        # CNN-LSTM Credit not available (requires torch, sklearn)
+        pass
+    
+    try:
+        from axiom.models.risk.ensemble_credit_model import EnsembleCreditModel
+        
+        ModelFactory.register_model(
+            ModelType.ENSEMBLE_CREDIT.value,
+            EnsembleCreditModel,
+            config_key="credit",
+            description="Ensemble credit model with XGBoost, LightGBM, RF, and GB (Zhu et al. 2024)"
+        )
+    except ImportError as e:
+        # Ensemble Credit not available (requires xgboost, lightgbm, sklearn)
+        pass
+    
+    # Advanced Options Models - Greeks and Hedging
+    try:
+        from axiom.models.pricing.ann_greeks_calculator import ANNGreeksCalculator
+        
+        ModelFactory.register_model(
+            ModelType.ANN_GREEKS_CALCULATOR.value,
+            ANNGreeksCalculator,
+            config_key="options",
+            description="ANN-based Greeks calculator with <1ms calculation time (du Plooy & Venter 2024)"
+        )
+    except ImportError as e:
+        # ANN Greeks not available (requires torch, scipy)
+        pass
+    
+    try:
+        from axiom.models.pricing.drl_option_hedger import DRLOptionHedger
+        
+        ModelFactory.register_model(
+            ModelType.DRL_OPTION_HEDGER.value,
+            DRLOptionHedger,
+            config_key="options",
+            description="DRL-based American put hedging with 15-30% improvement over BS Delta (Pickard et al. 2024)"
+        )
+    except ImportError as e:
+        # DRL Hedger not available (requires torch, gymnasium, stable-baselines3)
+        pass
+    
+    # Advanced M&A Models
+    try:
+        from axiom.models.ma.ml_target_screener import MLTargetScreener
+        
+        ModelFactory.register_model(
+            ModelType.ML_TARGET_SCREENER.value,
+            MLTargetScreener,
+            config_key="ma",
+            description="ML-based M&A target screening and synergy prediction (Zhang et al. 2024)"
+        )
+    except ImportError as e:
+        # ML Target Screener not available (requires sklearn)
+        pass
+    
+    try:
+        from axiom.models.ma.nlp_sentiment_ma_predictor import NLPSentimentMAPredictor
+        
+        ModelFactory.register_model(
+            ModelType.NLP_SENTIMENT_MA.value,
+            NLPSentimentMAPredictor,
+            config_key="ma",
+            description="NLP sentiment-based M&A prediction with 3-6 month early warning (Hajek & Henriques 2024)"
+        )
+    except ImportError as e:
+        # NLP Sentiment MA not available (requires AI providers)
+        pass
+    
+    # Advanced Credit Risk - NLP/LLM Models
+    try:
+        from axiom.models.risk.llm_credit_scoring import LLMCreditScoring
+        
+        ModelFactory.register_model(
+            ModelType.LLM_CREDIT_SCORING.value,
+            LLMCreditScoring,
+            config_key="credit",
+            description="LLM-based credit scoring with alternative data and multi-source sentiment (Ogbuonyalu et al. 2025)"
+        )
+    except ImportError as e:
+        # LLM Credit Scoring not available (requires AI providers)
+        pass
+    
+    try:
+        from axiom.models.risk.transformer_nlp_credit import TransformerNLPCreditModel
+        
+        ModelFactory.register_model(
+            ModelType.TRANSFORMER_NLP_CREDIT.value,
+            TransformerNLPCreditModel,
+            config_key="credit",
+            description="Transformer-based document analysis for credit risk with 70-80% time savings (Shu et al. 2024)"
+        )
+    except ImportError as e:
+        # Transformer NLP Credit not available (requires torch, transformers)
+        pass
+    
+    # Batch 3: Advanced Options Models
+    try:
+        from axiom.models.pricing.gan_volatility_surface import GANVolatilitySurface
+        
+        ModelFactory.register_model(
+            ModelType.GAN_VOLATILITY_SURFACE.value,
+            GANVolatilitySurface,
+            config_key="options",
+            description="GAN-based arbitrage-free volatility surface generation (Ge et al. IEEE 2025)"
+        )
+    except ImportError as e:
+        # GAN Volatility Surface not available (requires torch)
+        pass
+    
+    try:
+        from axiom.models.pricing.informer_transformer_pricer import InformerOptionPricer
+        
+        ModelFactory.register_model(
+            ModelType.INFORMER_TRANSFORMER_PRICER.value,
+            InformerOptionPricer,
+            config_key="options",
+            description="Informer transformer for option pricing with efficient long-sequence attention (Bańka & Chudziak 2025)"
+        )
+    except ImportError as e:
+        # Informer Pricer not available (requires torch)
+        pass
+    
+    # Batch 3: Advanced M&A Models
+    try:
+        from axiom.models.ma.ai_due_diligence_system import AIDueDiligenceSystem
+        
+        ModelFactory.register_model(
+            ModelType.AI_DUE_DILIGENCE.value,
+            AIDueDiligenceSystem,
+            config_key="ma",
+            description="AI-powered M&A due diligence automation with 70-80% time savings (Bedekar et al. 2024)"
+        )
+    except ImportError as e:
+        # AI DD System not available (requires AI providers)
+        pass
+    
+    try:
+        from axiom.models.ma.ma_success_predictor import MASuccessPredictor
+        
+        ModelFactory.register_model(
+            ModelType.MA_SUCCESS_PREDICTOR.value,
+            MASuccessPredictor,
+            config_key="ma",
+            description="ML-based M&A success prediction with 70-80% accuracy (Lukander 2025)"
+        )
+    except ImportError as e:
+        # MA Success Predictor not available (requires sklearn)
+        pass
+    
+    # Batch 4: Advanced Models
+    try:
+        from axiom.models.risk.gnn_credit_network import GNNCreditNetwork
+        
+        ModelFactory.register_model(
+            ModelType.GNN_CREDIT_NETWORK.value,
+            GNNCreditNetwork,
+            config_key="credit",
+            description="Graph Neural Network for credit risk contagion and network effects (Nandan et al. March 2025)"
+        )
+    except ImportError as e:
+        # GNN Credit Network not available (requires torch, networkx, torch_geometric)
+        pass
+    
+    try:
+        from axiom.models.portfolio.million_portfolio_framework import MILLIONPortfolio
+        
+        ModelFactory.register_model(
+            ModelType.MILLION_PORTFOLIO.value,
+            MILLIONPortfolio,
+            config_key="portfolio",
+            description="MILLION two-phase portfolio optimization with anti-overfitting (arXiv:2412.03038, VLDB 2025)"
+        )
+    except ImportError as e:
+        # MILLION Portfolio not available (requires torch, scipy, cvxpy)
         pass
     
     # Market Microstructure Models

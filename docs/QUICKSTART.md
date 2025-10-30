@@ -1,260 +1,113 @@
-# Axiom Investment Banking Analytics - Quick Start Guide
+# Axiom Platform - Quick Start Guide
 
-## 🚀 Quick Start (5 Minutes)
+## 5-Minute Setup
 
-### 1. Installation
 ```bash
-# Clone and install
-git clone <repository-url>
+# 1. Clone repository
+git clone https://github.com/your-org/axiom.git
 cd axiom
-pip install -e .
 
-# Verify installation
-python simple_demo.py
-```
+# 2. Install dependencies
+pip install -r requirements.txt
 
-### 2. Configuration
-```bash
-# Copy environment template
+# 3. Set up environment
 cp .env.example .env
+# Edit .env with your API keys
 
-# Edit .env with your API keys (at minimum):
-# TAVILY_API_KEY=your_tavily_key_here
-# FIRECRAWL_API_KEY=your_firecrawl_key_here
-# OPENAI_API_KEY=sk-your_openai_key_here  # OR
-# CLAUDE_API_KEY=sk-ant-your_claude_key_here
-```
-
-### 3. Run M&A Analysis
-```bash
-# Test the system
-python -m axiom.main "Microsoft acquisition of OpenAI strategic analysis"
+# 4. Run platform
+python demos/demo_complete_platform_42_models.py
 ```
 
 ---
 
-## 🏦 Investment Banking Features
+## First Portfolio Optimization
 
-### M&A Analysis (Phase 1 - Ready)
-- **Due Diligence**: Financial health, operational risks, strategic fit
-- **Valuation**: DCF, comparable analysis, precedent transactions  
-- **Strategic Analysis**: Market position, synergies, competitive advantages
-- **Risk Assessment**: Integration complexity, regulatory compliance
+```python
+from axiom.models.base.factory import ModelFactory, ModelType
+import numpy as np
 
-### AI Provider Configuration
-- **Claude**: Optimized for M&A reasoning and strategic analysis
-- **OpenAI**: Structured financial analysis and valuation
-- **SGLang**: Local inference for NVIDIA systems
-- **Multi-Provider**: Consensus mode for critical decisions
+# Load model
+model = ModelFactory.create(ModelType.PORTFOLIO_TRANSFORMER)
 
----
+# Your data (5 assets, 30 days)
+market_data = np.random.randn(30, 25)  # 30 days, 5 assets × 5 features
 
-## 📊 Usage Examples
-
-### M&A Due Diligence
-```bash
-python -m axiom.main "Comprehensive M&A due diligence analysis of NVIDIA financial health and strategic value"
-```
-
-### M&A Valuation 
-```bash
-python -m axiom.main "Tesla acquisition valuation analysis using DCF and comparable transactions with synergy assessment"
-```
-
-### Strategic M&A Analysis
-```bash
-python -m axiom.main "Microsoft OpenAI merger strategic fit analysis and integration complexity assessment"
-```
-
-### Market Intelligence
-```bash
-python -m axiom.main "Semiconductor industry M&A consolidation trends and valuation multiples analysis"
+# Get optimal allocation
+weights = model.allocate(market_data)
+print(f"Optimal weights: {weights}")
 ```
 
 ---
 
-## ⚙️ Configuration Options
+## First Credit Assessment
 
-### 🎯 Quantitative Finance Configuration
-
-**Factory Pattern Usage:**
 ```python
 from axiom.models.base.factory import ModelFactory, ModelType
 
-# Create VaR model with default config
-var_model = ModelFactory.create(ModelType.HISTORICAL_VAR)
-result = var_model.calculate_risk(
-    portfolio_value=1_000_000,
-    returns=historical_returns,
-    confidence_level=0.95
-)
+# Load credit models
+ensemble = ModelFactory.create(ModelType.ENSEMBLE_CREDIT)
+llm_scorer = ModelFactory.create(ModelType.LLM_CREDIT_SCORING)
 
-# Create time series model
-arima_model = ModelFactory.create(ModelType.ARIMA)
-forecast = arima_model.calculate(data=price_data, forecast_horizon=5)
+# Borrower data
+borrower_features = np.array([...])  # Your features
+
+# Get predictions
+default_prob = ensemble.predict_proba(borrower_features)
+print(f"Default probability: {default_prob:.1%}")
 ```
 
-**Configuration Profiles:**
+---
+
+## First M&A Analysis
+
 ```python
-from axiom.config.model_config import ModelConfig
+from axiom.models.ma.ml_target_screener import MLTargetScreener
 
-# Basel III compliance
-config = ModelConfig.for_basel_iii_compliance()
+# Screen targets
+screener = MLTargetScreener()
+acquirer = {'name': 'Your Company', 'revenue': 2_000_000_000}
+targets = [...]  # List of target profiles
 
-# High performance (speed-optimized)
-config = ModelConfig.for_high_performance()
-
-# High precision (accuracy-optimized)
-config = ModelConfig.for_high_precision()
-
-# Trading style presets
-from axiom.config.model_config import TimeSeriesConfig
-intraday_config = TimeSeriesConfig.for_intraday_trading()
-swing_config = TimeSeriesConfig.for_swing_trading()
-position_config = TimeSeriesConfig.for_position_trading()
+# Get ranked targets
+ranked = screener.screen_targets(acquirer, targets)
+print(f"Top target: {ranked[0][0].company_name}")
 ```
 
-**Custom Configuration:**
+---
+
+## Deploy to Production
+
+```bash
+# Using Docker Compose
+./scripts/deploy_production.sh
+
+# Or Kubernetes
+kubectl apply -f kubernetes/deployment.yaml
+```
+
+---
+
+## Access Services
+
+- **API:** http://localhost:8000
+- **MLflow:** http://localhost:5000
+- **Grafana:** http://localhost:3000
+- **Prometheus:** http://localhost:9090
+
+---
+
+## Generate Client Reports
+
 ```python
-from axiom.config.model_config import VaRConfig, TimeSeriesConfig
+from axiom.client_interface.portfolio_dashboard import PortfolioDashboard
 
-# Custom VaR configuration
-var_config = VaRConfig(
-    default_confidence_level=0.99,
-    default_method="monte_carlo",
-    default_simulations=50000,
-    parallel_mc=True
-)
-
-# Custom time series configuration
-ts_config = TimeSeriesConfig(
-    ewma_decay_factor=0.96,
-    forecast_horizon=10,
-    arima_auto_select=True
-)
-
-# Use with factory
-model = ModelFactory.create(ModelType.MONTE_CARLO_VAR, config=var_config)
-```
-
-### Environment Variables (47+ Parameters)
-
-**VaR Configuration:**
-```env
-VAR_CONFIDENCE=0.99
-VAR_METHOD=historical
-VAR_MIN_OBS=252
-```
-
-**Time Series Configuration:**
-```env
-TS_EWMA_LAMBDA=0.94
-TS_FORECAST_HORIZON=5
-```
-
-**Portfolio Configuration:**
-```env
-PORTFOLIO_RISK_FREE_RATE=0.03
-PORTFOLIO_METHOD=max_sharpe
-PORTFOLIO_LONG_ONLY=true
-```
-
-### AI Provider Setup
-```env
-# Option 1: OpenAI Only
-OPENAI_API_KEY=sk-your_key_here
-OPENAI_MODEL_NAME=gpt-4o-mini
-
-# Option 2: Claude Only
-CLAUDE_API_KEY=sk-ant-your_key_here
-CLAUDE_MODEL_NAME=claude-3-sonnet-20240229
-
-# Option 3: Multi-Provider (Recommended)
-OPENAI_API_KEY=sk-your_openai_key_here
-CLAUDE_API_KEY=sk-ant-your_claude_key_here
-
-# Option 4: Local Inference (NVIDIA)
-SGLANG_BASE_URL=http://localhost:30000/v1
-```
-
-### Investment Banking Parameters
-```env
-# Analysis Configuration
-DUE_DILIGENCE_CONFIDENCE_THRESHOLD=0.8
-VALUATION_MODEL_TYPES=dcf,comparable,precedent
-RISK_ANALYSIS_ENABLED=true
-
-# Conservative AI Settings (Pre-configured)
-# M&A Due Diligence: Temperature=0.03, Consensus=true
-# M&A Valuation: Temperature=0.05, Consensus=true
-# Observer Synthesis: Temperature=0.02
+dashboard = PortfolioDashboard(your_data)
+fig = dashboard.create_dashboard()
+fig.write_html('client_report.html')
 ```
 
 ---
 
-## 🎯 System Validation
+**60 ML Models | Complete Infrastructure | Client-Ready**
 
-### Check System Health
-```bash
-python simple_demo.py
-```
-
-### Expected Output:
-```
-🎯 KEY FEATURES IMPLEMENTED:
-   • Multi-AI Provider System (OpenAI, Claude, SGLang)
-   • Investment Banking Workflow Orchestration
-   • M&A-Specific Analysis Planning
-   • Financial Data Validation & Compliance
-   • DSPy Optimization for Financial Queries
-   • Comprehensive Error Handling
-
-Demo Score: 4/4 ✅
-```
-
-### Run System Validation
-```bash
-python tests/validate_system.py
-```
-
----
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**Import Errors**
-```bash
-# Solution: Install all dependencies
-pip install -r requirements.txt
-```
-
-**No AI Provider Available**
-```bash
-# Solution: Configure at least one AI provider in .env
-OPENAI_API_KEY=sk-your_key_here
-# OR
-CLAUDE_API_KEY=sk-ant-your_key_here
-```
-
-**Low Confidence Results**
-```bash
-# Solution: Check data sources and increase evidence threshold
-DUE_DILIGENCE_CONFIDENCE_THRESHOLD=0.7  # Lower threshold
-```
-
-### Getting Help
-- Check [`SETUP_GUIDE.md`](SETUP_GUIDE.md) for detailed setup
-- Review [`CONTEXT.md`](CONTEXT.md) for architecture details
-- Run [`simple_demo.py`](simple_demo.py) for system validation
-
----
-
-## 🏃‍♂️ Ready for Production
-
-✅ **Core Features**: Multi-AI provider system, M&A analysis, financial validation  
-✅ **Architecture**: LangGraph workflow, DSPy optimization, comprehensive error handling  
-✅ **Investment Banking**: M&A due diligence, valuation, strategic analysis  
-✅ **Quality**: Conservative AI settings, compliance validation, audit trails
-
-**Next**: Configure your API keys and start analyzing M&A transactions!
+See full docs in `/docs` directory.

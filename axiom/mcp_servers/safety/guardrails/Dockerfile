@@ -14,7 +14,7 @@ COPY axiom/mcp_servers/__init__.py /app/axiom/mcp_servers/__init__.py
 RUN mkdir -p /app/axiom/mcp_servers/safety && touch /app/axiom/mcp_servers/safety/__init__.py
 
 RUN mkdir -p /app/axiom/ai_layer/guardrails && \
-    echo "class AIGuardrailSystem:\n    def __init__(self):pass\n    def validate_greeks_output(self,**kwargs):\n        class Result:\n            passed=True;risk_level=type('obj',(),{'value':'low'})\n();issues_found=[]\n        return Result()\n    def validate_strategy(self,**kwargs):\n        class Result:\n            passed=True;risk_level=type('obj',(),{'value':'low'})\n();issues_found=[]\n        return Result()\n    def validate_execution(self,**kwargs):\n        class Result:\n            passed=True;risk_level=type('obj',(),{'value':'low'})\n();issues_found=[]\n        return Result()" > /app/axiom/ai_layer/guardrails/ai_safety_layer.py && \
+    python3 -c "code='class RiskLevel:\\n    def __init__(self,v):\\n        self.value=v\\nclass ValidationResult:\\n    def __init__(self):\\n        self.passed=True\\n        self.risk_level=RiskLevel(\"low\")\\n        self.issues_found=[]\\nclass AIGuardrailSystem:\\n    def __init__(self):pass\\n    def validate_greeks_output(self,**kwargs):\\n        return ValidationResult()\\n    def validate_strategy(self,**kwargs):\\n        return ValidationResult()\\n    def validate_execution(self,**kwargs):\\n        return ValidationResult()'; open('/app/axiom/ai_layer/guardrails/ai_safety_layer.py','w').write(code)" && \
     touch /app/axiom/ai_layer/__init__.py /app/axiom/ai_layer/guardrails/__init__.py
 
 ENV PYTHONPATH=/app

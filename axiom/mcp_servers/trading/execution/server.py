@@ -91,9 +91,7 @@ class SmartExecutionMCPServer(BaseMCPServer):
         self._register_prompts()
         
         self.logger.info(
-            "smart_execution_mcp_server_initialized",
-            tools=len(self.tools),
-            venues=10
+            f"smart_execution_mcp_server_initialized: tools={len(self.tools)}, venues=10"
         )
     
     def _register_tools(self):

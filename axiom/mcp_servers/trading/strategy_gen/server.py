@@ -84,9 +84,7 @@ class StrategyGenerationMCPServer(BaseMCPServer):
         self._register_prompts()
         
         self.logger.info(
-            "strategy_generation_mcp_server_initialized",
-            tools=len(self.tools),
-            resources=len(self.resources)
+            f"strategy_generation_mcp_server_initialized: tools={len(self.tools)}, resources={len(self.resources)}"
         )
     
     def _register_tools(self):

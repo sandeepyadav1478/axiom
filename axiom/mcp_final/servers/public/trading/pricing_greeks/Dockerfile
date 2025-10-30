@@ -12,15 +12,15 @@ COPY axiom/mcp_servers/requirements-mcp-only.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy MCP server code
-COPY axiom/mcp_servers/shared /app/axiom/mcp_servers/shared
-COPY axiom/mcp_servers/trading/pricing_greeks /app/axiom/mcp_servers/trading/pricing_greeks
+COPY axiom/mcp_final/servers/shared /app/axiom/mcp_final/servers/shared
+COPY axiom/mcp_final/servers/public/trading/pricing_greeks /app/axiom/mcp_final/servers/trading/pricing_greeks
 
 # Create minimal axiom __init__.py (don't import config)
 RUN echo "# Minimal axiom package for MCP server" > /app/axiom/__init__.py
 
 # Copy __init__ files for package structure
-COPY axiom/mcp_servers/__init__.py /app/axiom/mcp_servers/__init__.py
-COPY axiom/mcp_servers/trading/__init__.py /app/axiom/mcp_servers/trading/__init__.py
+COPY axiom/mcp_final/servers/__init__.py /app/axiom/mcp_final/servers/__init__.py
+COPY axiom/mcp_final/servers/public/trading/__init__.py /app/axiom/mcp_final/servers/trading/__init__.py
 
 # Create minimal stubs for domain imports
 RUN mkdir -p /app/axiom/ai_layer/domain && \
@@ -44,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import sys; sys.exit(0)"
 
 # Run MCP server via STDIO
-CMD ["python", "-m", "axiom.mcp_servers.trading.pricing_greeks.server"]
+CMD ["python", "-m", "axiom.mcp_final.servers.trading.pricing_greeks.server"]

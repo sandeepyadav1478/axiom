@@ -1,9 +1,9 @@
 """Regulatory Compliance MCP Server - SEC, FINRA, MiFID II, EMIR compliance."""
 import asyncio
 import json
-from axiom.mcp_servers.shared.mcp_base import BaseMCPServer, MCPError
-from axiom.mcp_servers.shared.mcp_protocol import MCPErrorCode
-from axiom.mcp_servers.shared.mcp_transport import STDIOTransport
+from axiom.mcp_final.servers.shared.mcp_base import BaseMCPServer, MCPError
+from axiom.mcp_final.servers.shared.mcp_protocol import MCPErrorCode
+from axiom.mcp_final.servers.shared.mcp_transport import STDIOTransport
 from axiom.derivatives.compliance.regulatory_reporting import RegulatoryReporter
 
 class RegulatoryComplianceMCPServer(BaseMCPServer):

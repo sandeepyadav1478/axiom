@@ -24,11 +24,11 @@ from datetime import datetime
 import logging
 
 # MCP infrastructure
-from axiom.mcp_servers.shared.mcp_base import (
+from axiom.mcp_final.servers.shared.mcp_base import (
     BaseMCPServer, ToolDefinition, Resource, Prompt, MCPError
 )
-from axiom.mcp_servers.shared.mcp_protocol import MCPErrorCode
-from axiom.mcp_servers.shared.mcp_transport import STDIOTransport, HTTPTransport
+from axiom.mcp_final.servers.shared.mcp_protocol import MCPErrorCode
+from axiom.mcp_final.servers.shared.mcp_transport import STDIOTransport, HTTPTransport
 
 # Domain (leverage our professional agents)
 from axiom.ai_layer.domain.risk_value_objects import (

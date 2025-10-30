@@ -1,9 +1,9 @@
 """Safety Guardrail MCP Server - Multi-layer safety validation with veto authority."""
 import asyncio
 import json
-from axiom.mcp_servers.shared.mcp_base import BaseMCPServer, MCPError
-from axiom.mcp_servers.shared.mcp_protocol import MCPErrorCode
-from axiom.mcp_servers.shared.mcp_transport import STDIOTransport
+from axiom.mcp_final.servers.shared.mcp_base import BaseMCPServer, MCPError
+from axiom.mcp_final.servers.shared.mcp_protocol import MCPErrorCode
+from axiom.mcp_final.servers.shared.mcp_transport import STDIOTransport
 from axiom.ai_layer.guardrails.ai_safety_layer import AIGuardrailSystem
 
 class SafetyGuardrailMCPServer(BaseMCPServer):

@@ -10,8 +10,8 @@ import logging
 from pathlib import Path
 from typing import Any, Optional
 
-from axiom.integrations.mcp_servers.config import mcp_settings
-from axiom.integrations.mcp_servers.manager import (
+from axiom.mcp_final.clients.external_integrations.config import mcp_settings
+from axiom.mcp_final.clients.external_integrations.manager import (
     MCPCategory,
     MCPResource,
     MCPServer,
@@ -671,7 +671,7 @@ def create_registry(manager: Optional[UnifiedMCPManager] = None) -> MCPRegistry:
     Returns:
         MCPRegistry instance
     """
-    from axiom.integrations.mcp_servers.manager import mcp_manager
+    from axiom.mcp_final.clients.external_integrations.manager import mcp_manager
 
     if manager is None:
         manager = mcp_manager

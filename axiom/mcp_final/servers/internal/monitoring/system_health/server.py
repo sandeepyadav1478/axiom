@@ -1,9 +1,9 @@
 """System Monitoring MCP Server - Continuous health tracking of all agents."""
 import asyncio
 import json
-from axiom.mcp_servers.shared.mcp_base import BaseMCPServer, MCPError
-from axiom.mcp_servers.shared.mcp_protocol import MCPErrorCode
-from axiom.mcp_servers.shared.mcp_transport import STDIOTransport
+from axiom.mcp_final.servers.shared.mcp_base import BaseMCPServer, MCPError
+from axiom.mcp_final.servers.shared.mcp_protocol import MCPErrorCode
+from axiom.mcp_final.servers.shared.mcp_transport import STDIOTransport
 
 class SystemMonitoringMCPServer(BaseMCPServer):
     def __init__(self):

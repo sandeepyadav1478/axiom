@@ -17,8 +17,8 @@ Available Categories:
 - Research: Papers, patents, legal
 """
 
-from axiom.integrations.mcp_servers.config import MCPEcosystemConfig, MCPServerSettings, mcp_settings
-from axiom.integrations.mcp_servers.manager import (
+from axiom.mcp_final.clients.external_integrations.config import MCPEcosystemConfig, MCPServerSettings, mcp_settings
+from axiom.mcp_final.clients.external_integrations.manager import (
     MCPCategory,
     MCPResource,
     MCPServer,
@@ -27,17 +27,17 @@ from axiom.integrations.mcp_servers.manager import (
     UnifiedMCPManager,
     mcp_manager,
 )
-from axiom.integrations.mcp_servers.registry import (
+from axiom.mcp_final.clients.external_integrations.registry import (
     MCPRegistry,
     MCPServerFactory,
     create_registry,
 )
 
 # Week 1 Critical Servers
-from axiom.integrations.mcp_servers.filesystem.server import FilesystemMCPServer
-from axiom.integrations.mcp_servers.devops.git_server import GitMCPServer
-from axiom.integrations.mcp_servers.storage.postgres_server import PostgreSQLMCPServer
-from axiom.integrations.mcp_servers.communication.slack_server import SlackMCPServer
+from axiom.mcp_final.clients.external_integrations.filesystem.server import FilesystemMCPServer
+from axiom.mcp_final.clients.external_integrations.devops.git_server import GitMCPServer
+from axiom.mcp_final.clients.external_integrations.storage.postgres_server import PostgreSQLMCPServer
+from axiom.mcp_final.clients.external_integrations.communication.slack_server import SlackMCPServer
 
 __all__ = [
     # Core components

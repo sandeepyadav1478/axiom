@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # TRADING CLUSTER (5 servers)
+  # ============================================================================
+  
+  pricing-greeks-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/trading/pricing_greeks/Dockerfile
+    container_name: pricing-greeks-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  portfolio-risk-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/trading/portfolio_risk/Dockerfile
+    container_name: portfolio-risk-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  strategy-gen-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/trading/strategy_gen/Dockerfile
+    container_name: strategy-gen-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  execution-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/trading/execution/Dockerfile
+    container_name: execution-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  hedging-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/trading/hedging/Dockerfile
+    container_name: hedging-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  # ============================================================================
+  # ANALYTICS CLUSTER (3 servers)
+  # ============================================================================
+
+  performance-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/analytics/performance/Dockerfile
+    container_name: performance-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  market-data-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/analytics/market_data/Dockerfile
+    container_name: market-data-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  volatility-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/analytics/volatility/Dockerfile
+    container_name: volatility-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  # ============================================================================
+  # SUPPORT CLUSTER (4 servers)
+  # ============================================================================
+
+  regulatory-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/compliance/regulatory/Dockerfile
+    container_name: regulatory-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  system-health-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/monitoring/system_health/Dockerfile
+    container_name: system-health-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  guardrails-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/safety/guardrails/Dockerfile
+    container_name: guardrails-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  interface-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/client/interface/Dockerfile
+    container_name: interface-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+networks:
+  mcp-network:
+    driver: bridge
+    name: axiom-mcp-network

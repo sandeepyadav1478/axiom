@@ -447,16 +447,24 @@ class BaseMCPServer(ABC):
         Run MCP server with STDIO transport
         
         Standard input/output for Claude Desktop compatibility
+        Runs continuously, handling multiple requests
         """
-        self.logger.info("mcp_server_starting", transport="stdio")
+        self.logger.info("mcp_server_starting: transport=stdio")
         
         while True:
             try:
                 # Read JSON-RPC message from stdin
                 line = sys.stdin.readline()
                 
+                # If no input, wait a bit and continue (don't exit!)
                 if not line:
-                    break
+                    await asyncio.sleep(0.1)
+                    continue
+                
+                # Skip empty lines
+                line = line.strip()
+                if not line:
+                    continue
                 
                 message = json.loads(line)
                 
@@ -467,9 +475,19 @@ class BaseMCPServer(ABC):
                 sys.stdout.write(json.dumps(response) + "\n")
                 sys.stdout.flush()
             
+            except json.JSONDecodeError as e:
+                self.logger.error(f"json_decode_error: error={str(e)}")
+                # Don't exit, just continue to next message
+                continue
+            
+            except KeyboardInterrupt:
+                self.logger.info("mcp_server_shutdown_requested")
+                break
+            
             except Exception as e:
                 self.logger.error(f"stdio_error: error={str(e)}")
-                break
+                # Log but don't exit - keep server running
+                continue
         
         self.logger.info("mcp_server_stopped")
 

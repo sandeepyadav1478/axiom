@@ -32,6 +32,8 @@ class ErrorCode(Enum):
     INVALID_GREEKS = "E1002"
     INVALID_PRICE = "E1003"
     VALIDATION_FAILED = "E1004"
+    INVALID_ORDER = "E1005"
+    INVALID_STRATEGY = "E1006"
     
     # Model errors (5xx equivalent)
     MODEL_ERROR = "E2001"
@@ -43,6 +45,31 @@ class ErrorCode(Enum):
     AGENT_NOT_AVAILABLE = "E3001"
     AGENT_TIMEOUT = "E3002"
     AGENT_OVERLOADED = "E3003"
+    
+    # Risk management errors
+    RISK_LIMIT_BREACH = "E5001"
+    VAR_CALCULATION_FAILED = "E5002"
+    STRESS_TEST_FAILED = "E5003"
+    PORTFOLIO_INVALID = "E5004"
+    
+    # Strategy errors
+    STRATEGY_GENERATION_FAILED = "E6001"
+    STRATEGY_VALIDATION_FAILED = "E6002"
+    BACKTEST_FAILED = "E6003"
+    STRATEGY_NOT_FOUND = "E6004"
+    
+    # Execution errors
+    ORDER_ROUTING_FAILED = "E7001"
+    ORDER_EXECUTION_FAILED = "E7002"
+    VENUE_UNAVAILABLE = "E7003"
+    INSUFFICIENT_LIQUIDITY = "E7004"
+    ORDER_REJECTED = "E7005"
+    FILL_TIMEOUT = "E7006"
+    
+    # Hedging errors
+    HEDGING_FAILED = "E8001"
+    DELTA_MISMATCH = "E8002"
+    HEDGE_CALCULATION_FAILED = "E8003"
     
     # System errors
     DATABASE_ERROR = "E4001"
@@ -220,6 +247,127 @@ class CircuitBreakerError(SystemError):
     error_code = ErrorCode.CIRCUIT_BREAKER_OPEN
     severity = ErrorSeverity.WARNING
     is_retryable = False  # Need to wait for circuit to close
+
+
+# Risk management errors
+class RiskError(AxiomBaseException):
+    """Base for risk management errors"""
+    severity = ErrorSeverity.ERROR
+    is_retryable = False  # Risk errors typically need human intervention
+
+
+class RiskLimitBreachError(RiskError):
+    """Risk limit was breached"""
+    error_code = ErrorCode.RISK_LIMIT_BREACH
+    severity = ErrorSeverity.CRITICAL  # Limit breaches are critical
+
+
+class VaRCalculationError(RiskError):
+    """VaR calculation failed"""
+    error_code = ErrorCode.VAR_CALCULATION_FAILED
+    is_retryable = True  # Might work on retry
+
+
+class StressTestError(RiskError):
+    """Stress test failed"""
+    error_code = ErrorCode.STRESS_TEST_FAILED
+
+
+class PortfolioInvalidError(RiskError):
+    """Portfolio is invalid"""
+    error_code = ErrorCode.PORTFOLIO_INVALID
+
+
+# Strategy errors
+class StrategyError(AxiomBaseException):
+    """Base for strategy-related errors"""
+    severity = ErrorSeverity.ERROR
+    is_retryable = True
+
+
+class StrategyGenerationError(StrategyError):
+    """Strategy generation failed"""
+    error_code = ErrorCode.STRATEGY_GENERATION_FAILED
+
+
+class StrategyValidationError(StrategyError):
+    """Strategy validation failed"""
+    error_code = ErrorCode.STRATEGY_VALIDATION_FAILED
+    is_retryable = False  # Validation errors need correction
+
+
+class BacktestError(StrategyError):
+    """Backtest execution failed"""
+    error_code = ErrorCode.BACKTEST_FAILED
+
+
+class StrategyNotFoundError(StrategyError):
+    """Strategy not found"""
+    error_code = ErrorCode.STRATEGY_NOT_FOUND
+    is_retryable = False
+
+
+# Execution errors
+class ExecutionError(AxiomBaseException):
+    """Base for execution-related errors"""
+    severity = ErrorSeverity.ERROR
+    is_retryable = True
+
+
+class OrderRoutingError(ExecutionError):
+    """Order routing failed"""
+    error_code = ErrorCode.ORDER_ROUTING_FAILED
+
+
+class OrderExecutionError(ExecutionError):
+    """Order execution failed"""
+    error_code = ErrorCode.ORDER_EXECUTION_FAILED
+
+
+class VenueUnavailableError(ExecutionError):
+    """Execution venue unavailable"""
+    error_code = ErrorCode.VENUE_UNAVAILABLE
+
+
+class InsufficientLiquidityError(ExecutionError):
+    """Insufficient liquidity for order"""
+    error_code = ErrorCode.INSUFFICIENT_LIQUIDITY
+    severity = ErrorSeverity.WARNING
+    is_retryable = False  # Need different venue or smaller size
+
+
+class OrderRejectedError(ExecutionError):
+    """Order was rejected by venue"""
+    error_code = ErrorCode.ORDER_REJECTED
+    is_retryable = False
+
+
+class FillTimeoutError(ExecutionError):
+    """Order fill timeout"""
+    error_code = ErrorCode.FILL_TIMEOUT
+
+
+# Hedging errors
+class HedgingError(AxiomBaseException):
+    """Base for hedging-related errors"""
+    severity = ErrorSeverity.ERROR
+    is_retryable = True
+
+
+class HedgingFailedError(HedgingError):
+    """Hedging operation failed"""
+    error_code = ErrorCode.HEDGING_FAILED
+
+
+class DeltaMismatchError(HedgingError):
+    """Delta mismatch in hedge"""
+    error_code = ErrorCode.DELTA_MISMATCH
+    severity = ErrorSeverity.CRITICAL
+
+
+class HedgeCalculationError(HedgingError):
+    """Hedge calculation failed"""
+    error_code = ErrorCode.HEDGE_CALCULATION_FAILED
 
 
 # Example usage

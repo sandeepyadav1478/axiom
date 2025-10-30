@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "strategy-generation": {
+      "command": "python",
+      "args": ["-m", "axiom.mcp_servers.trading.strategy_gen.server"],
+      "env": {
+        "USE_GPU": "false",
+        "LOG_LEVEL": "INFO"
+      },
+      "metadata": {
+        "name": "Strategy Generation MCP Server",
+        "version": "1.0.0",
+        "description": "AI-powered trading strategy generation using Reinforcement Learning",
+        "author": "Axiom Derivatives",
+        "license": "Proprietary",
+        "capabilities": {
+          "tools": ["generate_strategy", "backtest_strategy", "optimize_strategy"],
+          "resources": ["strategy://templates", "strategy://history", "strategy://performance"],
+          "prompts": ["explain_strategy", "strategy_help", "optimization_tips"]
+        },
+        "performance": {
+          "target_latency_ms": 100.0,
+          "strategy_types": 25,
+          "ai_model": "reinforcement_learning"
+        },
+        "tags": ["strategy", "trading", "ai", "rl", "optimization"]
+      }
+    }
+  }
+}

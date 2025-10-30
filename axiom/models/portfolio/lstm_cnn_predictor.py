@@ -76,6 +76,8 @@ class PredictorConfig:
             self.cnn_kernel_sizes = [3, 3]
 
 
+import torch.nn as nn
+
 class LSTMReturnPredictor(nn.Module):
     """
     LSTM for time series return forecasting

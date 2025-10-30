@@ -82,6 +82,8 @@ class ANNGreeksConfig:
             self.curve_types = ['single']
 
 
+import torch.nn as nn
+
 class DeltaNetwork(nn.Module):
     """Neural network for Delta (∂V/∂S) approximation"""
     

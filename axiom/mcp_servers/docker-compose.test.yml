@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  # Test Pricing Greeks MCP Server
+  pricing-greeks-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/trading/pricing_greeks/Dockerfile
+    container_name: pricing-greeks-mcp-test
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./test_results:/app/test_results
+    networks:
+      - mcp-test-network
+
+networks:
+  mcp-test-network:
+    driver: bridge

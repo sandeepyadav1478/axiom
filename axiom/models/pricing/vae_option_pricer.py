@@ -66,6 +66,8 @@ class VAEConfig:
             self.pricer_hidden_dims = [128, 64, 32]
 
 
+import torch.nn as nn
+
 class VolatilitySurfaceEncoder(nn.Module):
     """
     Encoder network to compress volatility surfaces

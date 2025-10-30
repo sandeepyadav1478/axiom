@@ -1,0 +1,4 @@
+# Portfolio Risk MCP Server Dependencies
+aiohttp==3.9.1
+numpy>=1.24.0
+scipy>=1.11.0

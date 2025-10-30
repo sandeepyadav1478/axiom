@@ -273,7 +273,7 @@ class SmartExecutionMCPServer(BaseMCPServer):
             }
         
         except Exception as e:
-            self.logger.error("routing_failed", error=str(e))
+            self.logger.error(f"routing_failed: error={str(e)}")
             raise MCPError(
                 code=MCPErrorCode.TOOL_EXECUTION_ERROR.value,
                 message="Order routing failed",

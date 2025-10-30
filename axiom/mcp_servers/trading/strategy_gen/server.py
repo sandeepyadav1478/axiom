@@ -269,7 +269,7 @@ class StrategyGenerationMCPServer(BaseMCPServer):
             }
         
         except Exception as e:
-            self.logger.error("strategy_generation_failed", error=str(e))
+            self.logger.error(f"strategy_generation_failed: error={str(e)}")
             raise MCPError(
                 code=MCPErrorCode.TOOL_EXECUTION_ERROR.value,
                 message="Strategy generation failed",

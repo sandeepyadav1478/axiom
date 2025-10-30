@@ -105,7 +105,7 @@ class STDIOTransport(MCPTransport):
                         await self.send_message(response)
                 
                 except json.JSONDecodeError as e:
-                    self.logger.error("json_parse_error", error=str(e))
+                    self.logger.error(f"json_parse_error: error={str(e)}")
                     
                     # Send parse error per JSON-RPC 2.0 spec
                     error_response = {
@@ -120,7 +120,7 @@ class STDIOTransport(MCPTransport):
                     await self.send_message(error_response)
                 
                 except Exception as e:
-                    self.logger.error("message_handling_error", error=str(e))
+                    self.logger.error(f"message_handling_error: error={str(e)}")
         
         finally:
             self._running = False
@@ -140,7 +140,7 @@ class STDIOTransport(MCPTransport):
             sys.stdout.flush()
         
         except Exception as e:
-            self.logger.error("stdout_write_error", error=str(e))
+            self.logger.error(f"stdout_write_error: error={str(e)}")
             raise
 
 
@@ -198,7 +198,7 @@ class HTTPTransport(MCPTransport):
             )
         
         except Exception as e:
-            self.logger.error("http_request_error", error=str(e))
+            self.logger.error(f"http_request_error: error={str(e)}")
             
             return web.json_response(
                 {
@@ -219,7 +219,7 @@ class HTTPTransport(MCPTransport):
     
     async def start(self):
         """Start HTTP server"""
-        self.logger.info("http_transport_starting", host=self.host, port=self.port)
+        self.logger.info(f"http_transport_starting: host={self.host}, port={self.port}")
         
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
@@ -227,7 +227,7 @@ class HTTPTransport(MCPTransport):
         site = web.TCPSite(self.runner, self.host, self.port)
         await site.start()
         
-        self.logger.info("http_transport_ready", url=f"http://{self.host}:{self.port}/mcp")
+        self.logger.info(f"http_transport_ready: url=http://{self.host}:{self.port}/mcp")
     
     async def stop(self):
         """Stop HTTP server"""
@@ -290,7 +290,7 @@ class SSETransport(MCPTransport):
     
     async def start(self):
         """Start SSE server"""
-        self.logger.info("sse_transport_starting", host=self.host, port=self.port)
+        self.logger.info(f"sse_transport_starting: host={self.host}, port={self.port}")
         
         self.app.router.add_get('/mcp/sse', self._handle_sse_stream)
         self.app.router.add_post('/mcp', self._handle_http_request)

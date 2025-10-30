@@ -59,6 +59,8 @@ class PortfolioConfig:
     rebalance_frequency: str = "monthly"  # daily, weekly, monthly
     
     
+import torch.nn as nn
+
 class CNNFeatureExtractor(nn.Module):
     """
     CNN-based feature extraction for portfolio management

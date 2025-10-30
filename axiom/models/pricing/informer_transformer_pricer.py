@@ -62,6 +62,10 @@ class InformerConfig:
     option_param_dim: int = 4  # [strike, maturity, rate, dividend]
 
 
+import torch.nn as nn
+
+import torch.nn as nn
+
 class ProbAttention(nn.Module):
     """
     ProbSparse Self-Attention from Informer paper

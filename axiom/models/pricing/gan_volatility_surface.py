@@ -68,6 +68,8 @@ class GANSurfaceConfig:
             self.discriminator_hidden_dims = [256, 512, 256, 128]
 
 
+import torch.nn as nn
+
 class VolatilitySurfaceGenerator(nn.Module):
     """
     Generator network for implied volatility surfaces

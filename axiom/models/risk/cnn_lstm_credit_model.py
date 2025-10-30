@@ -65,6 +65,8 @@ class CreditModelConfig:
             self.fc_hidden_dims = [256, 128, 64]
 
 
+import torch.nn as nn
+
 class CNN1DFeatureExtractor(nn.Module):
     """
     1D CNN for extracting patterns from credit history sequences

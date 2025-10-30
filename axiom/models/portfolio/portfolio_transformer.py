@@ -62,6 +62,8 @@ class TransformerConfig:
     min_position: float = 0.0
 
 
+import torch.nn as nn
+
 class SpecializedTimeEncoding(nn.Module):
     """
     Specialized time encoding for financial time series

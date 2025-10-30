@@ -115,6 +115,8 @@ class TransformerNLPConfig:
     min_confidence: float = 0.6  # Minimum confidence for extracted factors
 
 
+import torch.nn as nn
+
 class TransformerDocumentEncoder(nn.Module):
     """
     Transformer-based document encoder for credit documents

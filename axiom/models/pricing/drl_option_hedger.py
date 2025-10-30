@@ -178,6 +178,8 @@ class AmericanPutPricer:
         return european_value + early_exercise_premium
 
 
+import gymnasium as gym
+
 class HedgingEnvironment(gym.Env):
     """
     Gymnasium environment for American put option hedging

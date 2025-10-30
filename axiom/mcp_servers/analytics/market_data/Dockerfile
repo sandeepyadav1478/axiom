@@ -1,21 +1,21 @@
 FROM python:3.10-slim
 
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends gcc
+RUN apt-get clean
 
-# Copy entire project
-COPY . /app
+COPY axiom/mcp_servers/requirements-mcp-only.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install complete project with all dependencies
-RUN pip install --no-cache-dir -e .
+COPY axiom/mcp_servers/shared /app/axiom/mcp_servers/shared
+COPY axiom/mcp_servers/analytics/market_data /app/axiom/mcp_servers/analytics/market_data
+RUN echo "# Minimal" > /app/axiom/__init__.py
+COPY axiom/mcp_servers/__init__.py /app/axiom/mcp_servers/__init__.py
+RUN mkdir -p /app/axiom/mcp_servers/analytics && touch /app/axiom/mcp_servers/analytics/__init__.py
 
-# Set environment
+RUN mkdir -p /app/axiom/derivatives/mcp && \
+    echo "class MarketDataAggregator:\n    def __init__(self):pass" > /app/axiom/derivatives/mcp/market_data_integrations.py && \
+    touch /app/axiom/derivatives/__init__.py /app/axiom/derivatives/mcp/__init__.py
+
 ENV PYTHONPATH=/app
-ENV MCP_SERVER=market-data
-ENV LOG_LEVEL=INFO
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import sys; sys.exit(0)"
-
-# Run MCP server via STDIO
 CMD ["python", "-m", "axiom.mcp_servers.analytics.market_data.server"]

@@ -177,10 +177,7 @@ class BaseMCPServer(ABC):
         self._errors = 0
         
         self.logger.info(
-            "mcp_server_initializing",
-            name=name,
-            version=version,
-            transport=transport.value
+            f"mcp_server_initializing: name={name}, version={version}, transport={transport.value}"
         )
     
     def register_tool(
@@ -208,7 +205,7 @@ class BaseMCPServer(ABC):
         self.tools[name] = tool
         self._tool_handlers[name] = handler
         
-        self.logger.info("tool_registered", tool=name)
+        self.logger.info(f"tool_registered: tool={name}")
     
     def register_resource(
         self,
@@ -227,7 +224,7 @@ class BaseMCPServer(ABC):
         
         self.resources[uri] = resource
         
-        self.logger.info("resource_registered", resource=name, uri=uri)
+        self.logger.info(f"resource_registered: resource={name}, uri={uri}")
     
     def register_prompt(
         self,
@@ -244,7 +241,7 @@ class BaseMCPServer(ABC):
         
         self.prompts[name] = prompt
         
-        self.logger.info("prompt_registered", prompt=name)
+        self.logger.info(f"prompt_registered: prompt={name}")
     
     async def handle_message(self, message: Dict) -> Dict:
         """
@@ -309,7 +306,7 @@ class BaseMCPServer(ABC):
         
         except Exception as e:
             self._errors += 1
-            self.logger.error("unexpected_error", error=str(e))
+            self.logger.error(f"unexpected_error: error={str(e)}")
             
             # Return internal error (MCP format)
             return {
@@ -471,7 +468,7 @@ class BaseMCPServer(ABC):
                 sys.stdout.flush()
             
             except Exception as e:
-                self.logger.error("stdio_error", error=str(e))
+                self.logger.error(f"stdio_error: error={str(e)}")
                 break
         
         self.logger.info("mcp_server_stopped")

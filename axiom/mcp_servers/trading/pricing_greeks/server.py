@@ -87,10 +87,7 @@ class PricingGreeksMCPServer(BaseMCPServer):
         self._register_prompts()
         
         self.logger.info(
-            "pricing_greeks_mcp_server_initialized",
-            tools=len(self.tools),
-            resources=len(self.resources),
-            prompts=len(self.prompts)
+            f"pricing_greeks_mcp_server_initialized: tools={len(self.tools)}, resources={len(self.resources)}, prompts={len(self.prompts)}"
         )
     
     def _register_tools(self):
@@ -288,7 +285,7 @@ class PricingGreeksMCPServer(BaseMCPServer):
             }
         
         except Exception as e:
-            self.logger.error("greeks_calculation_failed", error=str(e))
+            self.logger.error(f"greeks_calculation_failed: error={str(e)}")
             raise MCPError(
                 code=MCPErrorCode.TOOL_EXECUTION_ERROR.value,
                 message="Greeks calculation failed",

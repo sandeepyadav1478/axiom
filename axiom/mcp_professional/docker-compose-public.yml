@@ -1,0 +1,127 @@
+version: '3.8'
+
+# PUBLIC MCP SERVERS (9 servers)
+# For Claude Desktop and external clients
+
+services:
+  pricing-greeks-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_professional/servers/public/trading/pricing_greeks/Dockerfile
+    container_name: pricing-greeks-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+    networks:
+      - mcp-public
+    restart: unless-stopped
+
+  portfolio-risk-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_professional/servers/public/trading/portfolio_risk/Dockerfile
+    container_name: portfolio-risk-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+    networks:
+      - mcp-public
+    restart: unless-stopped
+
+  strategy-gen-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_professional/servers/public/trading/strategy_gen/Dockerfile
+    container_name: strategy-gen-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+    networks:
+      - mcp-public
+    restart: unless-stopped
+
+  execution-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_professional/servers/public/trading/execution/Dockerfile
+    container_name: execution-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+    networks:
+      - mcp-public
+    restart: unless-stopped
+
+  hedging-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_professional/servers/public/trading/hedging/Dockerfile
+    container_name: hedging-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+    networks:
+      - mcp-public
+    restart: unless-stopped
+
+  performance-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_professional/servers/public/analytics/performance/Dockerfile
+    container_name: performance-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+    networks:
+      - mcp-public
+    restart: unless-stopped
+
+  market-data-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_professional/servers/public/analytics/market_data/Dockerfile
+    container_name: market-data-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+    networks:
+      - mcp-public
+    restart: unless-stopped
+
+  volatility-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_professional/servers/public/analytics/volatility/Dockerfile
+    container_name: volatility-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+    networks:
+      - mcp-public
+    restart: unless-stopped
+
+  regulatory-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_professional/servers/public/compliance/regulatory/Dockerfile
+    container_name: regulatory-mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+    networks:
+      - mcp-public
+    restart: unless-stopped
+
+networks:
+  mcp-public:
+    driver: bridge
+    name: axiom-mcp-public

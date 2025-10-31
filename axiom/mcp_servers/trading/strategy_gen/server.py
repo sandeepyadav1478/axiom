@@ -84,9 +84,7 @@ class StrategyGenerationMCPServer(BaseMCPServer):
         self._register_prompts()
         
         self.logger.info(
-            "strategy_generation_mcp_server_initialized",
-            tools=len(self.tools),
-            resources=len(self.resources)
+            f"strategy_generation_mcp_server_initialized: tools={len(self.tools)}, resources={len(self.resources)}"
         )
     
     def _register_tools(self):
@@ -269,7 +267,7 @@ class StrategyGenerationMCPServer(BaseMCPServer):
             }
         
         except Exception as e:
-            self.logger.error("strategy_generation_failed", error=str(e))
+            self.logger.error(f"strategy_generation_failed: error={str(e)}")
             raise MCPError(
                 code=MCPErrorCode.TOOL_EXECUTION_ERROR.value,
                 message="Strategy generation failed",

@@ -1,0 +1,56 @@
+version: '3.8'
+
+# INTERNAL MCP SERVERS (3 servers)
+# These are for internal system use only, not exposed to external clients
+
+services:
+  # ============================================================================
+  # INTERNAL INFRASTRUCTURE
+  # ============================================================================
+
+  system-health-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/internal/monitoring/system_health/Dockerfile
+    container_name: system-health-mcp-internal
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-internal-network
+    restart: unless-stopped
+
+  guardrails-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/internal/safety/guardrails/Dockerfile
+    container_name: guardrails-mcp-internal
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-internal-network
+    restart: unless-stopped
+
+  interface-mcp:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp_servers/internal/client/interface/Dockerfile
+    container_name: interface-mcp-internal
+    stdin_open: true
+    tty: true
+    environment:
+      - USE_GPU=false
+      - LOG_LEVEL=INFO
+    networks:
+      - mcp-internal-network
+    restart: unless-stopped
+
+networks:
+  mcp-internal-network:
+    driver: bridge
+    name: axiom-mcp-internal-network

@@ -97,10 +97,7 @@ class PortfolioRiskMCPServer(BaseMCPServer):
         self._register_prompts()
         
         self.logger.info(
-            "portfolio_risk_mcp_server_initialized",
-            tools=len(self.tools),
-            resources=len(self.resources),
-            prompts=len(self.prompts)
+            f"portfolio_risk_mcp_server_initialized: tools={len(self.tools)}, resources={len(self.resources)}, prompts={len(self.prompts)}"
         )
     
     def _register_tools(self):
@@ -271,7 +268,7 @@ class PortfolioRiskMCPServer(BaseMCPServer):
             }
         
         except Exception as e:
-            self.logger.error("risk_calculation_failed", error=str(e))
+            self.logger.error(f"risk_calculation_failed: error={str(e)}")
             raise MCPError(
                 code=MCPErrorCode.TOOL_EXECUTION_ERROR.value,
                 message="Risk calculation failed",

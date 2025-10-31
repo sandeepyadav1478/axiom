@@ -177,7 +177,7 @@ class AutoHedgingMCPServer(BaseMCPServer):
             }
         
         except Exception as e:
-            self.logger.error("hedge_calculation_failed", error=str(e))
+            self.logger.error(f"hedge_calculation_failed: error={str(e)}")
             raise MCPError(
                 code=MCPErrorCode.TOOL_EXECUTION_ERROR.value,
                 message="Hedge calculation failed",

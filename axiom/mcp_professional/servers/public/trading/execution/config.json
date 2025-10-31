@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "smart-execution": {
+      "command": "python",
+      "args": ["-m", "axiom.mcp_servers.trading.execution.server"],
+      "env": {
+        "LOG_LEVEL": "INFO"
+      },
+      "metadata": {
+        "name": "Smart Execution MCP Server",
+        "version": "1.0.0",
+        "description": "Intelligent order routing and execution across 10 venues",
+        "author": "Axiom Derivatives",
+        "license": "Proprietary",
+        "capabilities": {
+          "tools": ["route_order", "execute_order", "check_fill_status"],
+          "resources": ["execution://venues", "execution://quality", "execution://history"],
+          "prompts": ["explain_routing", "execution_help", "venue_analysis"]
+        },
+        "performance": {
+          "routing_latency_ms": 1.0,
+          "execution_latency_ms": 10.0,
+          "improvement_bps": 2.5,
+          "venues": 10
+        },
+        "tags": ["execution", "routing", "smart-order", "best-execution", "multi-venue"]
+      }
+    }
+  }
+}

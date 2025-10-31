@@ -24,19 +24,14 @@ from decimal import Decimal
 from datetime import datetime
 import logging
 
-# MCP infrastructure (relative imports for standalone)
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
-
-from shared.mcp_base import (
+# MCP infrastructure
+from axiom.mcp_servers.shared.mcp_base import (
     BaseMCPServer, ToolDefinition, Resource, Prompt, MCPError
 )
-from shared.mcp_protocol import MCPErrorCode
-from shared.mcp_transport import STDIOTransport, HTTPTransport
+from axiom.mcp_servers.shared.mcp_protocol import MCPErrorCode
+from axiom.mcp_servers.shared.mcp_transport import STDIOTransport, HTTPTransport
 
-# Domain (using axiom package in container)
-sys.path.insert(0, '/app')
+# Domain
 from axiom.ai_layer.domain.value_objects import Greeks, OptionType
 from axiom.ai_layer.domain.exceptions import InvalidInputError, ModelInferenceError
 
@@ -92,10 +87,7 @@ class PricingGreeksMCPServer(BaseMCPServer):
         self._register_prompts()
         
         self.logger.info(
-            "pricing_greeks_mcp_server_initialized",
-            tools=len(self.tools),
-            resources=len(self.resources),
-            prompts=len(self.prompts)
+            f"pricing_greeks_mcp_server_initialized: tools={len(self.tools)}, resources={len(self.resources)}, prompts={len(self.prompts)}"
         )
     
     def _register_tools(self):
@@ -293,7 +285,7 @@ class PricingGreeksMCPServer(BaseMCPServer):
             }
         
         except Exception as e:
-            self.logger.error("greeks_calculation_failed", error=str(e))
+            self.logger.error(f"greeks_calculation_failed: error={str(e)}")
             raise MCPError(
                 code=MCPErrorCode.TOOL_EXECUTION_ERROR.value,
                 message="Greeks calculation failed",

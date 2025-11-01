@@ -34,6 +34,8 @@ from .integrations import (
 )
 from .feature_integration import FeatureIntegration
 from .quality_integration import QualityIntegration, PipelineIntegration
+from .cache_integration import RedisCache
+from .multi_db_coordinator import MultiDatabaseCoordinator
 from .migrations import MigrationManager, get_migration_manager
 
 __all__ = [
@@ -62,6 +64,8 @@ __all__ = [
     "FeatureIntegration",
     "QualityIntegration",
     "PipelineIntegration",
+    "RedisCache",
+    "MultiDatabaseCoordinator",
     "MigrationManager",
     "get_migration_manager",
 ]

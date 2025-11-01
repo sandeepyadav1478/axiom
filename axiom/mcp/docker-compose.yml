@@ -1,0 +1,182 @@
+# Unified MCP Infrastructure - Docker Compose
+# All MCP servers in one place
+version: '3.8'
+
+services:
+  # ============================================
+  # TRADING CLUSTER (5 servers)
+  # ============================================
+  
+  pricing-greeks:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/public/trading/pricing_greeks/Dockerfile
+    container_name: axiom-mcp-pricing-greeks
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=pricing-greeks
+      - MCP_SERVER_VERSION=1.0.0
+    networks:
+      - mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  portfolio-risk:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/public/trading/portfolio_risk/Dockerfile
+    container_name: axiom-mcp-portfolio-risk
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=portfolio-risk
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  strategy-gen:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/public/trading/strategy_gen/Dockerfile
+    container_name: axiom-mcp-strategy-gen
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=strategy-gen
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  execution:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/public/trading/execution/Dockerfile
+    container_name: axiom-mcp-execution
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=execution
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  hedging:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/public/trading/hedging/Dockerfile
+    container_name: axiom-mcp-hedging
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=hedging
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  # ============================================
+  # ANALYTICS CLUSTER (3 servers)
+  # ============================================
+
+  performance:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/public/analytics/performance/Dockerfile
+    container_name: axiom-mcp-performance
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=performance
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  market-data:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/public/analytics/market_data/Dockerfile
+    container_name: axiom-mcp-market-data
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=market-data
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  volatility:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/public/analytics/volatility/Dockerfile
+    container_name: axiom-mcp-volatility
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=volatility
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  # ============================================
+  # COMPLIANCE CLUSTER (1 server)
+  # ============================================
+
+  regulatory:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/public/compliance/regulatory/Dockerfile
+    container_name: axiom-mcp-regulatory
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=regulatory
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  # ============================================
+  # INTERNAL SERVERS (3 servers)
+  # ============================================
+
+  system-health:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/internal/monitoring/system_health/Dockerfile
+    container_name: axiom-mcp-system-health
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=system-health
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  guardrails:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/internal/safety/guardrails/Dockerfile
+    container_name: axiom-mcp-guardrails
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=guardrails
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  interface:
+    build:
+      context: ../..
+      dockerfile: axiom/mcp/servers/internal/client/interface/Dockerfile
+    container_name: axiom-mcp-interface
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_NAME=interface
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+networks:
+  mcp-network:
+    driver: bridge
+    name: axiom-mcp-network
+
+# Usage:
+# Start all servers:        docker-compose up -d
+# Start specific cluster:   docker-compose up -d pricing-greeks portfolio-risk strategy-gen execution hedging
+# View logs:                docker-compose logs -f pricing-greeks
+# Stop all:                 docker-compose down
+# Rebuild and start:        docker-compose up -d --build

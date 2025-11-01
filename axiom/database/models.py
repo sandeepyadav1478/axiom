@@ -544,6 +544,223 @@ class DocumentEmbedding(Base):
         return f"<DocumentEmbedding(id='{self.document_id}', type='{self.document_type}', symbol='{self.symbol}')>"
 
 
+class FeatureData(Base):
+    """
+    Computed feature storage for ML/analytics.
+    
+    Stores:
+    - Technical indicators
+    - Fundamental ratios
+    - Derived features
+    - Feature versioning
+    """
+    __tablename__ = "feature_data"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    symbol = Column(String(20), nullable=False, index=True)
+    timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
+    
+    # Feature identification
+    feature_name = Column(String(100), nullable=False, index=True)
+    feature_category = Column(String(50), index=True)  # 'technical', 'fundamental', 'derived'
+    feature_version = Column(String(20), default="1.0.0")
+    
+    # Feature value
+    value = Column(Float, nullable=False)
+    
+    # Computation metadata
+    computation_method = Column(String(100))
+    parameters = Column(JSON)  # Parameters used for computation
+    
+    # Data quality
+    quality_score = Column(Float)  # 0-100
+    is_validated = Column(Boolean, default=False)
+    validation_status = Column(String(20))  # 'passed', 'failed', 'warning'
+    
+    # Source tracking
+    source_table = Column(String(50))  # 'price_data', 'company_fundamentals'
+    source_ids = Column(JSON)  # IDs of source records used
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    __table_args__ = (
+        UniqueConstraint('symbol', 'timestamp', 'feature_name', 'feature_version',
+                        name='uq_feature_symbol_timestamp_name_version'),
+        Index('idx_feature_symbol_timestamp', 'symbol', 'timestamp'),
+        Index('idx_feature_name_timestamp', 'feature_name', 'timestamp'),
+        Index('idx_feature_category', 'feature_category'),
+    )
+    
+    def __repr__(self):
+        return f"<FeatureData(symbol='{self.symbol}', feature='{self.feature_name}', value={self.value})>"
+
+
+class ValidationResult(Base):
+    """
+    Data quality validation results.
+    
+    Stores:
+    - Validation rule results
+    - Quality metrics
+    - Anomaly detection results
+    - Compliance reporting
+    """
+    __tablename__ = "validation_results"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Validation context
+    validation_date = Column(DateTime(timezone=True), nullable=False, index=True)
+    target_table = Column(String(50), nullable=False, index=True)  # 'price_data', 'feature_data'
+    target_id = Column(Integer)  # ID of record validated
+    symbol = Column(String(20), index=True)
+    
+    # Validation details
+    rule_name = Column(String(100), nullable=False, index=True)
+    rule_category = Column(String(50))  # 'completeness', 'accuracy', 'consistency'
+    severity = Column(String(20), nullable=False)  # 'info', 'warning', 'error', 'critical'
+    
+    # Result
+    passed = Column(Boolean, nullable=False, index=True)
+    message = Column(Text)
+    details = Column(JSON)  # Detailed validation information
+    
+    # Quality metrics
+    quality_score = Column(Float)  # 0-100
+    quality_grade = Column(String(5))  # 'A+', 'A', 'B+', etc.
+    
+    # Anomaly detection
+    is_anomaly = Column(Boolean, default=False, index=True)
+    anomaly_score = Column(Float)
+    anomaly_method = Column(String(50))
+    
+    # Compliance
+    is_compliant = Column(Boolean, default=True)
+    compliance_framework = Column(String(50))  # 'SOC2', 'ISO27001', etc.
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    __table_args__ = (
+        Index('idx_validation_date_table', 'validation_date', 'target_table'),
+        Index('idx_validation_symbol_date', 'symbol', 'validation_date'),
+        Index('idx_validation_passed', 'passed'),
+        Index('idx_validation_severity', 'severity'),
+    )
+    
+    def __repr__(self):
+        return f"<ValidationResult(rule='{self.rule_name}', passed={self.passed}, severity='{self.severity}')>"
+
+
+class PipelineRun(Base):
+    """
+    Data pipeline execution tracking.
+    
+    Tracks:
+    - Pipeline executions
+    - Performance metrics
+    - Error handling
+    - Data lineage
+    """
+    __tablename__ = "pipeline_runs"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Pipeline identification
+    pipeline_name = Column(String(100), nullable=False, index=True)
+    pipeline_version = Column(String(20))
+    run_id = Column(String(100), unique=True, nullable=False, index=True)
+    
+    # Execution details
+    started_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    completed_at = Column(DateTime(timezone=True))
+    duration_seconds = Column(Float)
+    
+    # Status
+    status = Column(String(20), nullable=False, index=True)  # 'running', 'success', 'failed', 'cancelled'
+    error_message = Column(Text)
+    error_details = Column(JSON)
+    
+    # Data processed
+    records_processed = Column(Integer, default=0)
+    records_inserted = Column(Integer, default=0)
+    records_updated = Column(Integer, default=0)
+    records_failed = Column(Integer, default=0)
+    
+    # Performance metrics
+    throughput_records_per_sec = Column(Float)
+    memory_usage_mb = Column(Float)
+    cpu_usage_percent = Column(Float)
+    
+    # Configuration
+    parameters = Column(JSON)  # Pipeline parameters
+    source = Column(String(100))  # Data source
+    
+    # Output tracking
+    output_tables = Column(JSON)  # Tables modified
+    output_record_count = Column(JSON)  # {table_name: count}
+    
+    # Metadata
+    created_by = Column(String(100))  # User/system that triggered
+    notes = Column(Text)
+    
+    __table_args__ = (
+        Index('idx_pipeline_name_started', 'pipeline_name', 'started_at'),
+        Index('idx_pipeline_status', 'status'),
+    )
+    
+    def __repr__(self):
+        return f"<PipelineRun(name='{self.pipeline_name}', run_id='{self.run_id}', status='{self.status}')>"
+
+
+class DataLineage(Base):
+    """
+    Data lineage and transformation tracking.
+    
+    Tracks:
+    - Data transformations
+    - Source → Target relationships
+    - Transformation logic
+    - Audit trail
+    """
+    __tablename__ = "data_lineage"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Source data
+    source_table = Column(String(50), nullable=False, index=True)
+    source_id = Column(Integer)
+    source_timestamp = Column(DateTime(timezone=True), index=True)
+    
+    # Target data
+    target_table = Column(String(50), nullable=False, index=True)
+    target_id = Column(Integer)
+    target_timestamp = Column(DateTime(timezone=True), index=True)
+    
+    # Transformation details
+    transformation_name = Column(String(100), nullable=False)
+    transformation_type = Column(String(50))  # 'aggregation', 'calculation', 'enrichment'
+    transformation_logic = Column(Text)
+    
+    # Pipeline context
+    pipeline_run_id = Column(Integer, ForeignKey('pipeline_runs.id'))
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    metadata = Column(JSON)
+    
+    __table_args__ = (
+        Index('idx_lineage_source', 'source_table', 'source_id'),
+        Index('idx_lineage_target', 'target_table', 'target_id'),
+        Index('idx_lineage_transformation', 'transformation_name'),
+    )
+    
+    def __repr__(self):
+        return f"<DataLineage(source='{self.source_table}', target='{self.target_table}', transform='{self.transformation_name}')>"
+
+
 # Export all models
 __all__ = [
     "Base",
@@ -560,4 +777,8 @@ __all__ = [
     "PerformanceMetric",
     "PortfolioOptimization",
     "DocumentEmbedding",
+    "FeatureData",
+    "ValidationResult",
+    "PipelineRun",
+    "DataLineage",
 ]

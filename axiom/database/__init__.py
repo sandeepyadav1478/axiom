@@ -19,6 +19,10 @@ from .models import (
     VaRCalculation,
     PerformanceMetric,
     PortfolioOptimization,
+    FeatureData,
+    ValidationResult,
+    PipelineRun,
+    DataLineage,
 )
 from .session import SessionManager, get_session
 from .vector_store import VectorStore, VectorStoreType
@@ -28,6 +32,8 @@ from .integrations import (
     MarketDataIntegration,
     VectorIntegration
 )
+from .feature_integration import FeatureIntegration
+from .quality_integration import QualityIntegration, PipelineIntegration
 from .migrations import MigrationManager, get_migration_manager
 
 __all__ = [
@@ -41,6 +47,10 @@ __all__ = [
     "VaRCalculation",
     "PerformanceMetric",
     "PortfolioOptimization",
+    "FeatureData",
+    "ValidationResult",
+    "PipelineRun",
+    "DataLineage",
     "SessionManager",
     "get_session",
     "VectorStore",
@@ -49,6 +59,9 @@ __all__ = [
     "PortfolioIntegration",
     "MarketDataIntegration",
     "VectorIntegration",
+    "FeatureIntegration",
+    "QualityIntegration",
+    "PipelineIntegration",
     "MigrationManager",
     "get_migration_manager",
 ]

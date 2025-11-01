@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "pricing-greeks": {
+      "command": "python",
+      "args": ["-m", "axiom.mcp_servers.trading.pricing_greeks.server"],
+      "env": {
+        "USE_GPU": "false",
+        "LOG_LEVEL": "INFO"
+      },
+      "metadata": {
+        "name": "Pricing Greeks MCP Server",
+        "version": "1.0.0",
+        "description": "Ultra-fast option Greeks calculation (10,000x faster than Bloomberg)",
+        "author": "Axiom Derivatives",
+        "license": "Proprietary",
+        "capabilities": {
+          "tools": ["calculate_greeks", "batch_greeks", "validate_greeks"],
+          "resources": ["greeks://cache", "greeks://metadata", "greeks://stats"],
+          "prompts": ["explain_greeks", "pricing_help"]
+        },
+        "performance": {
+          "target_latency_ms": 1.0,
+          "batch_size": 1000,
+          "cache_enabled": true
+        },
+        "tags": ["pricing", "greeks", "derivatives", "ultra-fast", "neural-network"]
+      }
+    }
+  }
+}

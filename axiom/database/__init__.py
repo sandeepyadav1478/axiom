@@ -35,6 +35,7 @@ from .integrations import (
 from .feature_integration import FeatureIntegration
 from .quality_integration import QualityIntegration, PipelineIntegration
 from .cache_integration import RedisCache
+from .graph_integration import Neo4jGraph
 from .multi_db_coordinator import MultiDatabaseCoordinator
 from .migrations import MigrationManager, get_migration_manager
 
@@ -65,6 +66,7 @@ __all__ = [
     "QualityIntegration",
     "PipelineIntegration",
     "RedisCache",
+    "Neo4jGraph",
     "MultiDatabaseCoordinator",
     "MigrationManager",
     "get_migration_manager",

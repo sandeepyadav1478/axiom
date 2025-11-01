@@ -23,6 +23,7 @@ from .models import PriceData, CompanyFundamental, FeatureData
 from .integrations import MarketDataIntegration, VectorIntegration
 from .feature_integration import FeatureIntegration
 from .cache_integration import RedisCache
+from .graph_integration import Neo4jGraph
 from .vector_store import VectorStoreType
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,7 @@ class MultiDatabaseCoordinator:
     - PostgreSQL → Structured data (historical, transactions)
     - Vector DB → Semantic search (documents, company similarity)
     - Redis → Hot data (real-time, frequently accessed)
+    - Neo4j → Relationship graphs (M&A, ownership, correlations)
     
     This matches real-world financial platforms (Bloomberg, FactSet, etc.)
     """
@@ -44,6 +46,7 @@ class MultiDatabaseCoordinator:
         self,
         use_cache: bool = True,
         use_vector_db: bool = True,
+        use_graph_db: bool = True,
         vector_store_type: VectorStoreType = VectorStoreType.CHROMA
     ):
         """
@@ -85,6 +88,20 @@ class MultiDatabaseCoordinator:
             except Exception as e:
                 logger.warning(f"⚠️  Vector DB not available: {e}")
                 self.vector = None
+        
+        # Graph DB (optional but CRITICAL for relationship analysis)
+        self.graph: Optional[Neo4jGraph] = None
+        if use_graph_db:
+            try:
+                self.graph = Neo4jGraph()
+                if self.graph.health_check():
+                    logger.info("✅ Neo4j graph DB enabled")
+                else:
+                    logger.warning("⚠️  Neo4j unhealthy, running without graph DB")
+                    self.graph = None
+            except Exception as e:
+                logger.warning(f"⚠️  Neo4j not available: {e}")
+                self.graph = None
     
     # ============================================
     # Price Data (PostgreSQL + Redis Cache)
@@ -356,6 +373,73 @@ class MultiDatabaseCoordinator:
         return []
     
     # ============================================
+    # Company Relationships (Graph DB)
+    # ============================================
+    
+    def get_company_subsidiaries(
+        self,
+        parent_symbol: str,
+        min_ownership: float = 50.0
+    ) -> List[Dict[str, Any]]:
+        """
+        Get subsidiaries of a company from graph DB.
+        
+        Args:
+            parent_symbol: Parent company
+            min_ownership: Minimum ownership %
+            
+        Returns:
+            List of subsidiaries
+        """
+        if not self.graph:
+            logger.warning("Graph DB not available")
+            return []
+        
+        return self.graph.get_subsidiaries(parent_symbol, min_ownership)
+    
+    def get_ma_history(
+        self,
+        symbol: str,
+        as_acquirer: bool = True
+    ) -> List[Dict[str, Any]]:
+        """
+        Get M&A history from graph DB.
+        
+        Args:
+            symbol: Company symbol
+            as_acquirer: True for acquisitions made, False for being acquired
+            
+        Returns:
+            List of M&A deals
+        """
+        if not self.graph:
+            logger.warning("Graph DB not available")
+            return []
+        
+        return self.graph.get_acquisition_history(symbol, as_acquirer)
+    
+    def find_potential_ma_targets(
+        self,
+        acquirer_symbol: str,
+        target_sector: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Find potential M&A targets using graph analysis.
+        
+        Args:
+            acquirer_symbol: Acquiring company
+            target_sector: Target sector
+            
+        Returns:
+            List of potential targets
+        """
+        if not self.graph:
+            logger.warning("Graph DB not available")
+            return []
+        
+        return self.graph.find_acquisition_targets(acquirer_symbol, target_sector)
+    
+    # ============================================
     # Health Monitoring
     # ============================================
     
@@ -370,6 +454,7 @@ class MultiDatabaseCoordinator:
             'postgresql': get_db().health_check(),
             'redis': self.cache.health_check() if self.cache else False,
             'vector_db': self.vector.vector_store.health_check() if self.vector else False,
+            'neo4j': self.graph.health_check() if self.graph else False,
         }
         
         logger.info(f"Database health: {health}")
@@ -417,6 +502,14 @@ class MultiDatabaseCoordinator:
                 }
             except Exception as e:
                 stats['vector_db'] = {'error': str(e)}
+        
+        # Graph DB stats
+        if self.graph:
+            try:
+                graph_stats = self.graph.get_statistics()
+                stats['neo4j'] = graph_stats
+            except Exception as e:
+                stats['neo4j'] = {'error': str(e)}
         
         return stats
 

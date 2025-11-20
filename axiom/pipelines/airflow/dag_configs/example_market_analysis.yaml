@@ -1,0 +1,98 @@
+# Example: Market Analysis Pipeline
+# This YAML file generates an Airflow DAG dynamically
+
+dag_id: market_analysis_pipeline
+description: Comprehensive market analysis with Claude AI insights
+schedule_interval: '@hourly'
+start_date: 'days_ago(1)'
+catchup: false
+max_active_runs: 1
+
+tags:
+  - market-data
+  - analysis
+  - claude
+  - production
+
+default_args:
+  owner: axiom
+  retries: 3
+  retry_delay: '5m'
+  execution_timeout: '30m'
+  email: ['admin@axiom.com']
+  email_on_failure: true
+
+tasks:
+  # Task 1: Fetch market data with failover
+  - task_id: fetch_market_data
+    operator: market_data
+    params:
+      symbols: ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'TSLA']
+      data_type: 'prices'
+      primary_source: 'yahoo'
+      fallback_sources: ['polygon', 'finnhub']
+      xcom_key: 'market_prices'
+  
+  # Task 2: Store in PostgreSQL
+  - task_id: store_prices
+    operator: python
+    params:
+      python_callable: 'axiom.pipelines.airflow.tasks.storage.store_prices_in_db'
+      provide_context: true
+  
+  # Task 3: Validate data quality
+  - task_id: validate_data
+    operator: data_quality
+    params:
+      table_name: 'stock_prices'
+      checks:
+        - name: 'row_count_check'
+          type: 'row_count'
+          min_rows: 5
+        - name: 'null_check'
+          type: 'null_count'
+          column: 'close'
+          max_null_percent: 0
+        - name: 'price_range'
+          type: 'value_range'
+          column: 'close'
+          min_value: 0
+          max_value: 10000
+  
+  # Task 4: Analyze with Claude (cached for cost savings)
+  - task_id: claude_analysis
+    operator: cached_claude
+    params:
+      prompt: >
+        Analyze the latest stock prices and provide insights on:
+        1. Market sentiment
+        2. Notable price movements
+        3. Potential trading opportunities
+      system_message: 'You are a quantitative analyst specializing in equity markets.'
+      max_tokens: 2048
+      cache_ttl_hours: 24
+      xcom_key: 'claude_insights'
+  
+  # Task 5: Update Neo4j knowledge graph
+  - task_id: update_graph
+    operator: neo4j_query
+    params:
+      query: >
+        UNWIND $prices AS price
+        MERGE (c:Company {symbol: price.symbol})
+        SET c.last_price = price.close,
+            c.price_updated_at = datetime()
+      parameters:
+        prices: '{{ ti.xcom_pull(task_ids="fetch_market_data", key="market_prices") }}'
+      xcom_key: 'graph_update'
+
+# Define task dependencies
+dependencies:
+  - upstream: fetch_market_data
+    downstream: [store_prices, validate_data]
+  
+  - upstream: validate_data
+    downstream: claude_analysis
+  
+  - upstream: [store_prices, claude_analysis]
+    downstream: update_graph

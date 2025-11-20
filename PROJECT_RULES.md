@@ -454,14 +454,20 @@ execute_command: docker ps
 
 ### Rule #14: ALWAYS Commit and Push Completed Work
 
-**CRITICAL REQUIREMENT**: When any work is marked as complete locally, it MUST be immediately committed to a feature branch and pushed to remote.
+**CRITICAL REQUIREMENT**: When any work is marked as complete locally, it MUST be immediately committed and pushed to remote. NEVER commit to main branch.
 
 **MANDATORY Workflow**:
 1. Complete the work/fix/feature locally
-2. **Immediately** create a feature branch (NEVER work on main)
-3. Commit with descriptive message
-4. Push to remote feature branch
-5. **NEVER** leave completed work uncommitted locally
+2. **Check current branch** - if on main, create feature branch
+3. **If already on feature branch** - can continue using it for related work
+4. Commit with descriptive message
+5. Push to remote
+6. **NEVER** leave completed work uncommitted locally
+
+**Branch Strategy**:
+- For new major work: Create new feature branch
+- For small fixes/additions: Can use existing feature branch if related
+- **NEVER** commit directly to main branch
 
 **Why This Matters**:
 - Prevents work loss if machine fails
@@ -482,11 +488,17 @@ execute_command: docker ps
 
 **CORRECT** ✅:
 ```bash
-# After completing work:
+# Option 1: New major work - create new branch
 git checkout -b feature/descriptive-name-20251120
 git add -A
 git commit -m "Clear description of changes"
 git push origin feature/descriptive-name-20251120
+
+# Option 2: Small fix on existing feature branch
+git status  # Verify not on main
+git add -A
+git commit -m "Small fix description"
+git push  # Push to current feature branch
 # ✅ Work is safe, backed up, reviewable
 ```
 
@@ -505,9 +517,10 @@ git push origin feature/descriptive-name-20251120
 
 **REQUIRED**:
 - ✅ Commit after completing each task
-- ✅ Always use feature branches (timestamped)
+- ✅ Use feature branches (NEVER main)
 - ✅ Push to remote immediately
 - ✅ Use descriptive commit messages
+- ✅ Can reuse feature branch for related small work
 
 **This ensures all work is version controlled and safely backed up in remote repository.**
 

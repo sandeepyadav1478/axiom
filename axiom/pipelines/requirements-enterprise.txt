@@ -1,0 +1,30 @@
+# Enterprise Pipeline Dependencies
+# Core LangGraph and AI
+langgraph>=0.2.0
+langchain-anthropic>=0.3.0
+langchain-core>=0.3.0
+
+# Data and async
+python-dotenv>=1.0.0
+aiohttp>=3.9.0
+asyncio>=3.4.3
+
+# Monitoring and metrics
+prometheus-client>=0.19.0
+
+# Neo4j
+neo4j>=5.15.0
+
+# PostgreSQL
+psycopg2-binary>=2.9.9
+sqlalchemy>=2.0.23
+
+# Redis
+redis>=5.0.1
+
+# Data fetching
+yfinance>=0.2.33
+requests>=2.31.0
+
+# Utilities
+pydantic>=2.5.0

@@ -363,15 +363,29 @@ class PricingGreeksMCPServer(BaseMCPServer):
 # Run MCP server
 if __name__ == "__main__":
     import asyncio
+    import os
     
     async def main():
         # Create MCP server
         server = PricingGreeksMCPServer()
         
-        # Use STDIO transport (Claude Desktop compatible)
-        transport = STDIOTransport(server.handle_message)
+        # Check if running in Docker (use HTTP) or direct (use STDIO)
+        transport_type = os.getenv('MCP_TRANSPORT', 'stdio').lower()
         
-        # Start server
-        await transport.start()
+        if transport_type == 'http':
+            # HTTP transport for Docker daemon mode
+            port = int(os.getenv('MCP_PORT', '8100'))
+            transport = HTTPTransport(server.handle_message, host='0.0.0.0', port=port)
+            print(f"Starting MCP server on HTTP port {port}")
+            await transport.start()
+            # Keep server running forever
+            print(f"MCP HTTP server running on port {port}")
+            while True:
+                await asyncio.sleep(3600)
+        else:
+            # STDIO transport (Claude Desktop compatible)
+            transport = STDIOTransport(server.handle_message)
+            print("Starting MCP server on STDIO")
+            await transport.start()
     
     asyncio.run(main())

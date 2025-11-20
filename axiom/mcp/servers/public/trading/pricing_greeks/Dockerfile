@@ -7,20 +7,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy minimal requirements
-COPY axiom/mcp_servers/requirements-mcp-only.txt /app/requirements.txt
+# Copy requirements from server directory
+COPY axiom/mcp/servers/public/trading/pricing_greeks/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy MCP server code
-COPY axiom/mcp_professional/servers/shared /app/axiom/mcp_professional/servers/shared
-COPY axiom/mcp_professional/servers/public/trading/pricing_greeks /app/axiom/mcp_professional/servers/trading/pricing_greeks
+# Copy MCP shared infrastructure
+COPY axiom/mcp/servers/shared /app/axiom/mcp/servers/shared
 
-# Create minimal axiom __init__.py (don't import config)
-RUN echo "# Minimal axiom package for MCP server" > /app/axiom/__init__.py
+# Copy server code
+COPY axiom/mcp/servers/public/trading/pricing_greeks /app/axiom/mcp/servers/public/trading/pricing_greeks
 
-# Copy __init__ files for package structure
-COPY axiom/mcp_professional/servers/__init__.py /app/axiom/mcp_professional/servers/__init__.py
-COPY axiom/mcp_professional/servers/public/trading/__init__.py /app/axiom/mcp_professional/servers/trading/__init__.py
+# Create minimal axiom __init__.py
+RUN echo "# Minimal axiom package for MCP server" > /app/axiom/__init__.py && \
+    touch /app/axiom/mcp/__init__.py && \
+    touch /app/axiom/mcp/servers/__init__.py && \
+    touch /app/axiom/mcp/servers/public/__init__.py && \
+    touch /app/axiom/mcp/servers/public/trading/__init__.py
 
 # Create minimal stubs for domain imports
 RUN mkdir -p /app/axiom/ai_layer/domain && \
@@ -38,10 +40,12 @@ RUN mkdir -p /app/axiom/derivatives && \
 ENV PYTHONPATH=/app
 ENV MCP_SERVER=pricing-greeks
 ENV LOG_LEVEL=INFO
+ENV MCP_TRANSPORT=http
+ENV MCP_PORT=8100
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import sys; sys.exit(0)"
 
 # Run MCP server via STDIO
-CMD ["python", "-m", "axiom.mcp_professional.servers.trading.pricing_greeks.server"]
+CMD ["python", "-m", "axiom.mcp.servers.public.trading.pricing_greeks.server"]

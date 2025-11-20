@@ -1,0 +1,188 @@
+# Multi-Pipeline LangGraph Architecture
+# 4 Specialized Pipelines all powered by LangGraph + Claude + Neo4j
+
+version: '3.8'
+
+services:
+  # ================================================================
+  # Pipeline 1: Data Ingestion (Lightweight - Already Working)
+  # ================================================================
+  data-ingestion:
+    build:
+      context: ../..
+      dockerfile: axiom/pipelines/Dockerfile.ingestion
+    container_name: axiom-pipeline-ingestion
+    network_mode: "host"
+    env_file:
+      - ../../.env
+    environment:
+      - PYTHONPATH=/app
+      - PIPELINE_NAME=data-ingestion
+      - PIPELINE_INTERVAL=60
+      - SYMBOLS=AAPL,MSFT,GOOGL,TSLA,NVDA,AMZN,META,NFLX,GOOG,CRM,ORCL,ADBE,INTC,AMD,QCOM,AVGO,CSCO,TXN,UBER,LYFT,SNAP,TWTR,JPM,BAC,GS,MS
+      - POSTGRES_HOST=localhost
+      - POSTGRES_USER=${POSTGRES_USER:-axiom}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-axiom_password}
+      - POSTGRES_DB=${POSTGRES_DB:-axiom_finance}
+      - REDIS_HOST=localhost
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-axiom_redis}
+      - NEO4J_URI=bolt://localhost:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-axiom_neo4j}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ================================================================
+  # Pipeline 2: Company Graph Builder (LangGraph + Claude)
+  # ================================================================
+  company-graph:
+    build:
+      context: ../..
+      dockerfile: axiom/pipelines/companies/Dockerfile
+    container_name: axiom-pipeline-companies
+    network_mode: "host"
+    env_file:
+      - ../../.env
+    environment:
+      - PYTHONPATH=/app
+      - PIPELINE_NAME=company-graph-builder
+      - PIPELINE_INTERVAL=3600  # Once per hour
+      - SYMBOLS=AAPL,MSFT,GOOGL,TSLA,NVDA,META,AMZN,NFLX,GOOG,CRM,ORCL,ADBE,INTC,AMD,QCOM,AVGO,CSCO,TXN,UBER,LYFT,SNAP,TWTR,JPM,BAC,GS,MS,C,WFC,USB,PNC
+      - NEO4J_URI=bolt://localhost:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-axiom_neo4j}
+    depends_on:
+      - data-ingestion
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 120s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+
+  # ================================================================
+  # Pipeline 3: Market Events Tracker (LangGraph + Claude)
+  # ================================================================
+  events-tracker:
+    build:
+      context: ../..
+      dockerfile: axiom/pipelines/events/Dockerfile
+    container_name: axiom-pipeline-events
+    network_mode: "host"
+    env_file:
+      - ../../.env
+    environment:
+      - PYTHONPATH=/app
+      - PIPELINE_NAME=events-tracker
+      - PIPELINE_INTERVAL=300  # Every 5 minutes
+      - SYMBOLS=AAPL,MSFT,GOOGL,TSLA,NVDA,AMZN,META,NFLX,GOOG,CRM,ORCL,ADBE,INTC,AMD,QCOM,AVGO
+      - NEO4J_URI=bolt://localhost:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-axiom_neo4j}
+    depends_on:
+      - company-graph
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 120s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+
+  # ================================================================
+  # Pipeline 4: Correlation Analyzer (LangGraph + Claude)
+  # ================================================================
+  correlations:
+    build:
+      context: ../..
+      dockerfile: axiom/pipelines/correlations/Dockerfile
+    container_name: axiom-pipeline-correlations
+    network_mode: "host"
+    env_file:
+      - ../../.env
+    environment:
+      - PYTHONPATH=/app
+      - PIPELINE_NAME=correlation-analyzer
+      - PIPELINE_INTERVAL=3600  # Once per hour
+      - SYMBOLS=AAPL,MSFT,GOOGL,TSLA,NVDA,AMZN,META,NFLX,GOOG,CRM,ORCL,ADBE,INTC,AMD
+      - POSTGRES_HOST=localhost
+      - POSTGRES_USER=${POSTGRES_USER:-axiom}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-axiom_password}
+      - POSTGRES_DB=${POSTGRES_DB:-axiom_finance}
+      - NEO4J_URI=bolt://localhost:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-axiom_neo4j}
+    depends_on:
+      - data-ingestion
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 120s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+
+networks:
+  axiom_network:
+    external: true
+    name: axiom-mcp-network
+  database_axiom_network:
+    external: true
+    name: database_axiom_network
+
+# ================================================================
+# Usage:
+# ================================================================
+# 
+# Start all pipelines:
+#   docker compose -f axiom/pipelines/docker-compose-langgraph.yml up -d
+#
+# View all pipeline logs:
+#   docker compose -f axiom/pipelines/docker-compose-langgraph.yml logs -f
+#
+# View specific pipeline:
+#   docker logs -f axiom-pipeline-companies
+#   docker logs -f axiom-pipeline-events
+#   docker logs -f axiom-pipeline-correlations
+#
+# Stop all:
+#   docker compose -f axiom/pipelines/docker-compose-langgraph.yml down
+#
+# Rebuild specific pipeline:
+#   docker compose -f axiom/pipelines/docker-compose-langgraph.yml up -d --build company-graph
+#
+# Check status:
+#   docker ps --filter "name=axiom-pipeline"
+#
+# ================================================================
+# Pipeline Summary:
+# ================================================================
+#
+# 1. data-ingestion (60s cycles)
+#    → Fetches OHLCV data
+#    → Stores in PostgreSQL + Redis + Neo4j
+#
+# 2. company-graph (hourly)
+#    → Uses Claude to identify competitors
+#    → Builds company relationship graph
+#    → Creates BELONGS_TO, COMPETES_WITH relationships
+#
+# 3. events-tracker (5 min cycles)
+#    → Fetches news for each company
+#    → Uses Claude to classify event types
+#    → Creates MarketEvent nodes + AFFECTED_BY edges
+#
+# 4. correlations (hourly)
+#    → Fetches 30-day price history from PostgreSQL
+#    → Calculates correlation matrix
+#    → Uses Claude to explain correlations
+#    → Creates CORRELATED_WITH relationships
+#
+# All pipelines write to Neo4j knowledge graph!
+# ================================================================

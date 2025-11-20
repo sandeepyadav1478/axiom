@@ -3,14 +3,13 @@ FROM python:3.10-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
 
-COPY axiom/mcp_servers/requirements-mcp-only.txt /app/requirements.txt
+COPY axiom/mcp/servers/public/trading/strategy_gen/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY axiom/mcp_professional/servers/shared /app/axiom/mcp_professional/servers/shared
-COPY axiom/mcp_professional/servers/public/trading/strategy_gen /app/axiom/mcp_professional/servers/trading/strategy_gen
-RUN echo "# Minimal" > /app/axiom/__init__.py
-COPY axiom/mcp_professional/servers/__init__.py /app/axiom/mcp_professional/servers/__init__.py
-COPY axiom/mcp_professional/servers/public/trading/__init__.py /app/axiom/mcp_professional/servers/trading/__init__.py
+COPY axiom/mcp/servers/shared /app/axiom/mcp/servers/shared
+COPY axiom/mcp/servers/public/trading/strategy_gen /app/axiom/mcp/servers/public/trading/strategy_gen
+RUN echo "# Minimal" > /app/axiom/__init__.py && \
+    touch /app/axiom/mcp/__init__.py /app/axiom/mcp/servers/__init__.py /app/axiom/mcp/servers/public/__init__.py /app/axiom/mcp/servers/public/trading/__init__.py
 
 RUN mkdir -p /app/axiom/ai_layer/domain && \
     echo "from enum import Enum\nclass MarketOutlook(Enum):\n    BULLISH='bullish'\n    BEARISH='bearish'\n    NEUTRAL='neutral'\nclass VolatilityView(Enum):\n    INCREASING='increasing'\n    STABLE='stable'\n    DECREASING='decreasing'\nclass TradingStrategy:\n    pass\nclass StrategyLeg:\n    pass" > /app/axiom/ai_layer/domain/strategy_value_objects.py && \
@@ -21,4 +20,4 @@ RUN mkdir -p /app/axiom/derivatives/advanced && \
     touch /app/axiom/derivatives/__init__.py /app/axiom/derivatives/advanced/__init__.py
 
 ENV PYTHONPATH=/app
-CMD ["python", "-m", "axiom.mcp_professional.servers.trading.strategy_gen.server"]
+CMD ["python", "-m", "axiom.mcp.servers.public.trading.strategy_gen.server"]

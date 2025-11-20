@@ -1,5 +1,9 @@
 # Axiom - Institutional Quantitative Finance Platform
 
+## ⚠️ IMPORTANT: Read [`PROJECT_RULES.md`](PROJECT_RULES.md) Before Contributing
+
+**7 Strict Rules for this project - MANDATORY for all contributors and AI assistants.**
+
 <div align="center">
 
 ![Axiom Platform](https://img.shields.io/badge/ML_Models-60-blue)
@@ -176,22 +180,39 @@
 ## 🚀 Quick Start
 
 ```bash
-# Clone
+# 1. Clone repository
 git clone https://github.com/your-org/axiom.git
 cd axiom
 
-# Install
-pip install -r requirements.txt
+# 2. Create virtual environment
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Configure
-cp .env.example .env
-# Add your API keys
+# 3. ⚠️ CRITICAL: Configure environment (REQUIRED!)
+python setup_environment.py
+# This will create .env file and guide you through configuration
 
-# Run
-python demos/demo_complete_platform_42_models.py
+# 4. Install dependencies
+uv pip install numpy
+uv pip install --no-build-isolation pmdarima
+uv pip install -r requirements.txt
+uv pip install neo4j
+uv pip install -e .
+
+# 5. Start databases
+cd axiom/database
+docker compose up -d postgres
+docker compose --profile cache up -d redis
+docker compose --profile vector-db-light up -d chromadb
+docker compose --profile graph-db up -d neo4j
+
+# 6. Run verification demos
+cd ../..
+python demos/demo_complete_data_infrastructure.py
+python demos/demo_multi_database_architecture.py
 ```
 
-**5 minutes to first prediction!**
+**⚠️ IMPORTANT**: `.env` configuration is MANDATORY - the setup script will guide you!
 
 ---
 

@@ -197,7 +197,6 @@ class HedgeExecution:
     # Execution details
     venue: str
     execution_time_ms: Decimal
-    order_id: Optional[str] = None
     
     # Quality
     slippage_bps: Decimal
@@ -205,6 +204,9 @@ class HedgeExecution:
     
     # Status
     fully_executed: bool
+    
+    # Optional fields
+    order_id: Optional[str] = None
     
     # Metadata
     executed_at: datetime = field(default_factory=datetime.utcnow)

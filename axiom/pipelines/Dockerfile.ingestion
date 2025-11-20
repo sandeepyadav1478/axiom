@@ -1,0 +1,30 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy minimal pipeline requirements
+COPY axiom/pipelines/requirements-pipeline.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy only the lightweight pipeline script
+COPY axiom/pipelines/lightweight_data_ingestion.py /app/pipeline.py
+COPY .env /app/.env
+
+# Set environment
+ENV PYTHONPATH=/app
+ENV PIPELINE_NAME=lightweight-ingestion
+ENV PIPELINE_MODE=continuous
+ENV PIPELINE_INTERVAL=60
+ENV SYMBOLS=AAPL,MSFT,GOOGL,TSLA,NVDA
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)"
+
+# Run the lightweight script
+CMD ["python", "/app/pipeline.py"]

@@ -3,7 +3,7 @@ import asyncio
 import json
 from axiom.mcp.servers.shared.mcp_base import BaseMCPServer, MCPError
 from axiom.mcp.servers.shared.mcp_protocol import MCPErrorCode
-from axiom.mcp.servers.shared.mcp_transport import STDIOTransport
+from axiom.mcp.servers.shared.mcp_transport import STDIOTransport, HTTPTransport
 from axiom.ai_layer.guardrails.ai_safety_layer import AIGuardrailSystem
 
 class SafetyGuardrailMCPServer(BaseMCPServer):
@@ -77,8 +77,32 @@ class SafetyGuardrailMCPServer(BaseMCPServer):
     async def generate_prompt(self, name: str, arguments: dict) -> str:
         return "Explain safety guardrails: multi-layer validation, circuit breakers, human escalation."
 
+# Run MCP server
 if __name__ == "__main__":
+    import asyncio
+    import os
+    
     async def main():
+        # Create MCP server
         server = SafetyGuardrailMCPServer()
-        await STDIOTransport(server.handle_message).start()
+        
+        # Check if running in Docker (use HTTP) or direct (use STDIO)
+        transport_type = os.getenv('MCP_TRANSPORT', 'stdio').lower()
+        
+        if transport_type == 'http':
+            # HTTP transport for Docker daemon mode
+            port = int(os.getenv('MCP_PORT', '8110'))
+            transport = HTTPTransport(server.handle_message, host='0.0.0.0', port=port)
+            print(f"Starting MCP server on HTTP port {port}")
+            await transport.start()
+            # Keep server running forever
+            print(f"MCP HTTP server running on port {port}")
+            while True:
+                await asyncio.sleep(3600)
+        else:
+            # STDIO transport (Claude Desktop compatible)
+            transport = STDIOTransport(server.handle_message)
+            print("Starting MCP server on STDIO")
+            await transport.start()
+    
     asyncio.run(main())

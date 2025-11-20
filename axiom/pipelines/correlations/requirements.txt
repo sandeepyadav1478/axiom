@@ -1,0 +1,18 @@
+# Correlation Analyzer Pipeline Requirements
+
+# LangGraph and LangChain
+langgraph>=0.2.0
+langchain-anthropic>=1.0.0
+langchain-core>=1.0.0
+
+# Data analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Database access
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+neo4j>=6.0.0
+
+# Configuration
+python-dotenv>=1.0.0

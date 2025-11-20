@@ -1,22 +1,58 @@
 # Axiom Platform - Quick Start Guide
 
-## 5-Minute Setup
+## ⚠️ IMPORTANT: Setup Order Matters!
+
+**Follow these steps IN ORDER - especially step 3 (.env configuration)!**
+
+## Complete Setup (10 minutes)
 
 ```bash
 # 1. Clone repository
 git clone https://github.com/your-org/axiom.git
 cd axiom
 
-# 2. Install dependencies
-pip install -r requirements.txt
+# 2. Create virtual environment
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# 3. Set up environment
-cp .env.example .env
-# Edit .env with your API keys
+# 3. 🚨 CRITICAL STEP: Configure Environment
+python setup_environment.py
+# This script will:
+#  - Check if .env exists (create from template if not)
+#  - Validate system dependencies
+#  - Guide you through configuration
+#  - Ensure API keys are set
 
-# 4. Run platform
-python demos/demo_complete_platform_42_models.py
+# 4. Install Python dependencies
+uv pip install numpy
+uv pip install --no-build-isolation pmdarima
+uv pip install -r requirements.txt
+uv pip install neo4j
+uv pip install -e .
+
+# 5. Start databases
+cd axiom/database
+docker compose up -d postgres
+docker compose --profile cache up -d redis
+docker compose --profile vector-db-light up -d chromadb
+docker compose --profile graph-db up -d neo4j
+cd ../..
+
+# 6. Verify setup
+python demos/demo_complete_data_infrastructure.py
+python demos/demo_multi_database_architecture.py
+python test_gpu.py  # If you have GPU
 ```
+
+## ⚠️ Why .env Configuration is Critical
+
+**Without .env file:**
+- ❌ No API keys for AI providers (OpenAI/Anthropic)
+- ❌ Security risk (hardcoded default passwords)
+- ❌ Can't customize database settings
+- ❌ Production deployment will fail
+
+**The setup_environment.py script ensures you don't skip this critical step!**
 
 ---
 

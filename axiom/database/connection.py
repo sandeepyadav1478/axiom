@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from typing import Optional, Generator
 from urllib.parse import quote_plus
 
-from sqlalchemy import create_engine, event, exc, pool
+from sqlalchemy import create_engine, event, exc, pool, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
@@ -113,7 +113,7 @@ class DatabaseConnection:
             
             # Test connection
             with self._engine.connect() as conn:
-                conn.execute("SELECT 1")
+                conn.execute(text("SELECT 1"))
             
             logger.info("Successfully connected to PostgreSQL database")
             
@@ -198,7 +198,7 @@ class DatabaseConnection:
                 self.connect()
             
             with self._engine.connect() as conn:
-                result = conn.execute("SELECT 1")
+                result = conn.execute(text("SELECT 1"))
                 return result.scalar() == 1
         except Exception as e:
             logger.error(f"Database health check failed: {e}")

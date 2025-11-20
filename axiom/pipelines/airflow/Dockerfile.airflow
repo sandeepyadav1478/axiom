@@ -1,0 +1,35 @@
+# Custom Airflow Image with Pipeline Dependencies
+# Based on official apache/airflow:2.8.0-python3.11
+
+FROM apache/airflow:2.8.0-python3.11
+
+USER root
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        && rm -rf /var/lib/apt/lists/*
+
+USER airflow
+
+# Install Python dependencies for our pipelines
+RUN pip install --no-cache-dir \
+    yfinance>=0.2.33 \
+    langchain-anthropic>=0.3.0 \
+    langchain-core>=0.3.0 \
+    langgraph>=0.2.0 \
+    neo4j>=5.15.0 \
+    psycopg2-binary>=2.9.9 \
+    redis>=5.0.1 \
+    pandas>=2.1.0 \
+    numpy>=1.24.0 \
+    python-dotenv>=1.0.0 \
+    pydantic>=2.5.0
+
+# Pre-download some models to speed up first run
+RUN python -c "import yfinance as yf; yf.Ticker('AAPL')" || true
+
+# Set working directory
+WORKDIR /opt/airflow

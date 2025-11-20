@@ -406,6 +406,52 @@ uv sync  # Installs exact versions from uv.lock
 
 **ALWAYS**: After `uv add`, commit both pyproject.toml AND uv.lock to git.
 
+### Rule #13: ALWAYS Close Unused Terminals
+
+**CRITICAL REQUIREMENT**: AI assistants MUST close terminals they open when those terminals are no longer needed.
+
+**MANDATORY Practice**:
+- ✅ Close terminal after command completes and output is captured
+- ✅ Only keep terminals open for long-running processes (servers, monitoring)
+- ❌ Never leave terminals open after one-off commands
+
+**Why This Matters**:
+- Reduces clutter in VSCode
+- Prevents confusion about which terminal is active
+- Improves developer experience
+- Makes it clear which processes are actually running
+
+**Examples**:
+
+**WRONG** ❌:
+```
+# Run command and leave terminal open
+execute_command: docker ps
+# Terminal stays open forever even though command finished
+```
+
+**CORRECT** ✅:
+```
+# Short-lived command - note that it completes
+execute_command: docker ps
+# AI captures output, terminal can be closed by user if needed
+# Or AI notes "This terminal can be closed"
+```
+
+**When to Keep Terminals Open**:
+- ✅ Long-running services (airflow, databases)
+- ✅ Active monitoring scripts
+- ✅ Interactive sessions in progress
+- ✅ Processes that need to stay running
+
+**When to Close Terminals**:
+- ❌ After git commands complete
+- ❌ After docker build finishes
+- ❌ After one-time scripts finish
+- ❌ After diagnostic commands complete
+
+**Best Practice**: Inform user when a terminal is no longer needed: "Terminal can be closed - command completed successfully"
+
 ```
 
 **When Custom Code is OK**:

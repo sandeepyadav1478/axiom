@@ -1,0 +1,208 @@
+name: Auto-Merge Trusted Users
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  auto-merge:
+    name: Auto-Merge for Trusted Users
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check if PR author is trusted
+        id: check_author
+        run: |
+          # List of trusted GitHub usernames
+          # Add more users here as needed
+          TRUSTED_USERS=(
+            "sandeepyadav1478"
+          )
+          
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          
+          echo "PR Author: $PR_AUTHOR"
+          
+          IS_TRUSTED=false
+          for user in "${TRUSTED_USERS[@]}"; do
+            if [ "$PR_AUTHOR" == "$user" ]; then
+              IS_TRUSTED=true
+              break
+            fi
+          done
+          
+          echo "is_trusted=$IS_TRUSTED" >> $GITHUB_OUTPUT
+          
+          if [ "$IS_TRUSTED" == "true" ]; then
+            echo "✅ PR from trusted user: $PR_AUTHOR"
+          else
+            echo "⚠️ PR from non-trusted user: $PR_AUTHOR - Manual review required"
+          fi
+
+      - name: Check PR title contains required keywords
+        id: check_title
+        if: steps.check_author.outputs.is_trusted == 'true'
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          
+          # Require specific keywords in PR title for auto-merge
+          # Examples: [AUTO-MERGE], [TRUSTED], [HOTFIX]
+          if [[ "$PR_TITLE" =~ \[AUTO-MERGE\]|\[TRUSTED\]|\[HOTFIX\] ]]; then
+            echo "title_valid=true" >> $GITHUB_OUTPUT
+            echo "✅ PR title contains auto-merge keyword"
+          else
+            echo "title_valid=false" >> $GITHUB_OUTPUT
+            echo "⚠️ PR title missing auto-merge keyword - will not auto-merge"
+          fi
+
+      - name: Wait for status checks
+        if: steps.check_author.outputs.is_trusted == 'true' && steps.check_title.outputs.title_valid == 'true'
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          running-workflow-name: 'Auto-Merge for Trusted Users'
+          allowed-conclusions: success,skipped
+
+      - name: Check for merge conflicts
+        if: steps.check_author.outputs.is_trusted == 'true' && steps.check_title.outputs.title_valid == 'true'
+        id: check_conflicts
+        run: |
+          if [ "${{ github.event.pull_request.mergeable }}" == "true" ]; then
+            echo "has_conflicts=false" >> $GITHUB_OUTPUT
+            echo "✅ No merge conflicts detected"
+          else
+            echo "has_conflicts=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Merge conflicts detected - cannot auto-merge"
+          fi
+
+      - name: Check PR is not in draft
+        if: steps.check_author.outputs.is_trusted == 'true' && steps.check_title.outputs.title_valid == 'true'
+        id: check_draft
+        run: |
+          if [ "${{ github.event.pull_request.draft }}" == "false" ]; then
+            echo "is_draft=false" >> $GITHUB_OUTPUT
+            echo "✅ PR is not in draft"
+          else
+            echo "is_draft=true" >> $GITHUB_OUTPUT
+            echo "⚠️ PR is in draft - will not auto-merge"
+          fi
+
+      - name: Check minimum time since creation
+        if: steps.check_author.outputs.is_trusted == 'true' && steps.check_title.outputs.title_valid == 'true'
+        id: check_age
+        run: |
+          # Require PR to be at least 2 minutes old (allow CI to run)
+          PR_CREATED_AT="${{ github.event.pull_request.created_at }}"
+          CREATED_TIMESTAMP=$(date -d "$PR_CREATED_AT" +%s)
+          CURRENT_TIMESTAMP=$(date +%s)
+          AGE_SECONDS=$((CURRENT_TIMESTAMP - CREATED_TIMESTAMP))
+          
+          MIN_AGE_SECONDS=120  # 2 minutes
+          
+          if [ $AGE_SECONDS -ge $MIN_AGE_SECONDS ]; then
+            echo "age_sufficient=true" >> $GITHUB_OUTPUT
+            echo "✅ PR age sufficient: ${AGE_SECONDS}s (min: ${MIN_AGE_SECONDS}s)"
+          else
+            echo "age_sufficient=false" >> $GITHUB_OUTPUT
+            echo "⚠️ PR too recent: ${AGE_SECONDS}s (min: ${MIN_AGE_SECONDS}s)"
+          fi
+
+      - name: Auto-approve PR
+        if: |
+          steps.check_author.outputs.is_trusted == 'true' &&
+          steps.check_title.outputs.title_valid == 'true' &&
+          steps.check_conflicts.outputs.has_conflicts == 'false' &&
+          steps.check_draft.outputs.is_draft == 'false' &&
+          steps.check_age.outputs.age_sufficient == 'true'
+        uses: hmarr/auto-approve-action@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-merge PR
+        if: |
+          steps.check_author.outputs.is_trusted == 'true' &&
+          steps.check_title.outputs.title_valid == 'true' &&
+          steps.check_conflicts.outputs.has_conflicts == 'false' &&
+          steps.check_draft.outputs.is_draft == 'false' &&
+          steps.check_age.outputs.age_sufficient == 'true'
+        uses: pascalgn/automerge-action@v0.15.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_LABELS: ""
+          MERGE_METHOD: squash
+          MERGE_COMMIT_MESSAGE: "pull-request-title-and-description"
+          MERGE_FORKS: false
+          MERGE_RETRIES: 6
+          MERGE_RETRY_SLEEP: 10000
+          UPDATE_LABELS: ""
+          UPDATE_METHOD: rebase
+
+      - name: Add success comment
+        if: |
+          steps.check_author.outputs.is_trusted == 'true' &&
+          steps.check_title.outputs.title_valid == 'true' &&
+          steps.check_conflicts.outputs.has_conflicts == 'false' &&
+          steps.check_draft.outputs.is_draft == 'false' &&
+          steps.check_age.outputs.age_sufficient == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **Auto-merge successful!**\n\nThis PR was automatically merged because:\n- Author is a trusted user\n- All status checks passed\n- No merge conflicts\n- Not in draft state\n\n🎉 Changes are now in `main` branch!'
+            })
+
+      - name: Add failure comment
+        if: |
+          steps.check_author.outputs.is_trusted == 'true' &&
+          (steps.check_title.outputs.title_valid == 'false' ||
+           steps.check_conflicts.outputs.has_conflicts == 'true' ||
+           steps.check_draft.outputs.is_draft == 'true' ||
+           steps.check_age.outputs.age_sufficient == 'false')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let reasons = [];
+            if ('${{ steps.check_title.outputs.title_valid }}' === 'false') {
+              reasons.push('- PR title missing `[AUTO-MERGE]`, `[TRUSTED]`, or `[HOTFIX]` keyword');
+            }
+            if ('${{ steps.check_conflicts.outputs.has_conflicts }}' === 'true') {
+              reasons.push('- Merge conflicts detected');
+            }
+            if ('${{ steps.check_draft.outputs.is_draft }}' === 'true') {
+              reasons.push('- PR is in draft state');
+            }
+            if ('${{ steps.check_age.outputs.age_sufficient }}' === 'false') {
+              reasons.push('- PR is too recent (< 2 minutes old)');
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `⚠️ **Auto-merge not possible**\n\nThis PR from a trusted user cannot be auto-merged:\n\n${reasons.join('\n')}\n\n**Action required:** Fix the issues above or merge manually.`
+            })
+
+      - name: Add non-trusted user comment
+        if: steps.check_author.outputs.is_trusted == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '👋 Thank you for your contribution!\n\nThis PR requires manual review and approval from a maintainer.\n\n**Maintainers:** Please review and merge when ready.'
+            })

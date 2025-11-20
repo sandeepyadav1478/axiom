@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Dictation Keyboard Binding
+Comment=Sets up Fn+F12 for dictation toggle
+Exec=/bin/bash -c "sleep 10; dconf write /org/gnome/settings-daemon/plugins/media-keys/calculator \"['']\"; dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/binding \"'XF86Calculator'\"; dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/name \"'Toggle Dictation'\"; dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/command \"'/home/sandeep/scripts/dictation-toggle.sh'\"; notify-send 'Dictation' 'Fn+F12 binding applied' -t 2000"
+Terminal=false
+Hidden=false
+X-GNOME-Autostart-enabled=true

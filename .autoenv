@@ -1,0 +1,12 @@
+# Axiom project autoenv configuration
+# This file is executed by autoenv when entering the directory
+
+# Activate virtual environment
+
+if [ -d ".venv" ] && [ -z "$VIRTUAL_ENV" ]; then
+    source .venv/bin/activate
+    echo "Axiom venv activated"
+elif [ -n "$VIRTUAL_ENV" ]; then
+    # Already activated, just confirm
+    :  # Do nothing silently
+fi

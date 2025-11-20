@@ -33,7 +33,7 @@ black>=24.0.0
 ruff>=0.3.0
 
 # Optional inference (local)
-sglang[all]>=0.2.0
+# sglang[all]>=0.2.0  # Commented out - requires Rust compiler for building outlines-core
 
 # Environment management
 python-dotenv>=1.0.0
@@ -54,7 +54,7 @@ pandas>=2.0.0
 statsmodels>=0.14.0
 
 # Quantitative Finance Libraries
-QuantLib-Python>=1.32
+QuantLib-Python>=1.18
 PyPortfolioOpt>=1.5.5
 TA-Lib>=0.4.28
 pandas-ta>=0.3.14
@@ -131,7 +131,7 @@ redis[hiredis]>=5.0.1
 
 # Docker MCP Server (DevOps)
 docker>=7.0.0
-docker-compose>=1.29.2
+# Note: docker-compose CLI is installed separately, not as Python package
 
 # Prometheus MCP Server (Monitoring)
 prometheus-client>=0.19.0

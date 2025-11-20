@@ -21,7 +21,7 @@ Performance: <1ms data retrieval, <100us for cached data
 
 import asyncio
 import aiohttp
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 from dataclasses import dataclass
 import json

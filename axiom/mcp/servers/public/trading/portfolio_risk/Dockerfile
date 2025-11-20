@@ -5,18 +5,20 @@ WORKDIR /app
 # Install minimal system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
 
-# Copy minimal requirements
-COPY axiom/mcp_servers/requirements-mcp-only.txt /app/requirements.txt
+# Copy server requirements
+COPY axiom/mcp/servers/public/trading/portfolio_risk/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy MCP infrastructure
-COPY axiom/mcp_professional/servers/shared /app/axiom/mcp_professional/servers/shared
-COPY axiom/mcp_professional/servers/public/trading/portfolio_risk /app/axiom/mcp_professional/servers/trading/portfolio_risk
+COPY axiom/mcp/servers/shared /app/axiom/mcp/servers/shared
+COPY axiom/mcp/servers/public/trading/portfolio_risk /app/axiom/mcp/servers/public/trading/portfolio_risk
 
 # Create minimal package structure
-RUN echo "# Minimal axiom package" > /app/axiom/__init__.py
-COPY axiom/mcp_professional/servers/__init__.py /app/axiom/mcp_professional/servers/__init__.py
-COPY axiom/mcp_professional/servers/public/trading/__init__.py /app/axiom/mcp_professional/servers/trading/__init__.py
+RUN echo "# Minimal axiom package" > /app/axiom/__init__.py && \
+    touch /app/axiom/mcp/__init__.py && \
+    touch /app/axiom/mcp/servers/__init__.py && \
+    touch /app/axiom/mcp/servers/public/__init__.py && \
+    touch /app/axiom/mcp/servers/public/trading/__init__.py
 
 # Create domain stubs
 RUN mkdir -p /app/axiom/ai_layer/domain && \
@@ -38,4 +40,4 @@ ENV LOG_LEVEL=INFO
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import sys; sys.exit(0)"
 
-CMD ["python", "-m", "axiom.mcp_professional.servers.trading.portfolio_risk.server"]
+CMD ["python", "-m", "axiom.mcp.servers.public.trading.portfolio_risk.server"]

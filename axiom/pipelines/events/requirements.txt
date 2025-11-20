@@ -1,0 +1,15 @@
+# Market Events Tracker Pipeline Requirements
+
+# LangGraph and LangChain
+langgraph>=0.2.0
+langchain-anthropic>=1.0.0
+langchain-core>=1.0.0
+
+# Data fetching
+yfinance>=0.2.28
+
+# Neo4j driver
+neo4j>=6.0.0
+
+# Configuration
+python-dotenv>=1.0.0

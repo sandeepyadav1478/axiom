@@ -1,38 +1,65 @@
 # Axiom Investment Banking Analytics - Setup Guide
 
-## Quick Start for Investment Banking Analytics
+## 🚨 CRITICAL: Follow Steps IN ORDER!
 
 ### Prerequisites
-- Python 3.10+ 
+- Python 3.10+ (3.13 recommended)
 - Git
-- API keys for chosen AI providers
+- Docker & Docker Compose
+- API keys for AI providers (OpenAI or Anthropic)
 
-### Installation
+### Step-by-Step Installation
+
+#### 1. Clone Repository
 ```bash
-# Clone repository
 git clone <repository-url>
 cd axiom
-
-# Run installation script
-chmod +x install.sh
-./install.sh
-
-# Choose option 1 for development setup
 ```
 
-### Configure AI Providers
+#### 2. Create Virtual Environment
 ```bash
-# Edit .env file with your API keys
-# Uncomment the providers you want to use:
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
 
-# For Claude (recommended for investment banking reasoning)
-CLAUDE_API_KEY=sk-ant-your_claude_api_key
+#### 3. 🚨 CRITICAL: Configure Environment (DO THIS FIRST!)
+```bash
+# Run the environment setup script
+python setup_environment.py
 
-# For OpenAI (good for structured analysis)  
-OPENAI_API_KEY=sk-your_openai_api_key
+# This script will:
+#  ✅ Check virtual environment
+#  ✅ Create .env file from template (if needed)
+#  ✅ Validate system dependencies
+#  ✅ Warn about missing API keys
+#  ✅ Guide you through next steps
+```
 
-# For local inference on NVIDIA systems
-SGLANG_BASE_URL=http://localhost:30000/v1
+**The setup script will prompt you to configure .env immediately!**
+
+#### 4. Edit .env File (REQUIRED!)
+```bash
+nano .env  # or vim .env or your preferred editor
+
+# Add at minimum ONE of these (REQUIRED for LLM features):
+OPENAI_API_KEY=sk-your-actual-openai-key
+# OR
+ANTHROPIC_API_KEY=sk-ant-your-actual-anthropic-key
+
+# Database passwords are pre-configured, but can be customized
+# GPU settings are pre-configured for RTX 4090
+```
+
+**⚠️ Without API keys, LLM-powered features will not work!**
+
+#### 5. Install Python Dependencies
+```bash
+# Install in correct order (important!)
+uv pip install numpy
+uv pip install --no-build-isolation pmdarima
+uv pip install -r requirements.txt
+uv pip install neo4j
+uv pip install -e .
 ```
 
 ### Test Investment Banking Analysis

@@ -1,0 +1,21 @@
+# Minimal requirements for data ingestion pipeline
+# Only what's actually needed - prevents dependency bloat
+
+# Core data handling
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.11.0
+scikit-learn>=1.3.0
+torch>=2.0.0
+yfinance>=0.2.28
+
+# Database drivers
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+redis[hiredis]>=5.0.1
+neo4j>=6.0.0
+
+# Configuration & validation (required by axiom imports)
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0

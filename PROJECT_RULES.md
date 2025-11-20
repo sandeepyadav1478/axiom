@@ -452,6 +452,65 @@ execute_command: docker ps
 
 **Best Practice**: Inform user when a terminal is no longer needed: "Terminal can be closed - command completed successfully"
 
+### Rule #14: ALWAYS Commit and Push Completed Work
+
+**CRITICAL REQUIREMENT**: When any work is marked as complete locally, it MUST be immediately committed to a feature branch and pushed to remote.
+
+**MANDATORY Workflow**:
+1. Complete the work/fix/feature locally
+2. **Immediately** create a feature branch (NEVER work on main)
+3. Commit with descriptive message
+4. Push to remote feature branch
+5. **NEVER** leave completed work uncommitted locally
+
+**Why This Matters**:
+- Prevents work loss if machine fails
+- Enables collaboration and review
+- Maintains project history
+- Allows rollback if needed
+- Professional development practice
+
+**Examples**:
+
+**WRONG** ❌:
+```bash
+# Work completed but not committed
+# AI says "Task complete!" but files only exist locally
+# No git commit, no push
+# RISKY - work could be lost!
+```
+
+**CORRECT** ✅:
+```bash
+# After completing work:
+git checkout -b feature/descriptive-name-20251120
+git add -A
+git commit -m "Clear description of changes"
+git push origin feature/descriptive-name-20251120
+# ✅ Work is safe, backed up, reviewable
+```
+
+**Commit Frequency**:
+- After each logical unit of work completes
+- After fixing bugs
+- After adding features
+- After creating documentation
+- Before ending work session
+
+**FORBIDDEN**:
+- ❌ Leaving completed work uncommitted
+- ❌ Committing to main branch directly
+- ❌ Working without version control
+- ❌ Ending session without pushing changes
+
+**REQUIRED**:
+- ✅ Commit after completing each task
+- ✅ Always use feature branches (timestamped)
+- ✅ Push to remote immediately
+- ✅ Use descriptive commit messages
+
+**This ensures all work is version controlled and safely backed up in remote repository.**
+
 ```
 
 **When Custom Code is OK**:

@@ -1,5 +1,46 @@
 # Axiom Project - Strict Working Rules
 
+## ⚠️ CRITICAL: ZERO-TOLERANCE ENFORCEMENT
+
+**These rules are ABSOLUTE and NON-NEGOTIABLE. Violations are NEVER acceptable.**
+
+### Enforcement Policy
+
+**ALL AI assistants and developers MUST**:
+1. **Read these rules BEFORE any work** - No exceptions
+2. **Follow every rule strictly** - No shortcuts
+3. **Never violate rules** - Even for "quick fixes"
+4. **Self-check before actions** - Verify rule compliance
+
+**Consequences of Violations**:
+- ❌ Work rejection - Changes must be reverted
+- ❌ Branch protection - Main branch violations require force-revert
+- ❌ Session restart - Violating sessions may need to restart
+- ❌ Loss of trust - Repeated violations are unacceptable
+
+**Before EVERY commit, verify**:
+```bash
+# MANDATORY pre-commit check
+git branch --show-current  # Must NOT be "main"
+
+# If shows "main":
+echo "⚠️ STOP! Cannot commit to main!"
+echo "Run: git checkout -b feature/your-feature-20251120"
+```
+
+**Before EVERY cd command, STOP**:
+```bash
+# ❌ NEVER ALLOWED - Not even once
+cd anywhere  # FORBIDDEN
+
+# ✅ ALWAYS use full paths from root
+docker compose -f axiom/path/to/file.yml
+```
+
+**These rules exist to prevent disasters. Follow them STRICTLY, ALWAYS.**
+
+---
+
 ## 🚨 MANDATORY RULES - NO EXCEPTIONS
 
 ### Rule #1: NEVER Change Working Directory

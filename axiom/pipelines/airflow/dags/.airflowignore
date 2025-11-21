@@ -1,0 +1,5 @@
+# Airflow Ignore File
+# Prevents deprecated DAGs from loading in UI
+
+# Ignore deprecated directory (v1 DAGs preserved for reference/rollback)
+deprecated/

@@ -56,8 +56,8 @@ class ClaudeOperator(BaseOperator):
         import os
         from dotenv import load_dotenv
         
-        # Load .env to get API key
-        load_dotenv('/opt/airflow/.env')
+        # Load .env to get API key (override empty env vars)
+        load_dotenv('/opt/airflow/.env', override=True)
         
         start_time = datetime.now()
         

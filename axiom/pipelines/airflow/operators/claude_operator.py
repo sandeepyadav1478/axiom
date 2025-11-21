@@ -54,13 +54,18 @@ class ClaudeOperator(BaseOperator):
     def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute Claude API call with monitoring"""
         import os
+        from dotenv import load_dotenv
+        
+        # Load .env to get API key
+        load_dotenv('/opt/airflow/.env')
         
         start_time = datetime.now()
         
         # Initialize Claude
+        api_key = os.getenv('ANTHROPIC_API_KEY') or os.getenv('CLAUDE_API_KEY')
         claude = ChatAnthropic(
             model=self.model,
-            api_key=os.getenv('ANTHROPIC_API_KEY'),
+            api_key=api_key,
             max_tokens=self.max_tokens,
             temperature=self.temperature
         )

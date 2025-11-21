@@ -25,12 +25,16 @@ sys.path.insert(0, '/opt/airflow')
 from dotenv import load_dotenv
 load_dotenv('/opt/airflow/.env')
 
-from axiom.pipelines.airflow.operators import (
-    CachedClaudeOperator,
-    CircuitBreakerOperator,
-    DataQualityOperator,
-    Neo4jQueryOperator
-)
+# Import operators from local path
+import sys
+import os
+operators_path = os.path.join(os.path.dirname(__file__), '..')
+sys.path.insert(0, operators_path)
+
+from operators.claude_operator import CachedClaudeOperator
+from operators.resilient_operator import CircuitBreakerOperator
+from operators.quality_check_operator import DataQualityOperator
+from operators.neo4j_operator import Neo4jQueryOperator
 
 # ================================================================
 # Configuration

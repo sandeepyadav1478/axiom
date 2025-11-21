@@ -597,6 +597,60 @@ git push  # Push to current feature branch
 
 **This project must be maintenance-free** - fix it once, fix it right, never revisit.
 
+### Rule #15: ALWAYS Use Single-Line Commit Messages
+
+**CRITICAL REQUIREMENT**: All git commit messages MUST be single-line to prevent terminal hanging and workflow violations.
+
+**MANDATORY Practice**:
+- ✅ Use `-m "Single line message"` for commits
+- ❌ NEVER use multi-line messages with line breaks in `-m` flag
+- ✅ If need details, use separate `-m` flags or commit file
+
+**Why This Matters**:
+- Multi-line messages cause `cmdand dquote>` prompt in terminal
+- Terminal appears to hang waiting for closing quote
+- Can lead to confusion about whether commit succeeded
+- May cause accidental commits to wrong branch
+
+**Examples**:
+
+**WRONG** ❌:
+```bash
+git commit -m "Fix issue
+
+BUGFIX: Description here
+More details
+Multiple lines"
+# This causes: cmdand dquote> prompt
+# Terminal hangs waiting for closing "
+```
+
+**CORRECT** ✅:
+```bash
+# Option 1: Single concise message
+git commit -m "Fix Claude API key and email alerts"
+
+# Option 2: Title + body (separate -m flags)
+git commit -m "Fix Claude API key" -m "Added CLAUDE_API_KEY env var and disabled email alerts"
+
+# Option 3: Use commit file for long messages
+git commit -F commit_message.txt
+```
+
+**Before EVERY commit with `-m` flag:**
+1. Ensure message is on ONE line
+2. No unescaped newlines in the string
+3. Proper closing quote on same line
+4. Verify git branch first
+
+**Impact of Violation**:
+- Terminal confusion (appears stuck)
+- Possible wrong branch commits
+- Harder to detect actual commit status
+- Violates professional git practices
+
+**This prevents terminal issues and ensures clean git workflow.**
+
 ---
 
 ## Enforcement

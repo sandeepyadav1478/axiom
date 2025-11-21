@@ -43,6 +43,7 @@ x-airflow-common:
     - ./operators:/opt/airflow/operators
     - ./dag_factory:/opt/airflow/dag_factory
     - ./dag_configs:/opt/airflow/dag_configs
+    - ./utils:/opt/airflow/utils
     - ../../axiom:/opt/airflow/axiom
     - ../../../.env:/opt/airflow/.env
   user: "${AIRFLOW_UID:-50000}:0"

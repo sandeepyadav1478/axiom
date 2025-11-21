@@ -41,7 +41,7 @@ def validate_last_5_minutes(**context):
     # Get all data from last 5 minutes
     cur.execute("""
         SELECT symbol, timestamp, open, high, low, close, volume
-        FROM stock_prices
+        FROM price_data
         WHERE timestamp >= %s AND timestamp < %s
         ORDER BY timestamp DESC
     """, (window_start, current_time))
@@ -145,7 +145,7 @@ def check_data_freshness(**context):
     cur.execute("""
         SELECT MAX(timestamp) as latest_data,
                EXTRACT(EPOCH FROM (NOW() - MAX(timestamp)))/60 as minutes_old
-        FROM stock_prices
+        FROM price_data
     """)
     
     row = cur.fetchone()

@@ -314,6 +314,35 @@ events_tracker:
     - cost-optimized
 
 # ================================================================
+# Historical Backfill DAG Configuration
+# ================================================================
+historical_backfill:
+  dag_id: historical_backfill
+  description: "One-time historical data backfill (1 year daily prices)"
+  
+  # Schedule: Manual trigger only (not scheduled)
+  schedule_interval: null
+  execution_timeout_minutes: 60
+  retries: 1
+  retry_delay_minutes: 10
+  
+  # Backfill settings
+  backfill:
+    lookback_days: 365  # 1 year = ~252 trading days
+    batch_size: 100
+    validate_before_store: true
+    fail_on_validation_error: false
+  
+  # Use extended symbol list (8 stocks)
+  symbols_list: extended
+  
+  tags:
+    - backfill
+    - historical
+    - one-time
+    - data-acquisition
+
+# ================================================================
 # Cost Tracking Configuration
 # ================================================================
 cost_tracking:

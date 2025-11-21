@@ -84,7 +84,7 @@ def store_in_postgresql_safe(context):
     for data in market_data['data']:
         try:
             cur.execute(sql.SQL("""
-                INSERT INTO stock_prices (symbol, timestamp, open, high, low, close, volume, timeframe)
+                INSERT INTO price_data (symbol, timestamp, open, high, low, close, volume, timeframe)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (symbol, timestamp, timeframe) DO UPDATE
                 SET open = EXCLUDED.open,

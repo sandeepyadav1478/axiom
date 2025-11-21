@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  langgraph-ma-intelligence:
+    container_name: axiom-langgraph-ma
+    build:
+      context: .
+      dockerfile: Dockerfile.langgraph
+    environment:
+      # Claude API
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      
+      # Databases
+      - POSTGRES_HOST=axiom-postgresql
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - NEO4J_URI=bolt://axiom-neo4j:7687
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - REDIS_HOST=axiom-redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      
+      # Service config
+      - LANGGRAPH_INTERVAL=300
+      - SYMBOLS=AAPL,MSFT,GOOGL,TSLA,NVDA
+      
+    networks:
+      - axiom_network
+      - database_axiom_network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "python", "-c", "print('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  axiom_network:
+    external: true
+  database_axiom_network:
+    external: true

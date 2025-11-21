@@ -1,0 +1,17 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements-langgraph.txt .
+RUN pip install --no-cache-dir -r requirements-langgraph.txt
+
+# Copy application code
+COPY . /app/
+
+# Environment
+ENV PYTHONUNBUFFERED=1
+ENV LANGGRAPH_INTERVAL=300
+
+# Run service
+CMD ["python", "langgraph_intelligence_service.py"]

@@ -24,11 +24,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    
-    depends_on:
-      - postgres
-      - neo4j
-      - redis
 
 networks:
   database_axiom_network:

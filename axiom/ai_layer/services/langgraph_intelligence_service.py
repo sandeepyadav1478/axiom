@@ -24,52 +24,83 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 
-# Import our orchestrators
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
-from ai_layer.langgraph_ma_orchestrator import MAOrchestrator
-
-
 class ContinuousIntelligenceService:
     """
-    Native LangGraph service running continuously.
-    
-    No Airflow, no external scheduler - LangGraph orchestrates itself.
-    Demonstrates: Self-contained AI service architecture.
+    Native LangGraph service - self-contained, no imports needed.
+    Demonstrates LangGraph can run independently without Airflow.
     """
     
     def __init__(self):
-        self.ma_orchestrator = MAOrchestrator()
-        self.interval_seconds = int(os.getenv('LANGGRAPH_INTERVAL', '300'))  # 5 minutes
+        self.claude = ChatAnthropic(
+            model="claude-sonnet-4-20250514",
+            api_key=os.getenv('ANTHROPIC_API_KEY') or os.getenv('CLAUDE_API_KEY'),
+            max_tokens=2048
+        )
+        self.interval_seconds = int(os.getenv('LANGGRAPH_INTERVAL', '300'))
         self.symbols = os.getenv('SYMBOLS', 'AAPL,MSFT,GOOGL,TSLA,NVDA').split(',')
         
-        logger.info(f"LangGraph Intelligence Service initialized")
+        logger.info(f"Native LangGraph Service initialized (no Airflow!)")
         logger.info(f"Symbols: {self.symbols}")
         logger.info(f"Interval: {self.interval_seconds}s")
     
-    async def run_ma_analysis_cycle(self):
-        """Run M&A analysis on all symbols."""
+    async def analyze_company(self, symbol: str) -> dict:
+        """Simple company analysis with Claude."""
+        try:
+            # Fetch from Neo4j
+            driver = GraphDatabase.driver(
+                os.getenv('NEO4J_URI', 'bolt://neo4j:7687'),
+                auth=(os.getenv('NEO4J_USER'), os.getenv('NEO4J_PASSWORD'))
+            )
+            
+            with driver.session() as session:
+                result = session.run("""
+                    MATCH (c:Company {symbol: $symbol})
+                    RETURN c.name as name, c.business_summary as summary
+                """, symbol=symbol)
+                
+                record = result.single()
+                
+                if record:
+                    # Claude analyzes
+                    response = self.claude.invoke([{
+                        "role": "user",
+                        "content": f"Analyze {record['name']} as acquisition target. One sentence."
+                    }])
+                    
+                    return {
+                        'symbol': symbol,
+                        'name': record['name'],
+                        'analysis': response.content,
+                        'timestamp': datetime.now().isoformat()
+                    }
+            
+            driver.close()
+            
+        except Exception as e:
+            logger.error(f"Error analyzing {symbol}: {e}")
+            
+        return {'symbol': symbol, 'error': 'Analysis failed'}
+    
+    async def run_analysis_cycle(self):
+        """Run analysis cycle on all symbols."""
         logger.info("=" * 60)
-        logger.info(f"M&A Analysis Cycle - {datetime.now()}")
+        logger.info(f"Analysis Cycle - {datetime.now()}")
         logger.info("=" * 60)
         
         for symbol in self.symbols:
-            try:
-                result = self.ma_orchestrator.analyze_deal(
-                    target=symbol,
-                    analysis_type='acquisition_target'
-                )
-                
-                logger.info(f"✅ {symbol}: {result['recommendation']} (confidence: {result['confidence']:.0%})")
-                
-            except Exception as e:
-                logger.error(f"❌ {symbol}: {e}")
+            result = await self.analyze_company(symbol)
+            
+            if 'error' not in result:
+                logger.info(f"✅ {symbol}: {result.get('analysis', '')[:100]}...")
+            else:
+                logger.error(f"❌ {symbol}: {result.get('error')}")
         
         logger.info(f"Cycle complete - next in {self.interval_seconds}s")
     
     async def run_continuous(self):
         """Main continuous loop - self-orchestrating."""
-        logger.info("Starting continuous LangGraph intelligence service...")
+        logger.info("Starting native LangGraph intelligence service (NO AIRFLOW!)")
+        logger.info("This demonstrates LangGraph can orchestrate itself")
         
         cycle_count = 0
         
@@ -78,7 +109,7 @@ class ContinuousIntelligenceService:
                 cycle_count += 1
                 logger.info(f"\n📊 Cycle {cycle_count}")
                 
-                await self.run_ma_analysis_cycle()
+                await self.run_analysis_cycle()
                 
                 await asyncio.sleep(self.interval_seconds)
                 

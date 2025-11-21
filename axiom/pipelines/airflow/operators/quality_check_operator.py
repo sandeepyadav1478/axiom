@@ -21,7 +21,7 @@ class DataQualityOperator(BaseOperator):
     - Custom SQL checks
     """
     
-    template_fields = ('sql_query', 'checks')
+    template_fields = ('checks',)
     ui_color = '#B4E7CE'
     ui_fgcolor = '#000'
     

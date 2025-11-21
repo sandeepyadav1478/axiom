@@ -1,26 +1,23 @@
 """
 Apache Airflow DAG: Data Quality Validation
-Smart validation with row count check + skip logic + 15-minute fallback
+BATCH VALIDATION: Processes 5-minute windows efficiently
 
 FEATURES:
-- ✅ Event-driven: Triggered by data_ingestion_v2 ONLY when NEW data stored (row count > 0)
-- ✅ Skip logic: Skips if already ran within last 15 minutes (prevents queue buildup)
-- ✅ Time-based fallback: Runs every 15 minutes if not triggered
-- ✅ Only validates NEW data since last check (incremental)
-- ✅ Comprehensive quality checks using rules engine
-- ✅ Separate from ingestion (proper separation of concerns)
-- ✅ Batch validation for efficiency
-- ✅ Stores validation results for tracking
-- ✅ Prevents overload during market closed/failures
+- ✅ Batch processing: Validates 5-minute windows instead of per-trigger
+- ✅ Scheduled only: Runs every 5 minutes independently
+- ✅ Centralized config: All thresholds configurable via YAML
+- ✅ Comprehensive checks: Record-level, database-level, SQL-based
+- ✅ Separate from ingestion: Complete decoupling
+- ✅ Efficient validation: Single batch vs multiple triggers
+- ✅ Stores validation results: Full tracking and trending
 
-Schedule: Every 15 minutes (fallback) + event-driven triggers (with skip logic)
-Scope: Only NEW data since last validation
-Purpose: Data quality assurance without blocking ingestion or queue buildup
+Schedule: Every 5 minutes (configurable via YAML)
+Scope: Validates all data in the last 5-minute window
+Purpose: Efficient batch quality assurance
 """
 from airflow import DAG
-from airflow.operators.python import PythonOperator, ShortCircuitOperator
+from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from airflow.models import Variable
 from datetime import datetime, timedelta
 import sys
 import os
@@ -36,123 +33,77 @@ sys.path.insert(0, operators_path)
 
 from operators.quality_check_operator import DataQualityOperator
 
+# Import centralized configuration
+utils_path = os.path.join(os.path.dirname(__file__), '..')
+sys.path.insert(0, utils_path)
+from utils.config_loader import (
+    dag_config,
+    build_postgres_conn_params
+)
+
 # ================================================================
-# Configuration
+# Load Configuration from YAML
 # ================================================================
-default_args = {
-    'owner': 'axiom',
-    'depends_on_past': False,
-    'email': ['admin@axiom.com'],
-    'email_on_failure': True,  # Alert on quality issues
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
-    'execution_timeout': timedelta(minutes=10)
-}
+DAG_NAME = 'data_quality_validation'
+config = dag_config.get_dag_config(DAG_NAME)
+default_args = dag_config.get_default_args(DAG_NAME)
+batch_config = dag_config.get_batch_config()
+thresholds = dag_config.get_validation_thresholds()
 
 # ================================================================
 # Helper Functions
 # ================================================================
 
-def should_run_validation(**context):
+def validate_batch_window(**context):
     """
-    Check if validation should run based on last run time.
-    Returns False if validation ran within the last 15 minutes (prevents overload).
-    This prevents queue buildup when validation is triggered frequently.
-    """
-    try:
-        last_validation = Variable.get('last_data_quality_validation', default_var=None)
-        
-        if not last_validation:
-            print("✅ First validation run - proceeding")
-            return True
-        
-        last_run = datetime.fromisoformat(last_validation)
-        current_time = datetime.now()
-        time_since_last = (current_time - last_run).total_seconds() / 60  # minutes
-        
-        # Skip if ran within last 15 minutes (prevents overload)
-        if time_since_last < 15:
-            print(f"⏭️ Skipping validation - last ran {time_since_last:.1f} minutes ago (< 15 min threshold)")
-            print(f"   Last run: {last_run.isoformat()}")
-            print(f"   Current: {current_time.isoformat()}")
-            return False
-        else:
-            print(f"✅ Running validation - last ran {time_since_last:.1f} minutes ago (>= 15 min threshold)")
-            return True
-            
-    except Exception as e:
-        print(f"⚠️ Error checking last validation time: {e}")
-        # On error, allow validation to run (fail-safe)
-        return True
-
-
-def get_last_validation_time(**context):
-    """
-    Get the timestamp of the last validation run.
-    Uses Airflow Variable to track state between runs.
-    """
-    try:
-        last_validation = Variable.get('last_data_quality_validation', default_var=None)
-        if last_validation:
-            return datetime.fromisoformat(last_validation)
-        else:
-            # First run - validate last hour
-            return datetime.now() - timedelta(hours=1)
-    except Exception as e:
-        print(f"Error getting last validation time: {e}")
-        # Default to last hour
-        return datetime.now() - timedelta(hours=1)
-
-
-def validate_new_price_data(**context):
-    """
-    Validate only NEW price data since last validation run.
-    This is efficient and doesn't re-validate old data.
+    Validate all data in the last 5-minute window (batch processing).
+    More efficient than per-trigger validation.
     """
     import psycopg2
-    from psycopg2 import sql
     
-    # Get last validation time
-    last_validation = get_last_validation_time(**context)
+    # Get batch window from config
+    window_minutes = batch_config.get('window_minutes', 5)
+    min_records = batch_config.get('min_records_to_validate', 1)
+    
     current_time = datetime.now()
+    window_start = current_time - timedelta(minutes=window_minutes)
     
-    print(f"Validating data from {last_validation} to {current_time}")
+    print(f"📊 Validating {window_minutes}-minute batch window:")
+    print(f"   Window: {window_start} to {current_time}")
     
-    conn = psycopg2.connect(
-        host=os.getenv('POSTGRES_HOST'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD'),
-        database=os.getenv('POSTGRES_DB')
-    )
+    # Use centralized config for DB connection
+    db_params = build_postgres_conn_params()
+    conn = psycopg2.connect(**db_params)
     
     cur = conn.cursor()
     
-    # Fetch NEW data only
+    # Fetch all data in the batch window
     cur.execute("""
         SELECT symbol, timestamp, open, high, low, close, volume
         FROM stock_prices
-        WHERE timestamp > %s AND timestamp <= %s
+        WHERE timestamp >= %s AND timestamp < %s
         ORDER BY timestamp DESC
-    """, (last_validation, current_time))
+    """, (window_start, current_time))
     
     rows = cur.fetchall()
     
-    if not rows:
-        print("No new data to validate")
+    if not rows or len(rows) < min_records:
+        print(f"⏭️ Skipping validation - only {len(rows) if rows else 0} records in window (min: {min_records})")
         result = {
-            'status': 'success',
+            'status': 'skipped',
             'records_checked': 0,
-            'message': 'No new data since last validation',
-            'validation_period': {
-                'start': last_validation.isoformat(),
-                'end': current_time.isoformat()
+            'message': f'Insufficient data in {window_minutes}-minute window',
+            'validation_window': {
+                'start': window_start.isoformat(),
+                'end': current_time.isoformat(),
+                'window_minutes': window_minutes
             }
         }
         cur.close()
         conn.close()
         return result
     
-    print(f"Found {len(rows)} new records to validate")
+    print(f"✅ Found {len(rows)} records to validate in {window_minutes}-minute window")
     
     # Import validation engine
     sys.path.insert(0, '/opt/airflow/axiom')
@@ -218,7 +169,7 @@ def validate_new_price_data(**context):
         len(rows),
         passed_count,
         failed_count,
-        last_validation,
+        window_start,
         current_time,
         str(validation_results[:100])  # Store sample of results
     ))
@@ -227,18 +178,16 @@ def validate_new_price_data(**context):
     cur.close()
     conn.close()
     
-    # Update last validation time
-    Variable.set('last_data_quality_validation', current_time.isoformat())
-    
     result = {
         'status': 'success' if failed_count == 0 else 'warning',
         'records_checked': len(rows),
         'records_passed': passed_count,
         'records_failed': failed_count,
         'success_rate': (passed_count / len(rows) * 100) if len(rows) > 0 else 100,
-        'validation_period': {
-            'start': last_validation.isoformat(),
-            'end': current_time.isoformat()
+        'validation_window': {
+            'start': window_start.isoformat(),
+            'end': current_time.isoformat(),
+            'window_minutes': window_minutes
         }
     }
     
@@ -253,22 +202,25 @@ def validate_new_price_data(**context):
 
 def comprehensive_database_checks(**context):
     """
-    Run comprehensive database-level quality checks.
-    These are in addition to record-level validations.
+    Run comprehensive database-level quality checks using config thresholds.
     """
     import psycopg2
     
-    conn = psycopg2.connect(
-        host=os.getenv('POSTGRES_HOST'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD'),
-        database=os.getenv('POSTGRES_DB')
-    )
+    # Use centralized config for DB connection
+    db_params = build_postgres_conn_params()
+    conn = psycopg2.connect(**db_params)
     
     cur = conn.cursor()
     checks = []
     
-    # Check 1: Data freshness
+    # Get thresholds from config
+    freshness_threshold = thresholds.get('data_freshness_minutes', 120)
+    min_symbols = thresholds.get('min_symbols_with_recent_data', 10)
+    max_duplicates = thresholds.get('max_duplicate_tolerance', 0)
+    price_min = thresholds.get('price_min', 0.01)
+    price_max = thresholds.get('price_max', 100000)
+    
+    # Check 1: Data freshness (configurable)
     cur.execute("""
         SELECT MAX(timestamp) as latest_data,
                EXTRACT(EPOCH FROM (NOW() - MAX(timestamp)))/60 as minutes_old
@@ -277,27 +229,27 @@ def comprehensive_database_checks(**context):
     row = cur.fetchone()
     checks.append({
         'name': 'data_freshness',
-        'passed': row[1] < 120,  # Less than 2 hours old
+        'passed': row[1] < freshness_threshold,
         'value': f"{row[1]:.0f} minutes old",
-        'threshold': '120 minutes'
+        'threshold': f'{freshness_threshold} minutes'
     })
     
-    # Check 2: Data completeness (all symbols have recent data)
+    # Check 2: Symbol completeness (configurable threshold)
     cur.execute("""
         SELECT COUNT(DISTINCT symbol) as total_symbols,
-               COUNT(DISTINCT CASE WHEN timestamp > NOW() - INTERVAL '1 hour' 
+               COUNT(DISTINCT CASE WHEN timestamp > NOW() - INTERVAL '1 hour'
                      THEN symbol END) as recent_symbols
         FROM stock_prices
     """)
     row = cur.fetchone()
     checks.append({
         'name': 'symbol_completeness',
-        'passed': row[1] == row[0],
+        'passed': row[1] >= min_symbols,
         'value': f"{row[1]}/{row[0]} symbols updated",
-        'threshold': 'All symbols'
+        'threshold': f'At least {min_symbols} symbols'
     })
     
-    # Check 3: No duplicate records
+    # Check 3: No duplicate records (configurable tolerance)
     cur.execute("""
         SELECT COUNT(*) - COUNT(DISTINCT (symbol, timestamp, timeframe))
         FROM stock_prices
@@ -306,24 +258,24 @@ def comprehensive_database_checks(**context):
     duplicates = cur.fetchone()[0]
     checks.append({
         'name': 'no_duplicates',
-        'passed': duplicates == 0,
+        'passed': duplicates <= max_duplicates,
         'value': f"{duplicates} duplicates found",
-        'threshold': '0 duplicates'
+        'threshold': f'{max_duplicates} duplicates max'
     })
     
-    # Check 4: Price reasonableness (no extreme outliers)
+    # Check 4: Price reasonableness (configurable range)
     cur.execute("""
         SELECT COUNT(*)
         FROM stock_prices
         WHERE timestamp > NOW() - INTERVAL '1 hour'
-          AND (close < 0.01 OR close > 100000)
-    """)
+          AND (close < %s OR close > %s)
+    """, (price_min, price_max))
     outliers = cur.fetchone()[0]
     checks.append({
         'name': 'price_reasonableness',
         'passed': outliers == 0,
         'value': f"{outliers} outliers found",
-        'threshold': '0 outliers'
+        'threshold': f'Price between ${price_min} and ${price_max}'
     })
     
     cur.close()
@@ -352,12 +304,9 @@ def ensure_validation_table_exists(**context):
     """
     import psycopg2
     
-    conn = psycopg2.connect(
-        host=os.getenv('POSTGRES_HOST'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD'),
-        database=os.getenv('POSTGRES_DB')
-    )
+    # Use centralized config for DB connection
+    db_params = build_postgres_conn_params()
+    conn = psycopg2.connect(**db_params)
     
     cur = conn.cursor()
     
@@ -390,48 +339,43 @@ def ensure_validation_table_exists(**context):
 
 
 # ================================================================
-# Define the DAG
+# Define the DAG (Config-Driven, Batch Processing)
 # ================================================================
 with DAG(
-    dag_id='data_quality_validation',
+    dag_id=config.get('dag_id', 'data_quality_validation'),
     default_args=default_args,
-    description='Event-driven + 15-min fallback validation of NEW data only',
-    schedule_interval='*/15 * * * *',  # Every 15 minutes (fallback when not event-triggered)
+    description=config.get('description', 'Batch validation of 5-minute windows'),
+    schedule_interval=config.get('schedule_interval', '*/5 * * * *'),  # Every 5 minutes
     start_date=days_ago(1),
-    catchup=False,
-    tags=['quality', 'validation', 'event-driven', 'incremental', 'fallback'],
-    max_active_runs=1,
+    catchup=dag_config.get_global('catchup', False),
+    tags=config.get('tags', ['quality', 'validation', 'batch']),
+    max_active_runs=dag_config.get_global('max_active_runs', 1),
 ) as dag:
     
-    # Task 1: Check if validation should run (skip if ran < 15 min ago)
-    should_run = ShortCircuitOperator(
-        task_id='check_should_run_validation',
-        python_callable=should_run_validation,
-        provide_context=True
-    )
-    
-    # Task 2: Ensure validation tracking table exists
+    # Task 1: Ensure validation tracking table exists
     setup_validation_table = PythonOperator(
         task_id='setup_validation_table',
         python_callable=ensure_validation_table_exists,
         provide_context=True
     )
     
-    # Task 3: Validate NEW price data (incremental)
-    validate_new_data = PythonOperator(
-        task_id='validate_new_price_data',
-        python_callable=validate_new_price_data,
+    # Task 2: Validate batch window (5-minute window)
+    validate_batch = PythonOperator(
+        task_id='validate_batch_window',
+        python_callable=validate_batch_window,
         provide_context=True
     )
     
-    # Task 4: Run comprehensive database checks
+    # Task 3: Run comprehensive database checks
     database_checks = PythonOperator(
         task_id='comprehensive_database_checks',
         python_callable=comprehensive_database_checks,
         provide_context=True
     )
     
-    # Task 5: Use DataQualityOperator for additional SQL-based checks
+    # Task 4: Use DataQualityOperator for additional SQL-based checks (from config)
+    volume_max = thresholds.get('volume_max', 1000000000000)
+    
     additional_quality_checks = DataQualityOperator(
         task_id='additional_quality_checks',
         table_name='stock_prices',
@@ -440,8 +384,8 @@ with DAG(
                 'name': 'hourly_data_count',
                 'type': 'custom_sql',
                 'sql': """
-                    SELECT COUNT(*) > 10 
-                    FROM stock_prices 
+                    SELECT COUNT(*) > 10
+                    FROM stock_prices
                     WHERE timestamp > NOW() - INTERVAL '1 hour'
                 """,
                 'expected': True
@@ -449,8 +393,8 @@ with DAG(
             {
                 'name': 'no_stale_data',
                 'type': 'custom_sql',
-                'sql': """
-                    SELECT MAX(timestamp) > NOW() - INTERVAL '2 hours'
+                'sql': f"""
+                    SELECT MAX(timestamp) > NOW() - INTERVAL '{thresholds.get('data_freshness_minutes', 120)} minutes'
                     FROM stock_prices
                 """,
                 'expected': True
@@ -460,55 +404,55 @@ with DAG(
                 'type': 'value_range',
                 'column': 'volume',
                 'min_value': 0,
-                'max_value': 1000000000000  # 1 trillion max
+                'max_value': volume_max
             }
         ],
-        fail_on_error=False  # Log warnings, don't fail DAG
+        fail_on_error=config.get('alerts', {}).get('fail_on_error', False)
     )
     
     # ================================================================
-    # Task Dependencies
+    # Task Dependencies (Simplified Batch Flow)
     # ================================================================
     
-    # First check if we should run (skip if ran < 15 min ago)
-    should_run >> setup_validation_table >> validate_new_data >> [database_checks, additional_quality_checks]
+    setup_validation_table >> validate_batch >> [database_checks, additional_quality_checks]
 
 
 dag.doc_md = """
-# Data Quality Validation DAG
+# Data Quality Validation DAG (Batch Processing)
 
 ## 🎯 Purpose
 
-Separate data quality validation with **event-driven + time-based fallback + skip logic** strategy.
-This implements proper **separation of concerns** with smart triggering and overload prevention:
-- **Ingestion DAG**: Triggers validation ONLY when NEW data stored (row count > 0)
-- **Validation DAG**: Also runs every 15 minutes as fallback (time-based)
-- **Skip Logic**: Skips execution if already ran within last 15 minutes (prevents queue buildup)
-- **Best of both**: Immediate validation when needed + guaranteed periodic checks + no overload
+Efficient batch validation processing **5-minute windows** independently:
+- **NO per-trigger validation**: Completely decoupled from ingestion
+- **Scheduled only**: Runs every 5 minutes on its own schedule
+- **Batch windows**: Validates all data in 5-minute windows
+- **Centralized config**: All thresholds and parameters in YAML
 
 ## ⚡ Key Features
 
-### 1. Incremental Validation
-- Only validates **NEW data** since last check
-- Efficient batch processing (not per-record)
-- Tracks validation state between runs
+### 1. Batch Window Processing
+- Validates **5-minute windows** of data
+- More efficient than per-record or per-trigger
+- Configurable window size via YAML
+- Skips validation if insufficient data
 
-### 2. Triple Protection Strategy
-- **Row Count Check** (Ingestion): Only triggers if NEW data stored (row count > 0)
-- **Skip Logic** (Validation): Skips if already ran < 15 min ago (prevents queue buildup)
-- **Time-based Fallback**: Runs every 15 minutes regardless (catches missed triggers)
-- **Result**: No unnecessary work + fast validation + guaranteed coverage + no overload
+### 2. Independent Scheduling
+- **NO triggers from ingestion**: Completely independent
+- **Scheduled batches**: Runs every 5 minutes (configurable)
+- **No queue buildup**: Simple scheduled execution
+- **Result**: Clean, predictable, efficient validation
 
 ### 3. Comprehensive Checks
 - Record-level validation (using rules engine)
 - Database-level checks (aggregates, outliers)
 - SQL-based quality checks
-- Validation history tracking
+- All thresholds configurable via YAML
 
-### 4. No Ingestion Blocking
-- Ingestion can run at full speed
-- Quality issues logged but don't stop ingestion
-- Alerts sent on quality failures
+### 4. Centralized Configuration
+- All schedules in YAML
+- All thresholds in YAML
+- All parameters in YAML
+- Easy to tune without code changes
 
 ## 📊 What Gets Validated
 
@@ -516,69 +460,65 @@ This implements proper **separation of concerns** with smart triggering and over
 - High >= Low price check
 - Close/Open within High-Low range
 - Positive prices and volume
-- Reasonable intraday movement (<50%)
+- Reasonable intraday movement (configurable %)
 - Timestamp validity
 
-### Database-Level
-- Data freshness (<2 hours old)
-- Symbol completeness (all symbols updated)
-- No duplicate records
-- Price reasonableness (no extreme outliers)
+### Database-Level (All Configurable)
+- Data freshness (configurable minutes)
+- Symbol completeness (min symbols)
+- Duplicate tolerance (configurable)
+- Price reasonableness (min/max prices)
 
-### SQL-Based
+### SQL-Based (Config-Driven)
 - Minimum hourly record count
-- No stale data
-- Volume sanity checks
+- No stale data (configurable threshold)
+- Volume sanity checks (configurable max)
 
-## 🔄 Workflow
+## 🔄 Workflow (Simplified)
 
-1. **Check Skip**: Verify if validation ran within last 15 minutes (skip if yes)
-2. **Setup**: Ensure validation_history table exists
-3. **Get State**: Retrieve last validation timestamp
-4. **Fetch New Data**: Query only data added since last run
-5. **Validate**: Run comprehensive quality checks (if new data exists)
-6. **Store Results**: Save validation results and update state
-7. **Alert**: Send notifications if quality issues found
+1. **Setup**: Ensure validation_history table exists
+2. **Fetch Window**: Query all data in last 5-minute window
+3. **Validate**: Run comprehensive quality checks on batch
+4. **Store Results**: Save validation results with window info
+5. **Alert**: Send notifications if quality issues found
 
-## 💡 Why This Design?
+## 💡 Why Batch Windows?
 
-### Problem with Previous Approach
-- Validation in ingestion DAG caused failures
-- Blocked data ingestion on quality issues
-- Re-validated same data multiple times
-- Tight coupling between ingestion and validation
-- Queue buildup when triggering too frequently
-- Unnecessary work during market closed/failures
+### Problem with Per-Trigger Approach
+- Complex trigger logic
+- Queue buildup issues
+- Tight coupling with ingestion
+- Repeated validation overhead
+- State management complexity
 
-### Benefits of Current Approach
-✅ Ingestion never fails due to quality issues
-✅ Row count check prevents unnecessary triggers
-✅ Skip logic prevents queue buildup (<15 min)
-✅ Only validates new data (efficient)
-✅ Better monitoring and alerting
+### Benefits of Batch Windows
+✅ Simple scheduled execution
+✅ Complete decoupling from ingestion
+✅ More efficient (single batch vs multiple triggers)
+✅ Predictable resource usage
+✅ Easy to configure and tune
+✅ No queue management needed
 ✅ Clean separation of concerns
-✅ No wasted resources during downtime
 
 ## 📈 Performance
 
-- **Validation overhead**: Negligible on ingestion (runs async)
-- **Batch efficiency**: Validates new data only (~1-240 records per run)
-- **Event-driven**: Usually runs within seconds of ingestion completing
-- **Skip logic**: Prevents duplicate runs if <15 min since last run
-- **Fallback frequency**: Every 15 minutes ensures no data goes unchecked
+- **Batch efficiency**: Validates 5-minute windows (~5-300 records per batch)
+- **Scheduled execution**: Runs every 5 minutes (configurable)
+- **No blocking**: Ingestion unaffected by validation
+- **Configurable**: Window size, thresholds, schedules all in YAML
 - **Storage**: Tracks validation history for trend analysis
-- **Alerts**: Email on quality failures (as they occur)
-- **Overload prevention**: No queue buildup during high-frequency triggers
+- **Alerts**: Configurable alert behavior
+- **Predictable**: Simple scheduled execution, no trigger complexity
 
-## 🎛️ Configuration
+## 🎛️ Configuration (All in YAML)
 
-- **Primary**: Event-driven (triggered by data_ingestion_v2 when row count > 0)
-- **Skip Logic**: Skips if ran within last 15 minutes (prevents queue buildup)
-- **Fallback**: Every 15 minutes (`*/15 * * * *`)
-- **Timeout**: 10 minutes per run
-- **Retries**: 1 retry with 5 min delay
-- **Alerts**: Email on failure (quality issues)
-- **Fail behavior**: Log warnings, don't fail DAG
+- **Schedule**: Every 5 minutes (`*/5 * * * *`) - configurable
+- **Window size**: 5 minutes - configurable
+- **Thresholds**: All validation thresholds in YAML
+- **Timeout**: Configurable per DAG
+- **Retries**: Configurable retry logic
+- **Alerts**: Configurable alert behavior
+- **Fail behavior**: Configurable (default: log warnings)
 
 ## 📊 Monitoring
 

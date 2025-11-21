@@ -1,22 +1,21 @@
 """
 Apache Airflow DAG v2: Data Ingestion
-Real-time stock prices with multi-source failover (no validation - see data_quality_validation_dag)
+Real-time stock prices with multi-source failover - NO per-trigger validation
 
 IMPROVEMENTS OVER V1:
 - ✅ Multi-source failover (Yahoo → Polygon → Finnhub)
 - ✅ 99.9% reliability (vs 95% with single source)
 - ✅ Circuit breaker protection
-- ✅ Consensus validation from multiple sources
-- ✅ Performance monitoring
-- ✅ Validation separated to dedicated DAG (proper separation of concerns)
+- ✅ Centralized YAML configuration
+- ✅ No per-trigger validation (batch validation handles this)
+- ✅ Scheduled batch processing only
 
-Schedule: Every minute
+Schedule: Configurable via YAML (default: every minute)
 Reliability: 99.9% (3-source failover)
-Note: Data quality validation runs hourly in separate data_quality_validation_dag
+Note: Data quality validation runs every 5 minutes in batch mode
 """
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.dates import days_ago
 from datetime import datetime, timedelta
 import sys
@@ -28,32 +27,33 @@ from dotenv import load_dotenv
 load_dotenv('/opt/airflow/.env')
 
 # Import operators from local path
-import sys
-import os
 operators_path = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, operators_path)
 
-from operators.market_data_operator import MarketDataFetchOperator, MultiSourceMarketDataOperator, DataSource
+from operators.market_data_operator import MarketDataFetchOperator, DataSource
 from operators.resilient_operator import CircuitBreakerOperator
-from operators.neo4j_operator import Neo4jQueryOperator
+
+# Import centralized configuration
+utils_path = os.path.join(os.path.dirname(__file__), '..')
+sys.path.insert(0, utils_path)
+from utils.config_loader import (
+    dag_config,
+    get_symbols_for_dag,
+    get_data_sources,
+    build_postgres_conn_params,
+    build_redis_conn_params,
+    build_neo4j_conn_params
+)
 
 # ================================================================
-# Configuration
+# Load Configuration from YAML
 # ================================================================
-default_args = {
-    'owner': 'axiom',
-    'depends_on_past': False,
-    'email': ['admin@axiom.com'],
-    'email_on_failure': False,  # Too frequent for alerts
-    'retries': 2,
-    'retry_delay': timedelta(seconds=30),
-    'execution_timeout': timedelta(minutes=5)
-}
-
-SYMBOLS = [
-    'AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA', 'AMZN', 'META', 'NFLX',
-    'GOOG', 'CRM', 'ORCL', 'ADBE', 'INTC', 'AMD', 'QCOM', 'AVGO'
-]
+DAG_NAME = 'data_ingestion'
+config = dag_config.get_dag_config(DAG_NAME)
+default_args = dag_config.get_default_args(DAG_NAME)
+SYMBOLS = get_symbols_for_dag(DAG_NAME)
+data_sources_config = get_data_sources()
+circuit_breaker_config = dag_config.get_circuit_breaker_config(DAG_NAME)
 
 # ================================================================
 # Helper Functions
@@ -72,12 +72,9 @@ def store_in_postgresql_safe(context):
     if not market_data or 'data' not in market_data:
         raise ValueError("No market data available to store")
     
-    conn = psycopg2.connect(
-        host=os.getenv('POSTGRES_HOST'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD'),
-        database=os.getenv('POSTGRES_DB')
-    )
+    # Use centralized config for DB connection
+    db_params = build_postgres_conn_params()
+    conn = psycopg2.connect(**db_params)
     
     cur = conn.cursor()
     stored = 0
@@ -127,9 +124,11 @@ def cache_in_redis_safe(context):
     if not market_data or 'data' not in market_data:
         return {'cached': 0}
     
+    # Use centralized config for Redis connection
+    redis_params = build_redis_conn_params()
     r = redis.Redis(
-        host=os.getenv('REDIS_HOST'),
-        password=os.getenv('REDIS_PASSWORD'),
+        host=redis_params['host'],
+        password=redis_params['password'],
         decode_responses=True
     )
     
@@ -146,36 +145,42 @@ def cache_in_redis_safe(context):
 
 
 # ================================================================
-# Define the Enhanced DAG
+# Define the Enhanced DAG (Config-Driven)
 # ================================================================
 with DAG(
-    dag_id='data_ingestion_v2',
+    dag_id=config.get('dag_id', 'data_ingestion_v2'),
     default_args=default_args,
-    description='v2: Real-time data with multi-source failover (99.9% reliability)',
-    schedule_interval='*/1 * * * *',  # Every minute
+    description=config.get('description', 'Real-time data with multi-source failover'),
+    schedule_interval=config.get('schedule_interval', '*/1 * * * *'),
     start_date=days_ago(1),
-    catchup=False,
-    tags=['v2', 'enterprise', 'real-time', 'multi-source', 'failover'],
-    max_active_runs=1,
+    catchup=dag_config.get_global('catchup', False),
+    tags=config.get('tags', ['v2', 'enterprise']),
+    max_active_runs=dag_config.get_global('max_active_runs', 1),
 ) as dag:
     
-    # Task 1: Fetch with automatic failover (Yahoo → Polygon → Finnhub)
+    # Task 1: Fetch with automatic failover (configured via YAML)
+    primary_source = getattr(DataSource, data_sources_config.get('primary', 'yahoo').upper())
+    fallback_sources = [
+        getattr(DataSource, src.upper())
+        for src in data_sources_config.get('fallback', ['polygon', 'finnhub'])
+    ]
+    
     fetch_data = MarketDataFetchOperator(
         task_id='fetch_market_data_failover',
         symbols=SYMBOLS,
         data_type='prices',
-        primary_source=DataSource.YAHOO,
-        fallback_sources=[DataSource.POLYGON, DataSource.FINNHUB],
-        cache_ttl_minutes=5,
+        primary_source=primary_source,
+        fallback_sources=fallback_sources,
+        cache_ttl_minutes=config.get('cache_ttl_minutes', 5),
         xcom_key='market_data'
     )
     
-    # Task 2: Store in PostgreSQL (with circuit breaker)
+    # Task 2: Store in PostgreSQL (with circuit breaker from config)
     store_postgres = CircuitBreakerOperator(
         task_id='store_postgresql_protected',
         callable_func=store_in_postgresql_safe,
-        failure_threshold=5,
-        recovery_timeout_seconds=60,
+        failure_threshold=circuit_breaker_config.get('failure_threshold', 5),
+        recovery_timeout_seconds=circuit_breaker_config.get('recovery_timeout_seconds', 60),
         xcom_key='postgres_result'
     )
     
@@ -183,8 +188,8 @@ with DAG(
     cache_redis = CircuitBreakerOperator(
         task_id='cache_redis_protected',
         callable_func=cache_in_redis_safe,
-        failure_threshold=5,
-        recovery_timeout_seconds=60,
+        failure_threshold=circuit_breaker_config.get('failure_threshold', 5),
+        recovery_timeout_seconds=circuit_breaker_config.get('recovery_timeout_seconds', 60),
         xcom_key='redis_result'
     )
     
@@ -192,15 +197,16 @@ with DAG(
     def update_neo4j_wrapper(**context):
         """Wrapper to handle XCom data properly"""
         from neo4j import GraphDatabase
-        import os
         
         market_data = context['ti'].xcom_pull(task_ids='fetch_market_data_failover', key='market_data')
         if not market_data or 'data' not in market_data:
             return {'updated': 0}
         
+        # Use centralized config for Neo4j connection
+        neo4j_params = build_neo4j_conn_params()
         driver = GraphDatabase.driver(
-            os.getenv('NEO4J_URI'),
-            auth=(os.getenv('NEO4J_USER'), os.getenv('NEO4J_PASSWORD'))
+            neo4j_params['uri'],
+            auth=(neo4j_params['user'], neo4j_params['password'])
         )
         
         query = """
@@ -221,95 +227,52 @@ with DAG(
         provide_context=True
     )
     
-    # Task 5: Check if NEW data was actually stored (row count check)
-    def check_new_data_fetched(**context):
-        """
-        Check if new data was actually fetched and stored.
-        Only returns True if row count > 0, preventing unnecessary validation triggers.
-        """
-        postgres_result = context['ti'].xcom_pull(task_ids='store_postgresql_protected', key='postgres_result')
-        
-        if not postgres_result or 'stored' not in postgres_result:
-            print("⚠️ No storage result found, skipping validation trigger")
-            return False
-        
-        stored_count = postgres_result.get('stored', 0)
-        print(f"📊 New rows stored: {stored_count}")
-        
-        if stored_count > 0:
-            print(f"✅ {stored_count} new rows stored - will trigger validation")
-            return True
-        else:
-            print("⏭️ No new data stored - skipping validation trigger")
-            return False
-    
-    check_data = PythonOperator(
-        task_id='check_new_data_stored',
-        python_callable=check_new_data_fetched,
-        provide_context=True
-    )
-    
-    # Task 6: Trigger validation DAG ONLY if new data was stored (prevents queue buildup)
-    trigger_validation = TriggerDagRunOperator(
-        task_id='trigger_quality_validation',
-        trigger_dag_id='data_quality_validation',
-        wait_for_completion=False,  # Don't block ingestion waiting for validation
-        poke_interval=30,
-        reset_dag_run=False,
-        execution_date="{{ execution_date }}",
-        conf={"triggered_by": "data_ingestion_v2"}
-    )
-    
     # ================================================================
-    # Task Dependencies
+    # Task Dependencies (SIMPLIFIED - No Triggers)
     # ================================================================
     
     # Fetch first (with automatic failover)
-    fetch_data
-    
     # Then parallel storage (all protected by circuit breakers)
     fetch_data >> [store_postgres, cache_redis, update_neo4j]
-    
-    # Check if new data was stored (row count check)
-    [store_postgres, cache_redis, update_neo4j] >> check_data
-    
-    # Trigger validation ONLY if new data was stored (prevents unnecessary work)
-    check_data >> trigger_validation
 
 
 dag.doc_md = """
-# Enhanced Data Ingestion DAG v2
+# Enhanced Data Ingestion DAG v2 (Config-Driven)
 
 ## 🚀 Enterprise Features
 
+### Centralized Configuration
+- **All settings in YAML**: schedules, thresholds, parameters configurable
+- **No hard-coded values**: Easy to tune without code changes
+- **Environment-based**: DB connections from environment variables
+- **Batch validation only**: No per-trigger validation overhead
+
 ### Multi-Source Failover (99.9% Reliability)
-- **Primary**: Yahoo Finance (free, unlimited)
-- **Fallback 1**: Polygon.io (if Yahoo fails)
-- **Fallback 2**: Finnhub (if Polygon fails)
+- **Primary**: Configurable (default: Yahoo Finance)
+- **Fallback sources**: Configurable (default: Polygon, Finnhub)
 - **Result**: 99.9% uptime vs 95% single-source
 
 ### Circuit Breaker Protection
 - Prevents cascade failures when databases are down
-- Fast-fails after 5 consecutive errors
+- Configurable failure thresholds and recovery timeouts
 - Auto-recovers when service restores
 - Saves resources during outages
 
-### Smart Validation Triggering
-- **Row Count Check**: Only triggers validation if NEW data was actually stored (stored > 0)
-- **Prevents Queue Buildup**: Skips trigger when no new data (e.g., market closed, API failures)
-- **Event-Driven**: Triggers validation immediately after successful NEW data ingestion
-- **Fallback**: Validation also runs every 15 minutes (time-based) if not triggered
-- **Benefit**: No unnecessary validation work + fast validation when needed
+### Batch Validation Strategy
+- **NO per-trigger validation**: Removed all trigger logic
+- **Scheduled batch processing**: Validation runs every 5 minutes independently
+- **5-minute windows**: Processes all data in 5-min batches
+- **More efficient**: Single batch validation vs multiple triggers
+- **No queue buildup**: Independent schedules prevent conflicts
 
 ## 📊 Performance
 
 - **Execution time**: ~10 seconds
 - **Success rate**: 99.9% (with failover)
-- **Data sources**: 3 (automatic switching)
+- **Data sources**: 3 (configurable via YAML)
 - **Parallel storage**: PostgreSQL + Redis + Neo4j simultaneously
-- **Smart validation**: Only triggered when NEW data is stored (row count > 0)
-- **Non-blocking**: Validation runs async, doesn't slow down ingestion
-- **Prevents overload**: Skips trigger if no new data (market closed, failures, etc.)
+- **Validation strategy**: Independent 5-min batch processing
+- **No blocking**: Ingestion and validation completely decoupled
 
 ## 💰 Cost
 
@@ -322,29 +285,25 @@ dag.doc_md = """
 
 1. **More Reliable**: 3 data sources vs 1
 2. **Fault Tolerant**: Circuit breakers protect system
-3. **Smart Triggering**: Row count check prevents unnecessary validation work
-4. **Event-Driven**: Triggers validation only when NEW data is stored
-5. **Better Quality**: Dedicated validation DAG with comprehensive checks
+3. **Configurable**: All parameters in centralized YAML
+4. **Batch Processing**: 5-min windows more efficient than per-trigger
+5. **Decoupled**: Ingestion and validation completely independent
 6. **Zero Cost**: Uses free tier APIs
 7. **Parallel Storage**: PostgreSQL + Redis + Neo4j simultaneously
-8. **Prevents Overload**: No validation queue buildup during failures/market closed
+8. **Simple**: No complex trigger logic or queue management
 
 ## 🔗 Related DAGs
 
-- **data_quality_validation_dag**: Event-driven + 15-min fallback validation
-- **company_graph_dag_v2**: Enriches Neo4j graph with company relationships
-- **correlation_analyzer_dag_v2**: Analyzes price correlations
-- **events_tracker_dag_v2**: Monitors market events
+- **data_quality_validation**: Runs every 5 minutes, validates 5-min batches
+- **company_graph_builder_v2**: Enriches Neo4j graph with company relationships
+- **correlation_analyzer_v2**: Analyzes price correlations
+- **events_tracker_v2**: Monitors market events
 
 ## 🎯 Workflow
 
-1. **Fetch**: Get data with 3-source failover (Yahoo → Polygon → Finnhub)
+1. **Fetch**: Get data with 3-source failover (configurable sources)
 2. **Store**: Parallel writes to PostgreSQL + Redis + Neo4j
-3. **Check**: Verify if NEW data was actually stored (row count check)
-4. **Trigger**: Only trigger validation if row count > 0 (prevents unnecessary work)
-5. **Validate**: Quality checks run immediately when triggered (event-driven)
-6. **Fallback**: If not triggered, validation runs every 15 minutes anyway
+3. **Done**: Validation handled independently by batch processor
 
-Original DAG had single point of failure AND blocking quality checks.
-This version keeps running even if 2/3 sources fail AND validates async with dual triggers!
+Simple, efficient, and configurable!
 """

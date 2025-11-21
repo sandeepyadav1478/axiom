@@ -1,6 +1,6 @@
 """
 Apache Airflow DAG v2: Company Graph Builder
-Uses enterprise-grade operators for cost optimization and reliability
+Uses enterprise-grade operators with centralized YAML configuration
 
 IMPROVEMENTS OVER V1:
 - ✅ CachedClaudeOperator (70% cost savings)
@@ -8,10 +8,10 @@ IMPROVEMENTS OVER V1:
 - ✅ DataQualityOperator (automated validation)
 - ✅ Neo4jBulkInsertOperator (10x faster)
 - ✅ Cost tracking in PostgreSQL
-- ✅ Multi-source market data with failover
+- ✅ Centralized YAML configuration
 
-Schedule: Hourly
-Cost: $0.015/run (vs $0.05/run before caching)
+Schedule: Configurable via YAML
+Cost: Configurable cache TTL and settings
 """
 from airflow import DAG
 from airflow.utils.dates import days_ago
@@ -24,9 +24,7 @@ sys.path.insert(0, '/opt/airflow')
 from dotenv import load_dotenv
 load_dotenv('/opt/airflow/.env')
 
-# Import operators from local path (operators are in same airflow directory)
-import sys
-import os
+# Import operators from local path
 operators_path = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, operators_path)
 
@@ -34,28 +32,26 @@ from operators.claude_operator import CachedClaudeOperator
 from operators.resilient_operator import CircuitBreakerOperator
 from operators.neo4j_operator import Neo4jBulkInsertOperator, Neo4jGraphValidationOperator, Neo4jQueryOperator
 from operators.quality_check_operator import DataQualityOperator
-from operators.market_data_operator import MarketDataFetchOperator, DataSource
+
+# Import centralized configuration
+utils_path = os.path.join(os.path.dirname(__file__), '..')
+sys.path.insert(0, utils_path)
+from utils.config_loader import (
+    dag_config,
+    get_symbols_for_dag,
+    build_neo4j_conn_params
+)
 
 # ================================================================
-# Configuration
+# Load Configuration from YAML
 # ================================================================
-default_args = {
-    'owner': 'axiom',
-    'depends_on_past': False,
-    'email': ['admin@axiom.com'],
-    'email_on_failure': False,  # Disabled (SMTP not configured)
-    'email_on_retry': False,
-    'retries': 3,
-    'retry_delay': timedelta(minutes=5),
-    'execution_timeout': timedelta(minutes=30),
-    'sla': timedelta(minutes=45)
-}
-
-SYMBOLS = [
-    'AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA', 'META', 'AMZN', 'NFLX',
-    'GOOG', 'CRM', 'ORCL', 'ADBE', 'INTC', 'AMD', 'QCOM', 'AVGO',
-    'CSCO', 'TXN', 'UBER', 'LYFT', 'SNAP', 'JPM', 'BAC', 'GS', 'MS'
-]
+DAG_NAME = 'company_graph_builder'
+config = dag_config.get_dag_config(DAG_NAME)
+default_args = dag_config.get_default_args(DAG_NAME)
+SYMBOLS = get_symbols_for_dag(DAG_NAME)
+circuit_breaker_config = dag_config.get_circuit_breaker_config(DAG_NAME)
+claude_config = dag_config.get_claude_config(DAG_NAME)
+neo4j_config = dag_config.get_neo4j_config(DAG_NAME)
 
 # ================================================================
 # Helper Functions for Circuit Breaker
@@ -65,10 +61,13 @@ def fetch_company_data_safe(context):
     """Fetch company data with automatic failover"""
     import yfinance as yf
     
+    # Get symbols from context (passed from DAG)
+    symbols = context['params'].get('symbols', SYMBOLS)
+    
     companies = {}
     failed = []
     
-    for symbol in SYMBOLS:
+    for symbol in symbols:
         try:
             ticker = yf.Ticker(symbol)
             info = ticker.info
@@ -93,34 +92,35 @@ def fetch_company_data_safe(context):
     return {
         'fetched': len(companies),
         'failed': len(failed),
-        'success_rate': len(companies) / len(SYMBOLS) if SYMBOLS else 0
+        'success_rate': len(companies) / len(symbols) if symbols else 0
     }
 
 
 # ================================================================
-# Define the Enhanced DAG
+# Define the Enhanced DAG (Config-Driven)
 # ================================================================
 with DAG(
-    dag_id='company_graph_builder_v2',
+    dag_id=config.get('dag_id', 'company_graph_builder_v2'),
     default_args=default_args,
-    description='v2: Build company graph with enterprise operators (70% cost reduction)',
-    schedule_interval='*/5 * * * *',  # Every 5 minutes for testing
+    description=config.get('description', 'Build company graph with enterprise operators'),
+    schedule_interval=config.get('schedule_interval', '@hourly'),
     start_date=days_ago(1),
-    catchup=False,
-    tags=['v2', 'enterprise', 'claude-cached', 'neo4j', 'cost-optimized'],
-    max_active_runs=1,
+    catchup=dag_config.get_global('catchup', False),
+    tags=config.get('tags', ['v2', 'enterprise']),
+    max_active_runs=dag_config.get_global('max_active_runs', 1),
 ) as dag:
     
-    # Task 1: Fetch company data with circuit breaker protection
+    # Task 1: Fetch company data with circuit breaker (config-driven)
     fetch_companies = CircuitBreakerOperator(
         task_id='fetch_companies_safe',
         callable_func=fetch_company_data_safe,
-        failure_threshold=5,
-        recovery_timeout_seconds=300,
-        xcom_key='fetch_result'
+        failure_threshold=circuit_breaker_config.get('failure_threshold', 5),
+        recovery_timeout_seconds=circuit_breaker_config.get('recovery_timeout_seconds', 300),
+        xcom_key='fetch_result',
+        params={'symbols': SYMBOLS}
     )
     
-    # Task 2: Identify competitors with CACHED Claude (huge cost savings!)
+    # Task 2: Identify competitors with CACHED Claude (config-driven cache TTL)
     identify_competitors = CachedClaudeOperator(
         task_id='identify_competitors_cached',
         prompt="""Based on this company data: {{ ti.xcom_pull(task_ids='fetch_companies_safe', key='company_data') }}
@@ -128,13 +128,13 @@ with DAG(
 For each company, identify the top 5 direct competitors.
 Return as JSON: {"SYMBOL": ["COMP1", "COMP2", ...]}""",
         system_message='You are a market analyst specializing in competitive intelligence.',
-        max_tokens=4096,
-        cache_ttl_hours=24,  # Cache for 24 hours - same competitors!
-        track_cost=True,
+        max_tokens=claude_config.get('max_tokens', 4096),
+        cache_ttl_hours=claude_config.get('cache_ttl_hours', 24),
+        track_cost=claude_config.get('track_cost', True),
         xcom_key='competitors'
     )
     
-    # Task 3: Identify sector peers with CACHED Claude
+    # Task 3: Identify sector peers with CACHED Claude (config-driven)
     identify_sectors = CachedClaudeOperator(
         task_id='identify_sector_peers_cached',
         prompt="""Based on this company data: {{ ti.xcom_pull(task_ids='fetch_companies_safe', key='company_data') }}
@@ -142,18 +142,18 @@ Return as JSON: {"SYMBOL": ["COMP1", "COMP2", ...]}""",
 For each company, identify companies in the same sector/industry.
 Return as JSON: {"SYMBOL": ["PEER1", "PEER2", ...]}""",
         system_message='You are a sector analyst specializing in industry classification.',
-        max_tokens=4096,
-        cache_ttl_hours=24,  # Sectors don't change often
-        track_cost=True,
+        max_tokens=claude_config.get('max_tokens', 4096),
+        cache_ttl_hours=claude_config.get('cache_ttl_hours', 24),
+        track_cost=claude_config.get('track_cost', True),
         xcom_key='sector_peers'
     )
     
-    # Task 4: Bulk insert companies into Neo4j (10x faster!)
+    # Task 4: Bulk insert companies into Neo4j (config-driven batch size)
     bulk_create_companies = Neo4jBulkInsertOperator(
         task_id='bulk_create_companies',
         node_type='Company',
         data="{{ ti.xcom_pull(task_ids='fetch_companies_safe', key='company_data').values() | list }}",
-        batch_size=1000,
+        batch_size=neo4j_config.get('batch_size', 1000),
         merge_key='symbol',
         xcom_key='bulk_insert_result'
     )
@@ -190,16 +190,17 @@ Return as JSON: {"SYMBOL": ["PEER1", "PEER2", ...]}""",
         }
     )
     
-    # Task 7: Validate the graph
+    # Task 7: Validate the graph (config-driven validation rules)
+    validation_rules = neo4j_config.get('validation', {})
     validate_graph = Neo4jGraphValidationOperator(
         task_id='validate_graph_quality',
         validation_rules={
             'node_type': 'Company',
-            'min_nodes': 20,
-            'min_relationships': 50,
-            'check_orphans': True
+            'min_nodes': validation_rules.get('min_nodes', 20),
+            'min_relationships': validation_rules.get('min_relationships', 50),
+            'check_orphans': validation_rules.get('check_orphans', True)
         },
-        fail_on_error=False,  # Warning only
+        fail_on_error=validation_rules.get('fail_on_error', False),
         xcom_key='validation_result'
     )
     
@@ -245,31 +246,35 @@ Return as JSON: {"SYMBOL": ["PEER1", "PEER2", ...]}""",
 # DAG Documentation
 # ================================================================
 dag.doc_md = """
-# Enhanced Company Graph Builder DAG
+# Enhanced Company Graph Builder DAG (Config-Driven)
 
 ## 🚀 Enterprise Features
 
+### Centralized Configuration
+- **All settings in YAML**: schedules, cache TTL, thresholds configurable
+- **No hard-coded values**: Easy to tune without code changes
+- **Flexible symbol lists**: Use primary or extended lists via config
+- **Configurable validation**: All validation rules in YAML
+
 ### Cost Optimization (70% Reduction)
-- **CachedClaudeOperator**: Caches competitor/sector analysis for 24 hours
-- **Before**: $0.05 per run (2 Claude calls * $0.025)
-- **After**: $0.015 per run (90% cache hit rate)
-- **Monthly savings**: ~$1,000 at hourly execution
+- **CachedClaudeOperator**: Cache TTL configurable via YAML
+- **Configurable**: Cache duration, max tokens, cost tracking
+- **Monthly savings**: Significant with proper cache configuration
 
 ### Performance (10x Faster)
-- **Neo4jBulkInsertOperator**: Batch processing
-- **Before**: 100 nodes/second (individual creates)
-- **After**: 1,000+ nodes/second (bulk UNWIND)
-- **Time saved**: 5 minutes → 30 seconds for 25 companies
+- **Neo4jBulkInsertOperator**: Batch size configurable
+- **Configurable thresholds**: All performance settings in YAML
+- **Time saved**: Bulk operations with configurable batch sizes
 
 ### Reliability (99.9% Uptime)
-- **CircuitBreakerOperator**: Protects against API failures
-- **Automatic failover**: If Yahoo Finance fails, switches to backup
-- **Fast-fail**: Don't waste time on failing APIs
+- **CircuitBreakerOperator**: Thresholds configurable via YAML
+- **Configurable recovery**: Timeout and threshold settings
+- **Fast-fail**: Configurable failure detection
 
 ### Data Quality (100% Validation)
-- **Neo4jGraphValidationOperator**: Ensures graph integrity
-- **DataQualityOperator**: Validates cost tracking
-- **Orphan detection**: Finds disconnected nodes
+- **Neo4jGraphValidationOperator**: Rules configurable via YAML
+- **Configurable thresholds**: Min nodes, relationships, etc.
+- **Orphan detection**: Configurable via YAML
 
 ## 📊 Metrics Tracked
 
@@ -280,21 +285,21 @@ All metrics automatically stored in PostgreSQL:
 - Cache hit/miss rates
 - Graph growth over time
 
-## 🎯 Success Criteria
+## 🎯 Success Criteria (All Configurable)
 
-- ✅ Graph has 20+ companies
-- ✅ 50+ relationships created
-- ✅ <5% orphaned nodes
-- ✅ Cost < $0.02 per run
-- ✅ Execution time < 5 minutes
+- ✅ Graph has configurable min nodes
+- ✅ Configurable min relationships
+- ✅ Configurable orphan threshold
+- ✅ Configurable cost targets
+- ✅ Configurable execution time limits
 
-## 💡 Why This is Better
+## 💡 Why Configuration-Driven Design?
 
-1. **Saves Money**: 70% reduction in Claude costs
-2. **Runs Faster**: 10x faster Neo4j operations
-3. **More Reliable**: Circuit breakers prevent cascading failures
-4. **Better Quality**: Automated validation catches issues
-5. **Full Visibility**: All costs and metrics tracked
+1. **Easy Tuning**: Change settings without code modifications
+2. **Environment Flexibility**: Different settings for dev/prod
+3. **Performance Optimization**: Easily adjust batch sizes, cache TTL
+4. **Cost Control**: Configure cache duration to balance cost/freshness
+5. **Quality Standards**: Set validation thresholds per environment
 
-This DAG uses the same logic as the original but with **enterprise-grade operators**.
+All parameters centralized in [`dag_config.yaml`](../dag_configs/dag_config.yaml)!
 """

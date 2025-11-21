@@ -1,16 +1,16 @@
 """
 Apache Airflow DAG v2: Market Events Tracker
-Track and classify market events with cached Claude analysis
+Track and classify market events with centralized YAML configuration
 
 IMPROVEMENTS OVER V1:
-- ✅ CachedClaudeOperator (saves 80% on repeated event classification)
+- ✅ CachedClaudeOperator (cost savings configurable)
 - ✅ Circuit breaker for news API calls
 - ✅ Batch processing of events
 - ✅ Cost tracking per event classification
-- ✅ Data quality validation
+- ✅ Centralized YAML configuration
 
-Schedule: Every 5 minutes
-Cost: $0.005/run (vs $0.02 without caching)
+Schedule: Configurable via YAML
+Cost: Configurable cache TTL and settings
 """
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -22,36 +22,36 @@ import os
 sys.path.insert(0, '/opt/airflow')
 
 # Load environment early
-import os
 from dotenv import load_dotenv
 load_dotenv('/opt/airflow/.env')
 os.environ.setdefault('ANTHROPIC_API_KEY', os.getenv('CLAUDE_API_KEY', ''))
 
 # Import operators from local path
-import sys
-import os
 operators_path = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, operators_path)
 
 from operators.claude_operator import CachedClaudeOperator
 from operators.resilient_operator import CircuitBreakerOperator
-from operators.neo4j_operator import Neo4jQueryOperator
+
+# Import centralized configuration
+utils_path = os.path.join(os.path.dirname(__file__), '..')
+sys.path.insert(0, utils_path)
+from utils.config_loader import (
+    dag_config,
+    get_symbols_for_dag,
+    build_neo4j_conn_params
+)
 
 # ================================================================
-# Configuration
+# Load Configuration from YAML
 # ================================================================
-default_args = {
-    'owner': 'axiom',
-    'depends_on_past': False,
-    'email': ['admin@axiom.com'],
-    'email_on_failure': False,  # Disabled (SMTP not configured)
-    'email_on_retry': False,
-    'retries': 2,
-    'retry_delay': timedelta(minutes=2),
-    'execution_timeout': timedelta(minutes=10)
-}
-
-SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA', 'AMZN', 'META', 'NFLX']
+DAG_NAME = 'events_tracker'
+config = dag_config.get_dag_config(DAG_NAME)
+default_args = dag_config.get_default_args(DAG_NAME)
+SYMBOLS = get_symbols_for_dag(DAG_NAME)
+circuit_breaker_config = dag_config.get_circuit_breaker_config(DAG_NAME)
+claude_config = dag_config.get_claude_config(DAG_NAME)
+news_config = dag_config.get_news_config()
 
 # ================================================================
 # Helper Functions
@@ -61,14 +61,18 @@ def fetch_news_safe(context):
     """Fetch news with error handling"""
     import yfinance as yf
     
+    # Get config from context
+    symbols = context['params'].get('symbols', SYMBOLS)
+    max_items_per_symbol = context['params'].get('max_items_per_symbol', 5)
+    
     news_items = []
     
-    for symbol in SYMBOLS:
+    for symbol in symbols:
         try:
             ticker = yf.Ticker(symbol)
             news = ticker.news
             
-            for item in news[:5]:  # Top 5 per company
+            for item in news[:max_items_per_symbol]:
                 news_items.append({
                     'symbol': symbol,
                     'title': item.get('title', ''),
@@ -97,9 +101,11 @@ def create_event_nodes_batch(context):
     if not events or not events.get('success'):
         return {'created': 0}
     
+    # Use centralized config for Neo4j connection
+    neo4j_params = build_neo4j_conn_params()
     driver = GraphDatabase.driver(
-        os.getenv('NEO4J_URI'),
-        auth=(os.getenv('NEO4J_USER'), os.getenv('NEO4J_PASSWORD'))
+        neo4j_params['uri'],
+        auth=(neo4j_params['user'], neo4j_params['password'])
     )
     
     # Parse Claude's response (should be JSON with events)
@@ -136,64 +142,73 @@ def create_event_nodes_batch(context):
 
 
 # ================================================================
-# Define the Enhanced DAG
+# Define the Enhanced DAG (Config-Driven)
 # ================================================================
 with DAG(
-    dag_id='events_tracker_v2',
+    dag_id=config.get('dag_id', 'events_tracker_v2'),
     default_args=default_args,
-    description='v2: Track market events with cached Claude classification (80% cost reduction)',
-    schedule_interval='*/5 * * * *',  # Every 5 minutes
+    description=config.get('description', 'Track market events with cached Claude classification'),
+    schedule_interval=config.get('schedule_interval', '*/15 * * * *'),
     start_date=days_ago(1),
-    catchup=False,
-    tags=['v2', 'enterprise', 'events', 'claude-cached', 'cost-optimized'],
-    max_active_runs=1,
+    catchup=dag_config.get_global('catchup', False),
+    tags=config.get('tags', ['v2', 'enterprise']),
+    max_active_runs=dag_config.get_global('max_active_runs', 1),
 ) as dag:
     
-    # Task 1: Fetch news with circuit breaker
+    # Task 1: Fetch news with circuit breaker (config-driven)
     fetch_news = CircuitBreakerOperator(
         task_id='fetch_news_protected',
         callable_func=fetch_news_safe,
-        failure_threshold=5,
-        recovery_timeout_seconds=120,
-        xcom_key='fetch_result'
+        failure_threshold=circuit_breaker_config.get('failure_threshold', 5),
+        recovery_timeout_seconds=circuit_breaker_config.get('recovery_timeout_seconds', 120),
+        xcom_key='fetch_result',
+        params={
+            'symbols': SYMBOLS,
+            'max_items_per_symbol': news_config.get('max_items_per_symbol', 5)
+        }
     )
     
-    # Task 2: Classify events with CACHED Claude (huge savings!)
+    # Get event classification config
+    event_types = config.get('event_types', ['earnings', 'product_launch', 'regulatory', 'acquisition', 'leadership_change', 'other'])
+    sentiments = config.get('sentiments', ['positive', 'negative', 'neutral'])
+    impact_levels = config.get('impact_levels', ['high', 'medium', 'low'])
+    
+    # Task 2: Classify events with CACHED Claude (config-driven)
     classify_events = CachedClaudeOperator(
         task_id='classify_events_cached',
-        prompt="""Analyze these market events and classify each one:
-{{ ti.xcom_pull(task_ids='fetch_news_protected', key='news_items') }}
+        prompt=f"""Analyze these market events and classify each one:
+{{{{ ti.xcom_pull(task_ids='fetch_news_protected', key='news_items') }}}}
 
 For each event, provide:
-1. Event Type (earnings, product_launch, regulatory, acquisition, leadership_change, other)
-2. Sentiment (positive, negative, neutral)
-3. Impact Level (high, medium, low)
+1. Event Type ({', '.join(event_types)})
+2. Sentiment ({', '.join(sentiments)})
+3. Impact Level ({', '.join(impact_levels)})
 
 Return as JSON array:
 [
-  {
+  {{
     "symbol": "AAPL",
     "title": "...",
     "event_type": "earnings",
-    "sentiment": "positive", 
+    "sentiment": "positive",
     "impact": "high",
     "published": 1234567890
-  },
+  }},
   ...
 ]""",
         system_message='You are a financial news analyst specializing in event classification.',
-        max_tokens=4096,
-        cache_ttl_hours=6,  # Same news often repeated across sources
-        track_cost=True,
+        max_tokens=claude_config.get('max_tokens', 4096),
+        cache_ttl_hours=claude_config.get('cache_ttl_hours', 6),
+        track_cost=claude_config.get('track_cost', True),
         xcom_key='claude_response'
     )
     
-    # Task 3: Create event nodes in batch
+    # Task 3: Create event nodes in batch (config-driven)
     create_events = CircuitBreakerOperator(
         task_id='create_event_nodes_batch',
         callable_func=create_event_nodes_batch,
-        failure_threshold=5,
-        recovery_timeout_seconds=60,
+        failure_threshold=circuit_breaker_config.get('failure_threshold', 5),
+        recovery_timeout_seconds=circuit_breaker_config.get('recovery_timeout_seconds', 60),
         xcom_key='create_result'
     )
     
@@ -202,35 +217,50 @@ Return as JSON array:
 
 
 dag.doc_md = """
-# Enhanced Events Tracker DAG
+# Enhanced Events Tracker DAG (Config-Driven)
 
-## 🚀 Cost Optimization
+## 🚀 Centralized Configuration
 
-### Before (Original)
-- **Cost per run**: $0.02 (40 events * $0.0005)
-- **Daily cost**: $5.76 (288 runs/day)
-- **Monthly cost**: $172.80
+### All Settings in YAML
+- **Schedule**: Configurable (default: every 15 minutes)
+- **Max items per symbol**: Configurable (default: 5)
+- **Event types**: Configurable list
+- **Sentiments**: Configurable list
+- **Impact levels**: Configurable list
+- **Cache TTL**: Configurable (default: 6 hours)
 
-### After (Enhanced with Caching)
-- **Cost per run**: $0.004 (80% cache hit rate)
-- **Daily cost**: $1.15
-- **Monthly cost**: $34.56
-- **SAVINGS**: $138/month (80% reduction)
+### Cost Optimization
+- **Cache duration**: Configurable for cost/freshness balance
+- **News often repeated**: Cache saves significant costs
+- **Track costs**: Configurable cost tracking
 
-## 🎯 Why Caching Works Here
+### Performance
+- **News fetching**: Circuit breaker configurable
+- **Event classification**: Cache TTL configurable
+- **Neo4j operations**: Circuit breaker configurable
+- **All thresholds**: Tunable via YAML
 
-News events are often repeated:
-- Same earnings announcement across sources
-- Same product launches in different articles  
-- Same regulatory news from multiple publishers
+## 🎯 Event Classification (Configurable)
 
-**Cache hit rate**: 70-90% typically
+### Event Types
+Configurable list (default includes):
+- earnings, product_launch, regulatory, acquisition, leadership_change, other
 
-## 📊 Performance
+### Sentiments
+Configurable list (default includes):
+- positive, negative, neutral
 
-- Processes 40+ events per run
-- Classification time: <2 seconds (with cache)
-- Batch Neo4j insert: 40 events in <1 second
+### Impact Levels
+Configurable list (default includes):
+- high, medium, low
 
-This DAG demonstrates how intelligent caching can dramatically reduce AI costs!
+## 💡 Why Configuration-Driven?
+
+1. **Easy Tuning**: Adjust classification categories without code changes
+2. **Cost Control**: Configure cache duration to balance cost/freshness
+3. **Performance Optimization**: Tune circuit breaker thresholds
+4. **Flexibility**: Different settings for dev/staging/prod
+5. **Extensibility**: Add new event types/sentiments easily
+
+All parameters centralized in [`dag_config.yaml`](../dag_configs/dag_config.yaml)!
 """

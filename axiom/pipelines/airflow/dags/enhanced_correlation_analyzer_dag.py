@@ -43,7 +43,8 @@ default_args = {
     'owner': 'axiom',
     'depends_on_past': False,
     'email': ['admin@axiom.com'],
-    'email_on_failure': True,
+    'email_on_failure': False,  # Disabled (SMTP not configured)
+    'email_on_retry': False,
     'retries': 3,
     'retry_delay': timedelta(minutes=5),
     'execution_timeout': timedelta(minutes=20)

@@ -172,8 +172,8 @@ company_graph_builder:
   dag_id: company_graph_builder_v2
   description: "Build company graph with enterprise operators"
   
-  # Schedule: Every hour (relationships don't change often)
-  schedule_interval: "@hourly"
+  # Schedule: Every 5 minutes for active monitoring
+  schedule_interval: "*/5 * * * *"
   execution_timeout_minutes: 30
   
   # Claude caching for cost optimization
@@ -213,8 +213,8 @@ correlation_analyzer:
   dag_id: correlation_analyzer_v2
   description: "Correlation analysis with cached explanations"
   
-  # Schedule: Every hour (correlations change slowly)
-  schedule_interval: "@hourly"
+  # Schedule: Every 5 minutes for active monitoring
+  schedule_interval: "*/5 * * * *"
   execution_timeout_minutes: 20
   
   # Correlation settings

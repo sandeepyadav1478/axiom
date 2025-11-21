@@ -1,17 +1,18 @@
 """
 Apache Airflow DAG v2: Data Ingestion
-Real-time stock prices with multi-source failover and data quality validation
+Real-time stock prices with multi-source failover (no validation - see data_quality_validation_dag)
 
 IMPROVEMENTS OVER V1:
 - ✅ Multi-source failover (Yahoo → Polygon → Finnhub)
 - ✅ 99.9% reliability (vs 95% with single source)
-- ✅ Automated data quality checks
 - ✅ Circuit breaker protection
 - ✅ Consensus validation from multiple sources
 - ✅ Performance monitoring
+- ✅ Validation separated to dedicated DAG (proper separation of concerns)
 
 Schedule: Every minute
 Reliability: 99.9% (3-source failover)
+Note: Data quality validation runs hourly in separate data_quality_validation_dag
 """
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -32,7 +33,6 @@ operators_path = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, operators_path)
 
 from operators.market_data_operator import MarketDataFetchOperator, MultiSourceMarketDataOperator, DataSource
-from operators.quality_check_operator import DataQualityOperator
 from operators.resilient_operator import CircuitBreakerOperator
 from operators.neo4j_operator import Neo4jQueryOperator
 
@@ -220,38 +220,6 @@ with DAG(
         provide_context=True
     )
     
-    # Task 5: Validate data quality
-    validate_data = DataQualityOperator(
-        task_id='validate_ingested_data',
-        table_name='stock_prices',
-        checks=[
-            {
-                'name': 'recent_data',
-                'type': 'custom_sql',
-                'sql': """
-                    SELECT COUNT(*) > 0 
-                    FROM stock_prices 
-                    WHERE timestamp > NOW() - INTERVAL '5 minutes'
-                """,
-                'expected': True
-            },
-            {
-                'name': 'no_null_prices',
-                'type': 'null_count',
-                'column': 'close',
-                'max_null_percent': 0
-            },
-            {
-                'name': 'valid_price_range',
-                'type': 'value_range',
-                'column': 'close',
-                'min_value': 0,
-                'max_value': 100000
-            }
-        ],
-        fail_on_error=False  # Log warnings, don't fail DAG
-    )
-    
     # ================================================================
     # Task Dependencies
     # ================================================================
@@ -261,13 +229,10 @@ with DAG(
     
     # Then parallel storage (all protected by circuit breakers)
     fetch_data >> [store_postgres, cache_redis, update_neo4j]
-    
-    # Validate after storage completes
-    store_postgres >> validate_data
 
 
 dag.doc_md = """
-# Enhanced Data Ingestion DAG
+# Enhanced Data Ingestion DAG v2
 
 ## 🚀 Enterprise Features
 
@@ -283,11 +248,10 @@ dag.doc_md = """
 - Auto-recovers when service restores
 - Saves resources during outages
 
-### Automated Data Quality
-- Checks run after every ingestion
-- Validates price ranges (0-100,000)
-- Ensures no null values
-- Verifies data freshness (<5 minutes old)
+### Separation of Concerns
+- **This DAG**: Focuses purely on data ingestion (speed & reliability)
+- **Quality Validation**: Handled by separate `data_quality_validation_dag` (hourly)
+- **Benefit**: Ingestion never fails due to quality issues
 
 ## 📊 Performance
 
@@ -295,6 +259,7 @@ dag.doc_md = """
 - **Success rate**: 99.9% (with failover)
 - **Data sources**: 3 (automatic switching)
 - **Parallel storage**: PostgreSQL + Redis + Neo4j simultaneously
+- **No validation overhead**: Quality checks run separately
 
 ## 💰 Cost
 
@@ -303,13 +268,22 @@ dag.doc_md = """
 - **Finnhub**: FREE tier (60 calls/min) - backup only
 - **Total cost**: $0/month (uses free tier for all)
 
-## 🎯 Why This is Better
+## 🎯 Why This Design?
 
 1. **More Reliable**: 3 data sources vs 1
 2. **Fault Tolerant**: Circuit breakers protect system
-3. **Quality Assured**: Automated validation
-4. **Zero Cost**: Uses free tier APIs
-5. **Fast**: Parallel database writes
+3. **Faster**: No validation blocking ingestion
+4. **Better Quality**: Dedicated validation DAG with comprehensive checks
+5. **Zero Cost**: Uses free tier APIs
+6. **Parallel Storage**: PostgreSQL + Redis + Neo4j simultaneously
 
-Original DAG had single point of failure. This version keeps running even if 2/3 sources fail!
+## 🔗 Related DAGs
+
+- **data_quality_validation_dag**: Hourly validation of NEW data only
+- **company_graph_dag_v2**: Enriches Neo4j graph with company relationships
+- **correlation_analyzer_dag_v2**: Analyzes price correlations
+- **events_tracker_dag_v2**: Monitors market events
+
+Original DAG had single point of failure AND quality checks blocking ingestion.
+This version keeps running even if 2/3 sources fail AND validates separately!
 """

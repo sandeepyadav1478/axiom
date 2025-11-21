@@ -187,19 +187,37 @@ with DAG(
         xcom_key='redis_result'
     )
     
-    # Task 4: Update Neo4j prices (parallel)
-    update_neo4j = Neo4jQueryOperator(
-        task_id='update_neo4j_prices',
-        query="""
+    # Task 4: Update Neo4j prices (parallel) - Using Python function instead of templates
+    def update_neo4j_wrapper(**context):
+        """Wrapper to handle XCom data properly"""
+        from neo4j import GraphDatabase
+        import os
+        
+        market_data = context['ti'].xcom_pull(task_ids='fetch_market_data_failover', key='market_data')
+        if not market_data or 'data' not in market_data:
+            return {'updated': 0}
+        
+        driver = GraphDatabase.driver(
+            os.getenv('NEO4J_URI'),
+            auth=(os.getenv('NEO4J_USER'), os.getenv('NEO4J_PASSWORD'))
+        )
+        
+        query = """
         UNWIND $prices AS price
         MERGE (c:Company {symbol: price.symbol})
         SET c.last_price = price.close,
-            c.price_updated_at = datetime($timestamp)
-        """,
-        parameters={
-            'prices': "{{ ti.xcom_pull(task_ids='fetch_market_data_failover', key='market_data')['data'] }}",
-            'timestamp': "{{ ts }}"
-        }
+            c.price_updated_at = datetime()
+        """
+        
+        records, summary, keys = driver.execute_query(query, {'prices': market_data['data']})
+        driver.close()
+        
+        return {'updated': summary.counters.properties_set}
+    
+    update_neo4j = PythonOperator(
+        task_id='update_neo4j_prices',
+        python_callable=update_neo4j_wrapper,
+        provide_context=True
     )
     
     # Task 5: Validate data quality

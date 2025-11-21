@@ -221,7 +221,35 @@ with DAG(
         provide_context=True
     )
     
-    # Task 5: Trigger validation DAG after successful ingestion (event-driven)
+    # Task 5: Check if NEW data was actually stored (row count check)
+    def check_new_data_fetched(**context):
+        """
+        Check if new data was actually fetched and stored.
+        Only returns True if row count > 0, preventing unnecessary validation triggers.
+        """
+        postgres_result = context['ti'].xcom_pull(task_ids='store_postgresql_protected', key='postgres_result')
+        
+        if not postgres_result or 'stored' not in postgres_result:
+            print("⚠️ No storage result found, skipping validation trigger")
+            return False
+        
+        stored_count = postgres_result.get('stored', 0)
+        print(f"📊 New rows stored: {stored_count}")
+        
+        if stored_count > 0:
+            print(f"✅ {stored_count} new rows stored - will trigger validation")
+            return True
+        else:
+            print("⏭️ No new data stored - skipping validation trigger")
+            return False
+    
+    check_data = PythonOperator(
+        task_id='check_new_data_stored',
+        python_callable=check_new_data_fetched,
+        provide_context=True
+    )
+    
+    # Task 6: Trigger validation DAG ONLY if new data was stored (prevents queue buildup)
     trigger_validation = TriggerDagRunOperator(
         task_id='trigger_quality_validation',
         trigger_dag_id='data_quality_validation',
@@ -242,8 +270,11 @@ with DAG(
     # Then parallel storage (all protected by circuit breakers)
     fetch_data >> [store_postgres, cache_redis, update_neo4j]
     
-    # After all storage completes successfully, trigger validation (event-driven)
-    [store_postgres, cache_redis, update_neo4j] >> trigger_validation
+    # Check if new data was stored (row count check)
+    [store_postgres, cache_redis, update_neo4j] >> check_data
+    
+    # Trigger validation ONLY if new data was stored (prevents unnecessary work)
+    check_data >> trigger_validation
 
 
 dag.doc_md = """
@@ -263,11 +294,12 @@ dag.doc_md = """
 - Auto-recovers when service restores
 - Saves resources during outages
 
-### Event-Driven Validation
-- **This DAG**: Triggers validation after successful ingestion
-- **Quality Validation**: Runs immediately after data arrives (event-driven)
-- **Fallback**: Validation also runs every 15 minutes (time-based)
-- **Benefit**: Fast validation + ingestion never blocks on quality checks
+### Smart Validation Triggering
+- **Row Count Check**: Only triggers validation if NEW data was actually stored (stored > 0)
+- **Prevents Queue Buildup**: Skips trigger when no new data (e.g., market closed, API failures)
+- **Event-Driven**: Triggers validation immediately after successful NEW data ingestion
+- **Fallback**: Validation also runs every 15 minutes (time-based) if not triggered
+- **Benefit**: No unnecessary validation work + fast validation when needed
 
 ## 📊 Performance
 
@@ -275,8 +307,9 @@ dag.doc_md = """
 - **Success rate**: 99.9% (with failover)
 - **Data sources**: 3 (automatic switching)
 - **Parallel storage**: PostgreSQL + Redis + Neo4j simultaneously
-- **Smart validation**: Triggered automatically after ingestion completes
+- **Smart validation**: Only triggered when NEW data is stored (row count > 0)
 - **Non-blocking**: Validation runs async, doesn't slow down ingestion
+- **Prevents overload**: Skips trigger if no new data (market closed, failures, etc.)
 
 ## 💰 Cost
 
@@ -289,11 +322,12 @@ dag.doc_md = """
 
 1. **More Reliable**: 3 data sources vs 1
 2. **Fault Tolerant**: Circuit breakers protect system
-3. **Event-Driven**: Triggers validation immediately after ingestion
-4. **Better Quality**: Dedicated validation DAG with comprehensive checks
-5. **Zero Cost**: Uses free tier APIs
-6. **Parallel Storage**: PostgreSQL + Redis + Neo4j simultaneously
-7. **Dual Trigger**: Event-driven + 15-min fallback ensures complete coverage
+3. **Smart Triggering**: Row count check prevents unnecessary validation work
+4. **Event-Driven**: Triggers validation only when NEW data is stored
+5. **Better Quality**: Dedicated validation DAG with comprehensive checks
+6. **Zero Cost**: Uses free tier APIs
+7. **Parallel Storage**: PostgreSQL + Redis + Neo4j simultaneously
+8. **Prevents Overload**: No validation queue buildup during failures/market closed
 
 ## 🔗 Related DAGs
 
@@ -306,9 +340,10 @@ dag.doc_md = """
 
 1. **Fetch**: Get data with 3-source failover (Yahoo → Polygon → Finnhub)
 2. **Store**: Parallel writes to PostgreSQL + Redis + Neo4j
-3. **Trigger**: Automatically trigger validation DAG on success
-4. **Validate**: Quality checks run immediately (event-driven)
-5. **Fallback**: If trigger missed, validation runs every 15 minutes anyway
+3. **Check**: Verify if NEW data was actually stored (row count check)
+4. **Trigger**: Only trigger validation if row count > 0 (prevents unnecessary work)
+5. **Validate**: Quality checks run immediately when triggered (event-driven)
+6. **Fallback**: If not triggered, validation runs every 15 minutes anyway
 
 Original DAG had single point of failure AND blocking quality checks.
 This version keeps running even if 2/3 sources fail AND validates async with dual triggers!

@@ -1,22 +1,24 @@
 """
 Apache Airflow DAG: Data Quality Validation
-Event-driven with 15-minute fallback validation of NEW data only
+Smart validation with row count check + skip logic + 15-minute fallback
 
 FEATURES:
-- ✅ Event-driven: Triggered by data_ingestion_v2 after successful ingestion
+- ✅ Event-driven: Triggered by data_ingestion_v2 ONLY when NEW data stored (row count > 0)
+- ✅ Skip logic: Skips if already ran within last 15 minutes (prevents queue buildup)
 - ✅ Time-based fallback: Runs every 15 minutes if not triggered
 - ✅ Only validates NEW data since last check (incremental)
 - ✅ Comprehensive quality checks using rules engine
 - ✅ Separate from ingestion (proper separation of concerns)
 - ✅ Batch validation for efficiency
 - ✅ Stores validation results for tracking
+- ✅ Prevents overload during market closed/failures
 
-Schedule: Every 15 minutes (fallback) + event-driven triggers
+Schedule: Every 15 minutes (fallback) + event-driven triggers (with skip logic)
 Scope: Only NEW data since last validation
-Purpose: Data quality assurance without blocking ingestion
+Purpose: Data quality assurance without blocking ingestion or queue buildup
 """
 from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from airflow.utils.dates import days_ago
 from airflow.models import Variable
 from datetime import datetime, timedelta
@@ -50,6 +52,39 @@ default_args = {
 # ================================================================
 # Helper Functions
 # ================================================================
+
+def should_run_validation(**context):
+    """
+    Check if validation should run based on last run time.
+    Returns False if validation ran within the last 15 minutes (prevents overload).
+    This prevents queue buildup when validation is triggered frequently.
+    """
+    try:
+        last_validation = Variable.get('last_data_quality_validation', default_var=None)
+        
+        if not last_validation:
+            print("✅ First validation run - proceeding")
+            return True
+        
+        last_run = datetime.fromisoformat(last_validation)
+        current_time = datetime.now()
+        time_since_last = (current_time - last_run).total_seconds() / 60  # minutes
+        
+        # Skip if ran within last 15 minutes (prevents overload)
+        if time_since_last < 15:
+            print(f"⏭️ Skipping validation - last ran {time_since_last:.1f} minutes ago (< 15 min threshold)")
+            print(f"   Last run: {last_run.isoformat()}")
+            print(f"   Current: {current_time.isoformat()}")
+            return False
+        else:
+            print(f"✅ Running validation - last ran {time_since_last:.1f} minutes ago (>= 15 min threshold)")
+            return True
+            
+    except Exception as e:
+        print(f"⚠️ Error checking last validation time: {e}")
+        # On error, allow validation to run (fail-safe)
+        return True
+
 
 def get_last_validation_time(**context):
     """
@@ -368,28 +403,35 @@ with DAG(
     max_active_runs=1,
 ) as dag:
     
-    # Task 1: Ensure validation tracking table exists
+    # Task 1: Check if validation should run (skip if ran < 15 min ago)
+    should_run = ShortCircuitOperator(
+        task_id='check_should_run_validation',
+        python_callable=should_run_validation,
+        provide_context=True
+    )
+    
+    # Task 2: Ensure validation tracking table exists
     setup_validation_table = PythonOperator(
         task_id='setup_validation_table',
         python_callable=ensure_validation_table_exists,
         provide_context=True
     )
     
-    # Task 2: Validate NEW price data (incremental)
+    # Task 3: Validate NEW price data (incremental)
     validate_new_data = PythonOperator(
         task_id='validate_new_price_data',
         python_callable=validate_new_price_data,
         provide_context=True
     )
     
-    # Task 3: Run comprehensive database checks
+    # Task 4: Run comprehensive database checks
     database_checks = PythonOperator(
         task_id='comprehensive_database_checks',
         python_callable=comprehensive_database_checks,
         provide_context=True
     )
     
-    # Task 4: Use DataQualityOperator for additional SQL-based checks
+    # Task 5: Use DataQualityOperator for additional SQL-based checks
     additional_quality_checks = DataQualityOperator(
         task_id='additional_quality_checks',
         table_name='stock_prices',
@@ -428,7 +470,8 @@ with DAG(
     # Task Dependencies
     # ================================================================
     
-    setup_validation_table >> validate_new_data >> [database_checks, additional_quality_checks]
+    # First check if we should run (skip if ran < 15 min ago)
+    should_run >> setup_validation_table >> validate_new_data >> [database_checks, additional_quality_checks]
 
 
 dag.doc_md = """
@@ -436,11 +479,12 @@ dag.doc_md = """
 
 ## 🎯 Purpose
 
-Separate data quality validation with **event-driven + time-based fallback** strategy.
-This implements proper **separation of concerns** with smart triggering:
-- **Ingestion DAG**: Triggers validation after successful ingestion (event-driven)
+Separate data quality validation with **event-driven + time-based fallback + skip logic** strategy.
+This implements proper **separation of concerns** with smart triggering and overload prevention:
+- **Ingestion DAG**: Triggers validation ONLY when NEW data stored (row count > 0)
 - **Validation DAG**: Also runs every 15 minutes as fallback (time-based)
-- **Best of both**: Immediate validation when data arrives + guaranteed periodic checks
+- **Skip Logic**: Skips execution if already ran within last 15 minutes (prevents queue buildup)
+- **Best of both**: Immediate validation when needed + guaranteed periodic checks + no overload
 
 ## ⚡ Key Features
 
@@ -449,11 +493,11 @@ This implements proper **separation of concerns** with smart triggering:
 - Efficient batch processing (not per-record)
 - Tracks validation state between runs
 
-### 2. Dual Trigger Strategy
-- **Event-driven**: Triggered by ingestion DAG on success (immediate validation)
-- **Time-based fallback**: Runs every 15 minutes regardless (catches missed triggers)
-- **Smart execution**: Won't duplicate work if already validated recent data
-- **Best of both**: Fast validation + guaranteed coverage
+### 2. Triple Protection Strategy
+- **Row Count Check** (Ingestion): Only triggers if NEW data stored (row count > 0)
+- **Skip Logic** (Validation): Skips if already ran < 15 min ago (prevents queue buildup)
+- **Time-based Fallback**: Runs every 15 minutes regardless (catches missed triggers)
+- **Result**: No unnecessary work + fast validation + guaranteed coverage + no overload
 
 ### 3. Comprehensive Checks
 - Record-level validation (using rules engine)
@@ -488,12 +532,13 @@ This implements proper **separation of concerns** with smart triggering:
 
 ## 🔄 Workflow
 
-1. **Setup**: Ensure validation_history table exists
-2. **Get State**: Retrieve last validation timestamp
-3. **Fetch New Data**: Query only data added since last run
-4. **Validate**: Run comprehensive quality checks
-5. **Store Results**: Save validation results and update state
-6. **Alert**: Send notifications if quality issues found
+1. **Check Skip**: Verify if validation ran within last 15 minutes (skip if yes)
+2. **Setup**: Ensure validation_history table exists
+3. **Get State**: Retrieve last validation timestamp
+4. **Fetch New Data**: Query only data added since last run
+5. **Validate**: Run comprehensive quality checks (if new data exists)
+6. **Store Results**: Save validation results and update state
+7. **Alert**: Send notifications if quality issues found
 
 ## 💡 Why This Design?
 
@@ -502,26 +547,33 @@ This implements proper **separation of concerns** with smart triggering:
 - Blocked data ingestion on quality issues
 - Re-validated same data multiple times
 - Tight coupling between ingestion and validation
+- Queue buildup when triggering too frequently
+- Unnecessary work during market closed/failures
 
-### Benefits of Separation
+### Benefits of Current Approach
 ✅ Ingestion never fails due to quality issues
-✅ Validation runs at appropriate frequency
+✅ Row count check prevents unnecessary triggers
+✅ Skip logic prevents queue buildup (<15 min)
 ✅ Only validates new data (efficient)
 ✅ Better monitoring and alerting
 ✅ Clean separation of concerns
+✅ No wasted resources during downtime
 
 ## 📈 Performance
 
 - **Validation overhead**: Negligible on ingestion (runs async)
 - **Batch efficiency**: Validates new data only (~1-240 records per run)
 - **Event-driven**: Usually runs within seconds of ingestion completing
+- **Skip logic**: Prevents duplicate runs if <15 min since last run
 - **Fallback frequency**: Every 15 minutes ensures no data goes unchecked
 - **Storage**: Tracks validation history for trend analysis
 - **Alerts**: Email on quality failures (as they occur)
+- **Overload prevention**: No queue buildup during high-frequency triggers
 
 ## 🎛️ Configuration
 
-- **Primary**: Event-driven (triggered by data_ingestion_v2)
+- **Primary**: Event-driven (triggered by data_ingestion_v2 when row count > 0)
+- **Skip Logic**: Skips if ran within last 15 minutes (prevents queue buildup)
 - **Fallback**: Every 15 minutes (`*/15 * * * *`)
 - **Timeout**: 10 minutes per run
 - **Retries**: 1 retry with 5 min delay

@@ -32,7 +32,7 @@ sys.path.insert(0, operators_path)
 
 from operators.claude_operator import CachedClaudeOperator
 from operators.resilient_operator import CircuitBreakerOperator
-from operators.neo4j_operator import Neo4jBulkInsertOperator, Neo4jGraphValidationOperator
+from operators.neo4j_operator import Neo4jBulkInsertOperator, Neo4jGraphValidationOperator, Neo4jQueryOperator
 from operators.quality_check_operator import DataQualityOperator
 from operators.market_data_operator import MarketDataFetchOperator, DataSource
 

@@ -1,8 +1,8 @@
 """
-ENHANCED Apache Airflow DAG: Company Graph Builder
+Apache Airflow DAG v2: Company Graph Builder
 Uses enterprise-grade operators for cost optimization and reliability
 
-IMPROVEMENTS OVER ORIGINAL:
+IMPROVEMENTS OVER V1:
 - ✅ CachedClaudeOperator (70% cost savings)
 - ✅ CircuitBreakerOperator (fault tolerance)
 - ✅ DataQualityOperator (automated validation)
@@ -101,13 +101,13 @@ def fetch_company_data_safe(context):
 # Define the Enhanced DAG
 # ================================================================
 with DAG(
-    dag_id='enhanced_company_graph_builder',
+    dag_id='company_graph_builder_v2',
     default_args=default_args,
-    description='ENHANCED: Build company graph with enterprise operators (70% cost reduction)',
+    description='v2: Build company graph with enterprise operators (70% cost reduction)',
     schedule_interval='@hourly',
     start_date=days_ago(1),
     catchup=False,
-    tags=['enterprise', 'claude-cached', 'neo4j', 'cost-optimized'],
+    tags=['v2', 'enterprise', 'claude-cached', 'neo4j', 'cost-optimized'],
     max_active_runs=1,
 ) as dag:
     

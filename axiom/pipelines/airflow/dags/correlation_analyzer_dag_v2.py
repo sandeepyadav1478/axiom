@@ -1,8 +1,8 @@
 """
-ENHANCED Apache Airflow DAG: Correlation Analyzer
+Apache Airflow DAG v2: Correlation Analyzer
 Analyze stock correlations with cached Claude explanations
 
-IMPROVEMENTS OVER ORIGINAL:
+IMPROVEMENTS OVER V1:
 - ✅ CachedClaudeOperator (90% cost savings - correlations stable)
 - ✅ Batch correlation calculations (faster)
 - ✅ Data quality validation on price data
@@ -202,13 +202,13 @@ def create_correlation_relationships_batch(context):
 # Define the Enhanced DAG  
 # ================================================================
 with DAG(
-    dag_id='enhanced_correlation_analyzer',
+    dag_id='correlation_analyzer_v2',
     default_args=default_args,
-    description='ENHANCED: Correlation analysis with cached explanations (90% cost reduction)',
+    description='v2: Correlation analysis with cached explanations (90% cost reduction)',
     schedule_interval='@hourly',
     start_date=days_ago(1),
     catchup=False,
-    tags=['enterprise', 'correlation', 'claude-cached', 'quant'],
+    tags=['v2', 'enterprise', 'correlation', 'claude-cached', 'quant'],
     max_active_runs=1,
 ) as dag:
     

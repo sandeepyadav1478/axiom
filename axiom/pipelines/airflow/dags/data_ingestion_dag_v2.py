@@ -1,8 +1,8 @@
 """
-ENHANCED Apache Airflow DAG: Data Ingestion
+Apache Airflow DAG v2: Data Ingestion
 Real-time stock prices with multi-source failover and data quality validation
 
-IMPROVEMENTS OVER ORIGINAL:
+IMPROVEMENTS OVER V1:
 - ✅ Multi-source failover (Yahoo → Polygon → Finnhub)
 - ✅ 99.9% reliability (vs 95% with single source)
 - ✅ Automated data quality checks
@@ -148,13 +148,13 @@ def cache_in_redis_safe(context):
 # Define the Enhanced DAG
 # ================================================================
 with DAG(
-    dag_id='enhanced_data_ingestion',
+    dag_id='data_ingestion_v2',
     default_args=default_args,
-    description='ENHANCED: Real-time data with multi-source failover (99.9% reliability)',
+    description='v2: Real-time data with multi-source failover (99.9% reliability)',
     schedule_interval='*/1 * * * *',  # Every minute
     start_date=days_ago(1),
     catchup=False,
-    tags=['enterprise', 'real-time', 'multi-source', 'failover'],
+    tags=['v2', 'enterprise', 'real-time', 'multi-source', 'failover'],
     max_active_runs=1,
 ) as dag:
     

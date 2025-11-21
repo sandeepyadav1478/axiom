@@ -1,8 +1,8 @@
 """
-ENHANCED Apache Airflow DAG: Market Events Tracker
+Apache Airflow DAG v2: Market Events Tracker
 Track and classify market events with cached Claude analysis
 
-IMPROVEMENTS OVER ORIGINAL:
+IMPROVEMENTS OVER V1:
 - ✅ CachedClaudeOperator (saves 80% on repeated event classification)
 - ✅ Circuit breaker for news API calls
 - ✅ Batch processing of events
@@ -139,13 +139,13 @@ def create_event_nodes_batch(context):
 # Define the Enhanced DAG
 # ================================================================
 with DAG(
-    dag_id='enhanced_events_tracker',
+    dag_id='events_tracker_v2',
     default_args=default_args,
-    description='ENHANCED: Track market events with cached Claude classification (80% cost reduction)',
+    description='v2: Track market events with cached Claude classification (80% cost reduction)',
     schedule_interval='*/5 * * * *',  # Every 5 minutes
     start_date=days_ago(1),
     catchup=False,
-    tags=['enterprise', 'events', 'claude-cached', 'cost-optimized'],
+    tags=['v2', 'enterprise', 'events', 'claude-cached', 'cost-optimized'],
     max_active_runs=1,
 ) as dag:
     

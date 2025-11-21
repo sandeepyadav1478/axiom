@@ -112,7 +112,7 @@ def validate_last_5_minutes(**context):
     
     cur.execute("""
         INSERT INTO validation_history (
-            validation_time, records_checked, records_passed, records_failed,
+            validation_run_time, records_checked, records_passed, records_failed,
             window_start, window_end
         ) VALUES (%s, %s, %s, %s, %s, %s)
     """, (current_time, record_count, passed, failed, window_start, current_time))

@@ -205,7 +205,7 @@ with DAG(
     dag_id='correlation_analyzer_v2',
     default_args=default_args,
     description='v2: Correlation analysis with cached explanations (90% cost reduction)',
-    schedule_interval='@hourly',
+    schedule_interval='*/5 * * * *',  # Every 5 minutes for testing
     start_date=days_ago(1),
     catchup=False,
     tags=['v2', 'enterprise', 'correlation', 'claude-cached', 'quant'],

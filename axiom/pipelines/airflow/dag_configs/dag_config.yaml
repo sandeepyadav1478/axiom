@@ -65,6 +65,67 @@ symbols:
     - BAC
     - GS
     - MS
+  
+  top_50:
+    # Batch 1: Mega-Cap Tech (10)
+    - AAPL     # Apple - Consumer Electronics
+    - MSFT     # Microsoft - Software
+    - GOOGL    # Alphabet - Internet
+    - AMZN     # Amazon - E-commerce
+    - NVDA     # NVIDIA - Semiconductors
+    - META     # Meta - Social Media
+    - TSLA     # Tesla - EV/Energy
+    - BRK.B    # Berkshire - Conglomerate
+    - UNH      # UnitedHealth - Healthcare
+    - JPM      # JPMorgan - Banking
+    
+    # Batch 2: Large-Cap Tech & Payments (10)
+    - V        # Visa - Payments
+    - MA       # Mastercard - Payments
+    - HD       # Home Depot - Retail
+    - PG       # Procter & Gamble - Consumer Goods
+    - DIS      # Disney - Media
+    - NFLX     # Netflix - Streaming
+    - ADBE     # Adobe - Software
+    - CRM      # Salesforce - Cloud
+    - ORCL     # Oracle - Enterprise Software
+    - INTC     # Intel - Semiconductors
+    
+    # Batch 3: Diversified Large-Cap (10)
+    - PFE      # Pfizer - Pharmaceuticals
+    - MRK      # Merck - Pharmaceuticals
+    - ABBV     # AbbVie - Biopharmaceuticals
+    - KO       # Coca-Cola - Beverages
+    - PEP      # PepsiCo - Food & Beverage
+    - WMT      # Walmart - Retail
+    - COST     # Costco - Retail
+    - CVX      # Chevron - Energy
+    - XOM      # Exxon - Energy
+    - BA       # Boeing - Aerospace
+    
+    # Batch 4: Financial & Industrial (10)
+    - GS       # Goldman Sachs - Investment Banking
+    - MS       # Morgan Stanley - Investment Banking
+    - BAC      # Bank of America - Banking
+    - WFC      # Wells Fargo - Banking
+    - C        # Citigroup - Banking
+    - AXP      # American Express - Financial Services
+    - BLK      # BlackRock - Asset Management
+    - CAT      # Caterpillar - Industrial
+    - DE       # Deere - Agricultural Equipment
+    - MMM      # 3M - Conglomerate
+    
+    # Batch 5: Tech, Healthcare, Telecom (10)
+    - AMD      # AMD - Semiconductors
+    - QCOM     # Qualcomm - Wireless Tech
+    - AVGO     # Broadcom - Semiconductors
+    - CSCO     # Cisco - Networking
+    - IBM      # IBM - IT Services
+    - JNJ      # Johnson & Johnson - Pharmaceuticals
+    - LLY      # Eli Lilly - Pharmaceuticals
+    - TMO      # Thermo Fisher - Life Sciences
+    - VZ       # Verizon - Telecom
+    - T        # AT&T - Telecom
 
 # ================================================================
 # Data Ingestion DAG Configuration
@@ -341,6 +402,102 @@ historical_backfill:
     - historical
     - one-time
     - data-acquisition
+
+# ================================================================
+# Data Profiling DAG Configuration
+# ================================================================
+data_profiling:
+  dag_id: data_profiling
+  description: "Daily statistical profiling and anomaly detection"
+  
+  # Schedule: Daily at 1 AM (after midnight cleanup)
+  schedule_interval: "0 1 * * *"
+  execution_timeout_minutes: 20
+  retries: 1
+  retry_delay_minutes: 5
+  
+  # Profiling settings
+  profiling:
+    sample_size: 1000  # Records to profile
+    price_spike_threshold: 0.20  # 20% move triggers alert
+    outlier_iqr_multiplier: 1.5
+    quality_score_threshold: 95
+  
+  # Alert settings
+  alerts:
+    email_on_critical: false  # SMTP not configured yet
+    quality_drop_threshold: 10  # Alert if score drops >10 points
+  
+  tags:
+    - quality
+    - profiling
+    - monitoring
+    - anomaly-detection
+
+# ================================================================
+# Company Enrichment DAG Configuration
+# ================================================================
+company_enrichment:
+  dag_id: company_enrichment
+  description: "Enrich company universe with deep profiles for AI showcase"
+  
+  # Schedule: Manual trigger (run in batches)
+  schedule_interval: null
+  execution_timeout_minutes: 30
+  retries: 2
+  retry_delay_minutes: 5
+  
+  # Enrichment settings
+  enrichment:
+    batch_size: 10  # Process 10 companies per run
+    total_batches: 5  # 50 companies total
+  
+  # Claude settings for extraction
+  claude:
+    cache_ttl_hours: 168  # 7 days (competitors/products stable)
+    track_cost: true
+    max_tokens: 2048
+  
+  # Use top 50 companies list
+  symbols_list: top_50
+  
+  tags:
+    - enrichment
+    - companies
+    - ai-showcase
+    - text-extraction
+
+# ================================================================
+# M&A Deals Ingestion DAG Configuration
+# ================================================================
+ma_deals_ingestion:
+  dag_id: ma_deals_ingestion
+  description: "M&A transaction intelligence: scrape, analyze, graph"
+  
+  # Schedule: Weekly (M&A deals don't change frequently)
+  schedule_interval: "@weekly"
+  execution_timeout_minutes: 60
+  retries: 2
+  retry_delay_minutes: 10
+  
+  # Scraping settings
+  scraping:
+    batch_size: 50
+    rate_limit_delay: 0.5  # seconds between requests
+    user_agent: "Axiom M&A Research Bot"
+  
+  # Claude analysis settings
+  claude:
+    cache_ttl_hours: 720  # 30 days (deals are historical, don't change)
+    track_cost: true
+    max_tokens: 4096
+  
+  tags:
+    - ma
+    - deals
+    - nlp
+    - web-scraping
+    - ai-showcase
 
 # ================================================================
 # Cost Tracking Configuration

@@ -1,0 +1,280 @@
+{
+  "dashboard": {
+    "title": "Data Quality Monitoring",
+    "tags": ["data", "quality", "validation"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Overall Quality Score",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+        "targets": [{
+          "expr": "avg(data_quality_score)",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 60, "color": "orange"},
+                {"value": 80, "color": "yellow"},
+                {"value": 95, "color": "green"}
+              ]
+            },
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Quality Checks Passed (24h)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 8, "y": 0},
+        "targets": [{
+          "expr": "sum(increase(data_quality_checks_total{result=\"passed\"}[24h]))",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 100, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Quality Checks Failed (24h)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 16, "y": 0},
+        "targets": [{
+          "expr": "sum(increase(data_quality_checks_total{result=\"failed\"}[24h]))",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 1, "color": "yellow"},
+                {"value": 10, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Validation Pass Rate",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 8, "y": 4},
+        "targets": [{
+          "expr": "avg(data_validation_pass_rate)",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 0.8, "color": "yellow"},
+                {"value": 0.95, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Anomalies Detected (24h)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 16, "y": 4},
+        "targets": [{
+          "expr": "sum(increase(data_anomalies_detected_total[24h]))",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 10, "color": "yellow"},
+                {"value": 100, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Quality Score by Table",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 24, "x": 0, "y": 8},
+        "targets": [{
+          "expr": "data_quality_score",
+          "legendFormat": "{{table_name}}",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "percent", "label": "Quality Score", "min": 0, "max": 100},
+          {"format": "short"}
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [80], "type": "lt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "frequency": "1m",
+          "handler": 1,
+          "name": "Low Quality Score Alert"
+        }
+      },
+      {
+        "id": 7,
+        "title": "Data Freshness by Table",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 17},
+        "targets": [{
+          "expr": "data_freshness_minutes",
+          "legendFormat": "{{table_name}}",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "m", "label": "Minutes Since Update", "logBase": 1},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Record Count Changes (24h)",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 17},
+        "targets": [{
+          "expr": "table_record_count_change_24h",
+          "legendFormat": "{{table_name}}",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "short", "label": "Record Change"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Validation Failures by Check Type",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 26},
+        "targets": [{
+          "expr": "sum(increase(data_quality_checks_total{result=\"failed\"}[24h])) by (check_type)",
+          "legendFormat": "{{check_type}}",
+          "refId": "A"
+        }],
+        "options": {
+          "legend": {"displayMode": "table", "placement": "right"},
+          "pieType": "donut"
+        }
+      },
+      {
+        "id": 10,
+        "title": "Anomalies by Severity",
+        "type": "bargauge",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 26},
+        "targets": [{
+          "expr": "sum(increase(data_anomalies_detected_total[24h])) by (severity)",
+          "legendFormat": "{{severity}}",
+          "refId": "A"
+        }],
+        "options": {
+          "displayMode": "gradient",
+          "orientation": "horizontal"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 10, "color": "yellow"},
+                {"value": 50, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Schema Validation Issues",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 34},
+        "targets": [{
+          "expr": "schema_validation_mismatches_total",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "renameByName": {
+                "table_name": "Table",
+                "issue_type": "Issue Type",
+                "Value": "Count"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Quality Check Duration (P95)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 42},
+        "targets": [{
+          "expr": "histogram_quantile(0.95, rate(data_quality_check_duration_seconds_bucket[5m]))",
+          "legendFormat": "{{table_name}} - {{check_type}}",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "s", "label": "Duration (P95)"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Recent Quality Alerts",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 42},
+        "targets": [{
+          "expr": "ALERTS{alertname=~\"Data.*\", alertstate=\"firing\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }]
+      }
+    ]
+  }
+}

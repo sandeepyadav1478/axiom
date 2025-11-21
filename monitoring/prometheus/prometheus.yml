@@ -1,0 +1,140 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'axiom-production'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+# Load alert rules
+rule_files:
+  - '/etc/prometheus/alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # ================================================================
+  # AI/ML Platform Metrics
+  # ================================================================
+  
+  # LangGraph & DSPy AI metrics
+  - job_name: 'ai-metrics'
+    static_configs:
+      - targets: ['langgraph-ma-intelligence:9091']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    
+  # Airflow DAG metrics
+  - job_name: 'airflow-dags'
+    static_configs:
+      - targets: ['airflow-metrics-exporter:9092']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    
+  # Data quality metrics
+  - job_name: 'data-quality'
+    static_configs:
+      - targets: ['data-quality-exporter:9093']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+  
+  # ================================================================
+  # Airflow Infrastructure
+  # ================================================================
+  
+  # Airflow webserver
+  - job_name: 'airflow-webserver'
+    static_configs:
+      - targets: ['axiom-airflow-webserver:8080']
+    metrics_path: '/admin/metrics'
+    scrape_interval: 30s
+    
+  # Airflow scheduler
+  - job_name: 'airflow-scheduler'
+    static_configs:
+      - targets: ['axiom-airflow-scheduler:8974']
+    metrics_path: '/health'
+    scrape_interval: 30s
+  
+  # ================================================================
+  # Database Metrics
+  # ================================================================
+  
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    
+  # Neo4j
+  - job_name: 'neo4j'
+    static_configs:
+      - targets: ['neo4j:2004']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+  
+  # ================================================================
+  # Application Services
+  # ================================================================
+  
+  # Axiom API
+  - job_name: 'axiom-api'
+    static_configs:
+      - targets: ['axiom-api:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    
+  # MLflow
+  - job_name: 'mlflow'
+    static_configs:
+      - targets: ['mlflow:5000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+  
+  # ================================================================
+  # Container & System Metrics
+  # ================================================================
+  
+  # cAdvisor for container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    
+  # Node exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+  
+  # ================================================================
+  # Prometheus Self-Monitoring
+  # ================================================================
+  
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+# Storage configuration
+storage:
+  tsdb:
+    path: /prometheus
+    retention:
+      time: 30d
+      size: 50GB

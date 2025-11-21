@@ -1,0 +1,267 @@
+{
+  "dashboard": {
+    "title": "Claude API Cost Monitoring",
+    "tags": ["claude", "api", "costs", "ai"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "1m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Daily Cost (Current)",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 0},
+        "targets": [{
+          "expr": "claude_api_cost_daily_usd",
+          "refId": "A"
+        }],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 50, "color": "yellow"},
+                {"value": 100, "color": "orange"},
+                {"value": 500, "color": "red"}
+              ]
+            },
+            "unit": "currencyUSD",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Monthly Cost (Current)",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 0},
+        "targets": [{
+          "expr": "claude_api_cost_monthly_usd",
+          "refId": "A"
+        }],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 1000, "color": "yellow"},
+                {"value": 2000, "color": "orange"},
+                {"value": 5000, "color": "red"}
+              ]
+            },
+            "unit": "currencyUSD",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Hourly Cost Rate",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 0},
+        "targets": [{
+          "expr": "rate(claude_api_cost_daily_usd[1h]) * 3600",
+          "refId": "A"
+        }],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "line"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 5, "color": "yellow"},
+                {"value": 10, "color": "red"}
+              ]
+            },
+            "unit": "currencyUSD",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "API Calls (Rate)",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 0},
+        "targets": [{
+          "expr": "rate(claude_api_calls_total[5m]) * 60",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "cpm",
+            "decimals": 1
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Cost Over Time (24h)",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 24, "x": 0, "y": 6},
+        "targets": [{
+          "expr": "increase(claude_api_cost_daily_usd[1h])",
+          "legendFormat": "Hourly Cost",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "currencyUSD", "label": "Cost ($)"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Cost by DAG (Last 24h)",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 15},
+        "targets": [{
+          "expr": "sum(increase(claude_api_cost_per_dag_usd[24h])) by (dag_id)",
+          "legendFormat": "{{dag_id}}",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "currencyUSD", "label": "Cost ($)"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Cost by Task (Top 10)",
+        "type": "bargauge",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 15},
+        "targets": [{
+          "expr": "topk(10, sum(increase(claude_api_cost_per_dag_usd[24h])) by (task_id))",
+          "legendFormat": "{{task_id}}",
+          "refId": "A"
+        }],
+        "options": {
+          "displayMode": "gradient",
+          "orientation": "horizontal",
+          "showUnfilled": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 10, "color": "yellow"},
+                {"value": 50, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Token Usage (Input vs Output)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+        "targets": [
+          {
+            "expr": "rate(claude_api_tokens_total{token_type=\"input\"}[5m])",
+            "legendFormat": "Input - {{model}}",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(claude_api_tokens_total{token_type=\"output\"}[5m])",
+            "legendFormat": "Output - {{model}}",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "tps", "label": "Tokens/sec"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Cache Hit Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+        "targets": [{
+          "expr": "rate(claude_api_calls_total{cache_hit=\"hit\"}[5m]) / rate(claude_api_calls_total[5m])",
+          "legendFormat": "{{model}}",
+          "refId": "A"
+        }],
+        "yaxes": [
+          {"format": "percentunit", "label": "Cache Hit Rate", "min": 0, "max": 1},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Projected Monthly Cost",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 32},
+        "targets": [{
+          "expr": "(claude_api_cost_daily_usd / day_of_month()) * days_in_month()",
+          "refId": "A"
+        }],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 2000, "color": "yellow"},
+                {"value": 5000, "color": "orange"},
+                {"value": 10000, "color": "red"}
+              ]
+            },
+            "unit": "currencyUSD",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Cost Efficiency ($/1K tokens)",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 32},
+        "targets": [{
+          "expr": "(increase(claude_api_cost_daily_usd[1h]) * 1000) / (increase(claude_api_tokens_total[1h]))",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 4
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Cost Alerts History",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 32},
+        "targets": [{
+          "expr": "ALERTS{alertname=~\"Claude.*\", alertstate=\"firing\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }]
+      }
+    ]
+  }
+}

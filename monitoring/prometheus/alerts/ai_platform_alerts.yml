@@ -1,0 +1,328 @@
+groups:
+  # ================================================================
+  # Claude API Cost Alerts
+  # ================================================================
+  - name: claude_api_costs
+    interval: 5m
+    rules:
+      - alert: ClaudeAPIHighDailyCost
+        expr: claude_api_cost_daily_usd > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: cost
+        annotations:
+          summary: "High Claude API daily cost"
+          description: "Claude API cost today is ${{ $value | humanize }}. Budget threshold exceeded."
+          
+      - alert: ClaudeAPIVeryHighDailyCost
+        expr: claude_api_cost_daily_usd > 500
+        for: 2m
+        labels:
+          severity: critical
+          category: cost
+        annotations:
+          summary: "CRITICAL: Very high Claude API daily cost"
+          description: "Claude API cost today is ${{ $value | humanize }}. Immediate investigation required!"
+          
+      - alert: ClaudeAPIHighMonthlyCost
+        expr: claude_api_cost_monthly_usd > 2000
+        for: 10m
+        labels:
+          severity: warning
+          category: cost
+        annotations:
+          summary: "High Claude API monthly cost"
+          description: "Claude API cost this month is ${{ $value | humanize }}. Approaching monthly budget limit."
+          
+      - alert: ClaudeAPIRapidCostIncrease
+        expr: rate(claude_api_cost_daily_usd[1h]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: cost
+        annotations:
+          summary: "Rapid Claude API cost increase"
+          description: "Claude API costs increasing at ${{ $value | humanize }}/hour. Check for runaway processes."
+          
+      - alert: ClaudeAPIExpensiveDAG
+        expr: sum(rate(claude_api_cost_per_dag_usd[1h])) by (dag_id) > 5
+        for: 10m
+        labels:
+          severity: info
+          category: cost
+        annotations:
+          summary: "Expensive DAG detected: {{ $labels.dag_id }}"
+          description: "DAG {{ $labels.dag_id }} consuming ${{ $value | humanize }}/hour in Claude API costs."
+
+  # ================================================================
+  # Airflow DAG Failure Alerts
+  # ================================================================
+  - name: airflow_dag_failures
+    interval: 2m
+    rules:
+      - alert: DAGFailureRateHigh
+        expr: rate(airflow_dag_runs_total{state="failed"}[15m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: pipeline
+        annotations:
+          summary: "High DAG failure rate"
+          description: "DAG {{ $labels.dag_id }} failing at {{ $value | humanize }} runs/sec"
+          
+      - alert: DAGConsecutiveFailures
+        expr: |
+          sum(increase(airflow_dag_runs_total{state="failed"}[10m])) by (dag_id) > 3
+        for: 2m
+        labels:
+          severity: critical
+          category: pipeline
+        annotations:
+          summary: "DAG consecutive failures: {{ $labels.dag_id }}"
+          description: "DAG {{ $labels.dag_id }} has failed {{ $value }} times in 10 minutes"
+          
+      - alert: DAGNotRunning
+        expr: |
+          time() - airflow_dag_last_run_timestamp > 3600
+        for: 10m
+        labels:
+          severity: warning
+          category: pipeline
+        annotations:
+          summary: "DAG not running: {{ $labels.dag_id }}"
+          description: "DAG {{ $labels.dag_id }} hasn't run in over 1 hour"
+          
+      - alert: DAGDurationAnomaly
+        expr: |
+          airflow_dag_run_duration_seconds > 
+          (avg_over_time(airflow_dag_run_duration_seconds[24h]) * 2)
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "DAG duration anomaly: {{ $labels.dag_id }}"
+          description: "DAG {{ $labels.dag_id }} taking {{ $value | humanize }}s (2x normal)"
+          
+      - alert: TaskFailureSpike
+        expr: |
+          sum(rate(airflow_task_runs_total{state="failed"}[5m])) by (dag_id, task_id) > 0.2
+        for: 3m
+        labels:
+          severity: warning
+          category: pipeline
+        annotations:
+          summary: "Task failure spike: {{ $labels.dag_id }}.{{ $labels.task_id }}"
+          description: "Task failing at {{ $value | humanize }} runs/sec"
+          
+      - alert: SLAMissed
+        expr: increase(airflow_sla_misses_total[15m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: sla
+        annotations:
+          summary: "SLA missed: {{ $labels.dag_id }}.{{ $labels.task_id }}"
+          description: "SLA violated {{ $value }} times in last 15 minutes"
+          
+      - alert: TaskQueueBacklog
+        expr: airflow_task_queue_length{state="queued"} > 50
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Task queue backlog"
+          description: "{{ $value }} tasks queued. Check scheduler capacity."
+
+  # ================================================================
+  # Data Quality Degradation Alerts
+  # ================================================================
+  - name: data_quality_degradation
+    interval: 5m
+    rules:
+      - alert: DataQualityScoreLow
+        expr: data_quality_score < 80
+        for: 10m
+        labels:
+          severity: warning
+          category: data_quality
+        annotations:
+          summary: "Low data quality score: {{ $labels.table_name }}"
+          description: "Quality score is {{ $value }}% for {{ $labels.table_name }} (threshold: 80%)"
+          
+      - alert: DataQualityScoreCritical
+        expr: data_quality_score < 60
+        for: 5m
+        labels:
+          severity: critical
+          category: data_quality
+        annotations:
+          summary: "CRITICAL: Data quality score: {{ $labels.table_name }}"
+          description: "Quality score is {{ $value }}% for {{ $labels.table_name }} (threshold: 60%)"
+          
+      - alert: DataValidationFailureRate
+        expr: |
+          sum(rate(data_quality_checks_total{result="failed"}[10m])) by (table_name) /
+          sum(rate(data_quality_checks_total[10m])) by (table_name) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: data_quality
+        annotations:
+          summary: "High validation failure rate: {{ $labels.table_name }}"
+          description: "{{ $value | humanizePercentage }} of checks failing"
+          
+      - alert: DataFreshnessStale
+        expr: data_freshness_minutes > 120
+        for: 5m
+        labels:
+          severity: warning
+          category: data_quality
+        annotations:
+          summary: "Stale data: {{ $labels.table_name }}"
+          description: "Data is {{ $value | humanize }} minutes old (threshold: 120 min)"
+          
+      - alert: DataFreshnessVeryStale
+        expr: data_freshness_minutes > 360
+        for: 2m
+        labels:
+          severity: critical
+          category: data_quality
+        annotations:
+          summary: "CRITICAL: Very stale data: {{ $labels.table_name }}"
+          description: "Data is {{ $value | humanize }} minutes old (threshold: 360 min)"
+          
+      - alert: AnomalyDetectionSpike
+        expr: rate(data_anomalies_detected_total[10m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          category: data_quality
+        annotations:
+          summary: "Anomaly spike: {{ $labels.table_name }}"
+          description: "Detecting {{ $value | humanize }} anomalies/sec in {{ $labels.table_name }}"
+          
+      - alert: RecordCountDrop
+        expr: |
+          (table_record_count - table_record_count offset 1h) / table_record_count < -0.5
+        for: 10m
+        labels:
+          severity: critical
+          category: data_quality
+        annotations:
+          summary: "Significant record count drop: {{ $labels.table_name }}"
+          description: "{{ $labels.table_name }} lost {{ $value | humanizePercentage }} of records"
+          
+      - alert: SchemaValidationFailure
+        expr: increase(schema_validation_mismatches_total[10m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: data_quality
+        annotations:
+          summary: "Schema validation failed: {{ $labels.table_name }}"
+          description: "Schema mismatch detected in {{ $labels.table_name }}"
+
+  # ================================================================
+  # AI/ML Agent Performance Alerts
+  # ================================================================
+  - name: ai_agent_performance
+    interval: 3m
+    rules:
+      - alert: AgentExecutionFailureRate
+        expr: |
+          sum(rate(langgraph_agent_executions_total{status="failure"}[10m])) by (agent_name) /
+          sum(rate(langgraph_agent_executions_total[10m])) by (agent_name) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          category: ai_performance
+        annotations:
+          summary: "High agent failure rate: {{ $labels.agent_name }}"
+          description: "Agent {{ $labels.agent_name }} failing {{ $value | humanizePercentage }} of executions"
+          
+      - alert: AgentExecutionSlow
+        expr: |
+          histogram_quantile(0.95, 
+            rate(langgraph_agent_duration_seconds_bucket[10m])
+          ) > 30
+        for: 10m
+        labels:
+          severity: warning
+          category: ai_performance
+        annotations:
+          summary: "Slow agent execution: {{ $labels.agent_name }}"
+          description: "P95 latency is {{ $value | humanize }}s for {{ $labels.agent_name }}"
+          
+      - alert: Neo4jQuerySlow
+        expr: |
+          histogram_quantile(0.95,
+            rate(neo4j_query_duration_seconds_bucket[5m])
+          ) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Slow Neo4j queries"
+          description: "P95 query time is {{ $value | humanize }}s"
+          
+      - alert: Neo4jQueryFailureRate
+        expr: |
+          sum(rate(neo4j_queries_total{status="failure"}[10m])) /
+          sum(rate(neo4j_queries_total[10m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "High Neo4j query failure rate"
+          description: "{{ $value | humanizePercentage }} of Neo4j queries failing"
+
+  # ================================================================
+  # System Health Alerts
+  # ================================================================
+  - name: system_health
+    interval: 2m
+    rules:
+      - alert: SystemHealthDegraded
+        expr: system_health_score < 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: system
+        annotations:
+          summary: "System health degraded: {{ $labels.component }}"
+          description: "Health score is {{ $value }} for {{ $labels.component }}"
+          
+      - alert: SchedulerDown
+        expr: up{job="airflow-scheduler"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: system
+        annotations:
+          summary: "Airflow scheduler down"
+          description: "Scheduler is not responding. All DAGs stopped!"
+          
+      - alert: PrometheusHighCardinality
+        expr: prometheus_tsdb_symbol_table_size_bytes > 50000000
+        for: 10m
+        labels:
+          severity: warning
+          category: monitoring
+        annotations:
+          summary: "Prometheus high cardinality"
+          description: "TSDB size is {{ $value | humanize }}B. Check metric labels."
+          
+      - alert: MonitoringDataLoss
+        expr: rate(prometheus_tsdb_head_samples_appended_total[5m]) == 0
+        for: 10m
+        labels:
+          severity: critical
+          category: monitoring
+        annotations:
+          summary: "Prometheus not receiving metrics"
+          description: "No samples appended in 10 minutes. Check scrape targets."

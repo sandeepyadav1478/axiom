@@ -1,0 +1,290 @@
+version: '3.8'
+
+# ================================================================
+# Production Monitoring Stack for AI/ML Platform
+# Integrates with existing 24 containers
+# ================================================================
+
+services:
+  # ================================================================
+  # Prometheus - Metrics Collection
+  # ================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: axiom-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts:/etc/prometheus/alerts:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=50GB'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - axiom-mcp-network
+      - database_axiom_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ================================================================
+  # Grafana - Visualization
+  # ================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: axiom-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=mailhog:1025
+      - GF_SMTP_FROM_ADDRESS=grafana@axiom.com
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - axiom-mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================================================
+  # Alertmanager - Alert Routing
+  # ================================================================
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: axiom-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    networks:
+      - axiom-mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================================================
+  # Metrics Exporters - Custom AI/ML Metrics
+  # ================================================================
+  
+  # Airflow DAG metrics exporter
+  airflow-metrics-exporter:
+    build:
+      context: ../axiom/pipelines/airflow
+      dockerfile: Dockerfile.metrics-exporter
+    container_name: axiom-airflow-metrics-exporter
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST:-localhost}
+      - POSTGRES_USER=${POSTGRES_USER:-axiom}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=airflow
+      - AIRFLOW_METRICS_PORT=9092
+      - METRICS_SCRAPE_INTERVAL=15
+    ports:
+      - "9092:9092"
+    networks:
+      - database_axiom_network
+      - axiom-mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:9092/metrics')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Data quality metrics exporter
+  data-quality-exporter:
+    build:
+      context: ../axiom/pipelines/airflow
+      dockerfile: Dockerfile.quality-exporter
+    container_name: axiom-data-quality-exporter
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST:-localhost}
+      - POSTGRES_USER=${POSTGRES_USER:-axiom}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-axiom_finance}
+      - DATA_QUALITY_METRICS_PORT=9093
+      - METRICS_SCRAPE_INTERVAL=30
+    ports:
+      - "9093:9093"
+    networks:
+      - database_axiom_network
+      - axiom-mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:9093/metrics')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================================================
+  # Database Exporters
+  # ================================================================
+  
+  # PostgreSQL exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: axiom-postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER:-axiom}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-localhost}:5432/${POSTGRES_DB:-axiom_finance}?sslmode=disable
+    ports:
+      - "9187:9187"
+    networks:
+      - database_axiom_network
+      - axiom-mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9187/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: axiom-redis-exporter
+    environment:
+      - REDIS_ADDR=${REDIS_HOST:-localhost}:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "9121:9121"
+    networks:
+      - database_axiom_network
+      - axiom-mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9121/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================================================
+  # System Monitoring
+  # ================================================================
+  
+  # cAdvisor - Container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: axiom-cadvisor
+    privileged: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    networks:
+      - axiom-mcp-network
+    restart: unless-stopped
+    command:
+      - '--housekeeping_interval=10s'
+      - '--docker_only=true'
+      - '--store_container_labels=false'
+
+  # Node exporter - System metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: axiom-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - axiom-mcp-network
+    restart: unless-stopped
+
+# ================================================================
+# Networks - Connect to existing infrastructure
+# ================================================================
+networks:
+  axiom-mcp-network:
+    external: true
+    name: axiom-mcp-network
+  database_axiom_network:
+    external: true
+    name: database_axiom_network
+
+# ================================================================
+# Volumes - Persistent storage for metrics
+# ================================================================
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  alertmanager-data:
+    driver: local
+
+# ================================================================
+# Usage Instructions:
+# ================================================================
+# 
+# Start monitoring stack:
+#   cd monitoring
+#   docker-compose -f docker-compose-monitoring.yml up -d
+#
+# Access dashboards:
+#   Grafana: http://localhost:3000 (admin/admin123)
+#   Prometheus: http://localhost:9090
+#   Alertmanager: http://localhost:9093
+#
+# View logs:
+#   docker-compose -f docker-compose-monitoring.yml logs -f
+#
+# Stop monitoring:
+#   docker-compose -f docker-compose-monitoring.yml down
+#
+# Remove all data (WARNING: deletes metrics history):
+#   docker-compose -f docker-compose-monitoring.yml down -v
+#
+# ================================================================
+# Key Metrics Endpoints:
+# ================================================================
+# AI/ML Metrics: http://localhost:9091/metrics
+# Airflow Metrics: http://localhost:9092/metrics
+# Data Quality: http://localhost:9093/metrics
+# PostgreSQL: http://localhost:9187/metrics
+# Redis: http://localhost:9121/metrics
+# Container Metrics: http://localhost:8080/metrics
+# System Metrics: http://localhost:9100/metrics
+# ================================================================

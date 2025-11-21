@@ -1,16 +1,17 @@
 """
 Apache Airflow DAG: Data Quality Validation
-Hourly validation of NEW data only - efficient batch validation
+Event-driven with 15-minute fallback validation of NEW data only
 
 FEATURES:
-- ✅ Runs hourly (not every minute like ingestion)
+- ✅ Event-driven: Triggered by data_ingestion_v2 after successful ingestion
+- ✅ Time-based fallback: Runs every 15 minutes if not triggered
 - ✅ Only validates NEW data since last check (incremental)
 - ✅ Comprehensive quality checks using rules engine
 - ✅ Separate from ingestion (proper separation of concerns)
 - ✅ Batch validation for efficiency
 - ✅ Stores validation results for tracking
 
-Schedule: Every hour
+Schedule: Every 15 minutes (fallback) + event-driven triggers
 Scope: Only NEW data since last validation
 Purpose: Data quality assurance without blocking ingestion
 """
@@ -359,11 +360,11 @@ def ensure_validation_table_exists(**context):
 with DAG(
     dag_id='data_quality_validation',
     default_args=default_args,
-    description='Hourly validation of NEW data only - efficient batch quality assurance',
-    schedule_interval='0 * * * *',  # Every hour at minute 0
+    description='Event-driven + 15-min fallback validation of NEW data only',
+    schedule_interval='*/15 * * * *',  # Every 15 minutes (fallback when not event-triggered)
     start_date=days_ago(1),
     catchup=False,
-    tags=['quality', 'validation', 'hourly', 'incremental'],
+    tags=['quality', 'validation', 'event-driven', 'incremental', 'fallback'],
     max_active_runs=1,
 ) as dag:
     
@@ -435,10 +436,11 @@ dag.doc_md = """
 
 ## 🎯 Purpose
 
-Separate data quality validation that runs **independently** from data ingestion.
-This implements proper **separation of concerns**:
-- **Ingestion DAG**: Focuses on getting data in fast
-- **Validation DAG**: Focuses on ensuring data quality
+Separate data quality validation with **event-driven + time-based fallback** strategy.
+This implements proper **separation of concerns** with smart triggering:
+- **Ingestion DAG**: Triggers validation after successful ingestion (event-driven)
+- **Validation DAG**: Also runs every 15 minutes as fallback (time-based)
+- **Best of both**: Immediate validation when data arrives + guaranteed periodic checks
 
 ## ⚡ Key Features
 
@@ -447,10 +449,11 @@ This implements proper **separation of concerns**:
 - Efficient batch processing (not per-record)
 - Tracks validation state between runs
 
-### 2. Hourly Schedule
-- Runs every hour (not every minute)
-- Reduces overhead vs continuous validation
-- Appropriate for quality assurance workload
+### 2. Dual Trigger Strategy
+- **Event-driven**: Triggered by ingestion DAG on success (immediate validation)
+- **Time-based fallback**: Runs every 15 minutes regardless (catches missed triggers)
+- **Smart execution**: Won't duplicate work if already validated recent data
+- **Best of both**: Fast validation + guaranteed coverage
 
 ### 3. Comprehensive Checks
 - Record-level validation (using rules engine)
@@ -509,18 +512,21 @@ This implements proper **separation of concerns**:
 
 ## 📈 Performance
 
-- **Validation overhead**: Negligible on ingestion
-- **Batch efficiency**: Hourly validation of ~60-1000 records
+- **Validation overhead**: Negligible on ingestion (runs async)
+- **Batch efficiency**: Validates new data only (~1-240 records per run)
+- **Event-driven**: Usually runs within seconds of ingestion completing
+- **Fallback frequency**: Every 15 minutes ensures no data goes unchecked
 - **Storage**: Tracks validation history for trend analysis
-- **Alerts**: Email on quality failures (hourly max)
+- **Alerts**: Email on quality failures (as they occur)
 
 ## 🎛️ Configuration
 
-- Schedule: Every hour (`0 * * * *`)
-- Timeout: 10 minutes per run
-- Retries: 1 retry with 5 min delay
-- Alerts: Email on failure (quality issues)
-- Fail behavior: Log warnings, don't fail DAG
+- **Primary**: Event-driven (triggered by data_ingestion_v2)
+- **Fallback**: Every 15 minutes (`*/15 * * * *`)
+- **Timeout**: 10 minutes per run
+- **Retries**: 1 retry with 5 min delay
+- **Alerts**: Email on failure (quality issues)
+- **Fail behavior**: Log warnings, don't fail DAG
 
 ## 📊 Monitoring
 

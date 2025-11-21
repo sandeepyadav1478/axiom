@@ -16,6 +16,7 @@ Note: Data quality validation runs hourly in separate data_quality_validation_da
 """
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.dates import days_ago
 from datetime import datetime, timedelta
 import sys
@@ -220,6 +221,17 @@ with DAG(
         provide_context=True
     )
     
+    # Task 5: Trigger validation DAG after successful ingestion (event-driven)
+    trigger_validation = TriggerDagRunOperator(
+        task_id='trigger_quality_validation',
+        trigger_dag_id='data_quality_validation',
+        wait_for_completion=False,  # Don't block ingestion waiting for validation
+        poke_interval=30,
+        reset_dag_run=False,
+        execution_date="{{ execution_date }}",
+        conf={"triggered_by": "data_ingestion_v2"}
+    )
+    
     # ================================================================
     # Task Dependencies
     # ================================================================
@@ -229,6 +241,9 @@ with DAG(
     
     # Then parallel storage (all protected by circuit breakers)
     fetch_data >> [store_postgres, cache_redis, update_neo4j]
+    
+    # After all storage completes successfully, trigger validation (event-driven)
+    [store_postgres, cache_redis, update_neo4j] >> trigger_validation
 
 
 dag.doc_md = """
@@ -248,10 +263,11 @@ dag.doc_md = """
 - Auto-recovers when service restores
 - Saves resources during outages
 
-### Separation of Concerns
-- **This DAG**: Focuses purely on data ingestion (speed & reliability)
-- **Quality Validation**: Handled by separate `data_quality_validation_dag` (hourly)
-- **Benefit**: Ingestion never fails due to quality issues
+### Event-Driven Validation
+- **This DAG**: Triggers validation after successful ingestion
+- **Quality Validation**: Runs immediately after data arrives (event-driven)
+- **Fallback**: Validation also runs every 15 minutes (time-based)
+- **Benefit**: Fast validation + ingestion never blocks on quality checks
 
 ## 📊 Performance
 
@@ -259,7 +275,8 @@ dag.doc_md = """
 - **Success rate**: 99.9% (with failover)
 - **Data sources**: 3 (automatic switching)
 - **Parallel storage**: PostgreSQL + Redis + Neo4j simultaneously
-- **No validation overhead**: Quality checks run separately
+- **Smart validation**: Triggered automatically after ingestion completes
+- **Non-blocking**: Validation runs async, doesn't slow down ingestion
 
 ## 💰 Cost
 
@@ -272,18 +289,27 @@ dag.doc_md = """
 
 1. **More Reliable**: 3 data sources vs 1
 2. **Fault Tolerant**: Circuit breakers protect system
-3. **Faster**: No validation blocking ingestion
+3. **Event-Driven**: Triggers validation immediately after ingestion
 4. **Better Quality**: Dedicated validation DAG with comprehensive checks
 5. **Zero Cost**: Uses free tier APIs
 6. **Parallel Storage**: PostgreSQL + Redis + Neo4j simultaneously
+7. **Dual Trigger**: Event-driven + 15-min fallback ensures complete coverage
 
 ## 🔗 Related DAGs
 
-- **data_quality_validation_dag**: Hourly validation of NEW data only
+- **data_quality_validation_dag**: Event-driven + 15-min fallback validation
 - **company_graph_dag_v2**: Enriches Neo4j graph with company relationships
 - **correlation_analyzer_dag_v2**: Analyzes price correlations
 - **events_tracker_dag_v2**: Monitors market events
 
-Original DAG had single point of failure AND quality checks blocking ingestion.
-This version keeps running even if 2/3 sources fail AND validates separately!
+## 🎯 Workflow
+
+1. **Fetch**: Get data with 3-source failover (Yahoo → Polygon → Finnhub)
+2. **Store**: Parallel writes to PostgreSQL + Redis + Neo4j
+3. **Trigger**: Automatically trigger validation DAG on success
+4. **Validate**: Quality checks run immediately (event-driven)
+5. **Fallback**: If trigger missed, validation runs every 15 minutes anyway
+
+Original DAG had single point of failure AND blocking quality checks.
+This version keeps running even if 2/3 sources fail AND validates async with dual triggers!
 """

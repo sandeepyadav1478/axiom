@@ -21,8 +21,11 @@ import os
 
 sys.path.insert(0, '/opt/airflow')
 
+# Load environment early
+import os
 from dotenv import load_dotenv
 load_dotenv('/opt/airflow/.env')
+os.environ.setdefault('ANTHROPIC_API_KEY', os.getenv('CLAUDE_API_KEY', ''))
 
 # Import operators from local path
 import sys
@@ -41,7 +44,8 @@ default_args = {
     'owner': 'axiom',
     'depends_on_past': False,
     'email': ['admin@axiom.com'],
-    'email_on_failure': True,
+    'email_on_failure': False,  # Disabled (SMTP not configured)
+    'email_on_retry': False,
     'retries': 2,
     'retry_delay': timedelta(minutes=2),
     'execution_timeout': timedelta(minutes=10)

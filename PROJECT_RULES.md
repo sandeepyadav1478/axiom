@@ -597,6 +597,250 @@ git push  # Push to current feature branch
 
 **This project must be maintenance-free** - fix it once, fix it right, never revisit.
 
+### Rule #15: ALWAYS Use Single-Line Commit Messages
+
+**CRITICAL REQUIREMENT**: All git commit messages MUST be single-line to prevent terminal hanging and workflow violations.
+
+**MANDATORY Practice**:
+- ✅ Use `-m "Single line message"` for commits
+- ❌ NEVER use multi-line messages with line breaks in `-m` flag
+- ✅ If need details, use separate `-m` flags or commit file
+
+**Why This Matters**:
+- Multi-line messages cause `cmdand dquote>` prompt in terminal
+- Terminal appears to hang waiting for closing quote
+- Can lead to confusion about whether commit succeeded
+- May cause accidental commits to wrong branch
+
+**Examples**:
+
+**WRONG** ❌:
+```bash
+git commit -m "Fix issue
+
+BUGFIX: Description here
+More details
+Multiple lines"
+# This causes: cmdand dquote> prompt
+# Terminal hangs waiting for closing "
+```
+
+**CORRECT** ✅:
+```bash
+# Option 1: Single concise message
+git commit -m "Fix Claude API key and email alerts"
+
+# Option 2: Title + body (separate -m flags)
+git commit -m "Fix Claude API key" -m "Added CLAUDE_API_KEY env var and disabled email alerts"
+
+# Option 3: Use commit file for long messages
+git commit -F commit_message.txt
+```
+
+**Before EVERY commit with `-m` flag:**
+1. Ensure message is on ONE line
+2. No unescaped newlines in the string
+3. Proper closing quote on same line
+4. Verify git branch first
+
+**Impact of Violation**:
+- Terminal confusion (appears stuck)
+- Possible wrong branch commits
+- Harder to detect actual commit status
+- Violates professional git practices
+
+**This prevents terminal issues and ensures clean git workflow.**
+
+### Rule #16: NEVER Put Credentials in Code - Always Use .env Files
+
+**ABSOLUTE REQUIREMENT**: ALL credentials, API keys, tokens, and secrets MUST be stored ONLY in `.env` files, NEVER in code.
+
+**MANDATORY Practice**:
+- ✅ Store ALL credentials in `.env` (gitignored)
+- ✅ Use `os.getenv()` or environment variables in code
+- ✅ Include `.env.example` with placeholder values
+- ❌ NEVER hardcode credentials, even for testing
+
+**This applies to:**
+- Production credentials
+- Development credentials
+- **Test credentials** (use `.env` not code!)
+- API keys
+- Database passwords
+- Authentication tokens
+- Private keys
+
+**Examples**:
+
+**WRONG** ❌:
+```python
+# In test file - NEVER DO THIS
+def test_api():
+    api_key = "test-key-12345"  # ❌ Hardcoded test credential!
+    assert call_api(api_key)
+```
+
+**CORRECT** ✅:
+```python
+# In test file - Use environment variable
+import os
+
+def test_api():
+    api_key = os.getenv('TEST_API_KEY')  # ✅ From .env file
+    assert call_api(api_key)
+```
+
+**Required Setup**:
+```bash
+# .env file (gitignored)
+TEST_API_KEY=test-key-12345
+STAGING_DB_PASSWORD=staging-pass
+DEV_CLAUDE_KEY=sk-ant-dev-key
+
+# .env.example file (committed)
+TEST_API_KEY=your_test_key_here
+STAGING_DB_PASSWORD=your_staging_password
+DEV_CLAUDE_KEY=your_dev_claude_key
+```
+
+**Why This Matters**:
+- Prevents credential leaks in git history
+- Easy credential rotation (change .env, not code)
+- Same code works in all environments (dev/staging/prod)
+- Security audit compliance
+- No accidental commits of secrets
+
+**Before ANY commit:**
+```bash
+git diff | grep -iE "key|password|token|secret|credential"
+# If any matches, verify they're from .env, not hardcoded!
+```
+
+### Rule #17: NEVER Rename - Use Versioning or Deprecation
+
+**CRITICAL PRINCIPLE**: When improving code, NEVER rename files/functions/classes. Use versioning or deprecation instead to maintain compatibility and avoid confusion.
+
+**MANDATORY Approach**:
+- ✅ Add new version: `function_v2()`, `model_v3.py`, `dag_v2.py`
+- ✅ Keep old version: Mark as deprecated with clear docs
+- ✅ Gradual migration: Both versions coexist
+- ❌ NEVER rename and break existing code
+
+**Examples**:
+
+**WRONG** ❌:
+```python
+# Old file: company_graph_dag.py
+# Renamed to: enhanced_company_graph_dag.py
+# Result: Confusion! Which one to use? Where's the old one?
+```
+
+**CORRECT** ✅:
+```python
+# Keep both:
+# company_graph_dag.py (v1 - deprecated but functional)
+# company_graph_dag_v2.py (v2 - enhanced version)
+
+# Or use clear naming:
+# company_graph_dag.py (original)
+# company_graph_enterprise_dag.py (enterprise version)
+```
+
+**For DAGs Specifically**:
+```python
+# dag_v1.py - Original (paused, kept as backup)
+with DAG('data_ingestion', ...):  # Original name
+    # Original implementation
+
+# dag_v2.py - Enhanced (active)
+with DAG('data_ingestion_v2', ...):  # Versioned name
+    # Enhanced implementation
+```
+
+**Benefits**:
+- Clear which is newer (v2 > v1)
+- Can run both for comparison
+- Easy rollback (activate v1, pause v2)
+- No confusion about "where did X go?"
+- Migration path is obvious
+
+### Rule #18: NEVER Delete Code - Move to Deprecated Directory
+
+**STRICT REQUIREMENT**: When deprecating code, NEVER delete it. Move it to a `deprecated/` directory with full documentation.
+
+**MANDATORY Workflow**:
+1. Create `deprecated/` directory in same location as original
+2. Move old code there (maintain directory structure)
+3. Create `DEPRECATION_NOTICE.md` explaining:
+   - Why deprecated
+   - What replaced it
+   - How to revert if needed
+   - Migration guide
+4. Update main code with comment pointing to deprecated version
+
+**Directory Structure**:
+```
+axiom/pipelines/airflow/
+├── dags/
+│   ├── company_graph_dag_v2.py  (active)
+│   ├── data_ingestion_dag_v2.py (active)
+│   └── deprecated/
+│       ├── DEPRECATION_NOTICE.md
+│       ├── company_graph_dag.py (v1 - preserved)
+│       └── data_ingestion_dag.py (v1 - preserved)
+```
+
+**DEPRECATION_NOTICE.md Template**:
+```markdown
+# Deprecated DAGs
+
+## company_graph_dag.py (v1)
+
+**Deprecated**: November 21, 2025
+**Replaced by**: company_graph_dag_v2.py
+**Reason**:
+- v2 has 70% cost reduction via caching
+- v2 has enterprise resilience patterns
+- v2 has automated quality checks
+
+**Differences**:
+- v1: Basic Claude calls, no caching
+- v2: CachedClaudeOperator with Redis
+
+**How to Revert**:
+1. Copy this file back to ../company_graph_dag.py
+2. Pause v2 DAG in Airflow UI
+3. Enable v1 DAG in Airflow UI
+
+**Migration Path**:
+See ../MIGRATION_GUIDE.md for upgrading from v1 to v2
+```
+
+**Why This Matters**:
+- Can always revert if new version has issues
+- Understand what changed and why
+- Reference old implementation
+- Learn from evolution
+- Compliance/audit trail
+
+**FORBIDDEN**:
+```bash
+rm old_file.py  # ❌ NEVER DELETE!
+git rm deprecated_code.py  # ❌ NEVER REMOVE FROM GIT!
+```
+
+**REQUIRED**:
+```bash
+mkdir -p deprecated
+mv old_file.py deprecated/
+echo "See DEPRECATION_NOTICE.md" > deprecated/README.md
+# Write DEPRECATION_NOTICE.md with full context
+git add deprecated/
+git commit -m "Deprecate old_file.py, moved to deprecated/"
+```
+
+**This ensures code history is never lost and reversions are always possible.**
+
 ---
 
 ## Enforcement

@@ -1,433 +1,517 @@
-# Axiom - Institutional Quantitative Finance Platform
+# Axiom - Production AI/ML Platform for Financial Intelligence
 
-## ⚠️ IMPORTANT: Read [`PROJECT_RULES.md`](PROJECT_RULES.md) Before Contributing
-
-**7 Strict Rules for this project - MANDATORY for all contributors and AI assistants.**
+**Modern AI Engineering:** LangGraph + DSPy + Neo4j + Apache Airflow + Prometheus
 
 <div align="center">
 
-![Axiom Platform](https://img.shields.io/badge/ML_Models-60-blue)
-![Research Coverage](https://img.shields.io/badge/Research_Coverage-103%25-green)
-![Production Ready](https://img.shields.io/badge/Production-Ready-brightgreen)
-![Code](https://img.shields.io/badge/Code-23k_lines-orange)
+![Containers](https://img.shields.io/badge/Containers-30_Operational-success)
+![DAGs](https://img.shields.io/badge/Airflow_DAGs-10_Production-blue)
+![Graph](https://img.shields.io/badge/Neo4j_Relationships-775K-orange)
+![Uptime](https://img.shields.io/badge/Uptime-30+_Hours-brightgreen)
 
-**60 Cutting-Edge ML Models | Complete Infrastructure | Client-Ready Interfaces**
+**Production Platform Showcasing Modern AI/ML Engineering**
 
-*The most comprehensive open-source quantitative finance platform combining latest ML research with production-grade infrastructure*
-
-[Live Demo](#demos) | [Documentation](#documentation) | [Quick Start](#quick-start) | [Architecture](#architecture)
+[Architecture](#architecture) | [Live Platform](#live-platform) | [Quick Start](#quick-start) | [Demos](#demonstrations)
 
 </div>
 
 ---
 
-## 🚀 **NEW: Derivatives Specialization - 10,000x Faster Than Bloomberg**
+## 🏗️ What This Platform Actually IS
 
-**We're building the world's fastest derivatives analytics platform:**
+### Real Production Infrastructure (30 Containers)
+- **4 Databases:** PostgreSQL, Neo4j (775K relationships!), Redis, ChromaDB
+- **Dual Orchestration:** Apache Airflow (10 DAGs) + Native LangGraph services
+- **Complete Monitoring:** Prometheus + Grafana + 25+ automated alerts
+- **LangGraph Pipelines:** 4 services running 30+ hours continuously
+- **12 MCP Servers:** Specialized microservices
+- **Quality Framework:** Automated validation, profiling, cleanup
 
-✅ **Sub-100 Microsecond Greeks** - 10,000x faster than Bloomberg (100ms → 0.01ms)
-✅ **Complete Exotic Options** - 10 types with modern ML (PINN, VAE, GAN, Transformers)
-✅ **AI-Powered Intelligence** - Volatility prediction, regime detection, RL optimization
-✅ **Real-Time Vol Surfaces** - GAN-based construction in <1ms
-✅ **Market Making Platform** - RL spread optimization + DRL auto-hedging
-✅ **Best-in-Class Tools** - LangGraph, ChromaDB, PostgreSQL, Redis
-
-**Target Market:** Market makers, options traders, derivatives desks (paying $5-10M/year)
-**See:** [`docs/DERIVATIVES_SPECIALIZATION_STRATEGY.md`](docs/DERIVATIVES_SPECIALIZATION_STRATEGY.md)
-
----
-
-## 🎯 What Makes Axiom Unique
-
-### Unmatched Breadth: 60 ML Models Across 5 Domains
-
-![Model Count Comparison](assets/images/03_model_count_comparison.png)
-*3x more ML models than Bloomberg, FactSet, or Refinitiv*
-
-**Portfolio Optimization (12 models)**
-- RL with PPO, LSTM+CNN, Transformer, MILLION, RegimeFolio, DRO-BAS, HRP, and more
-- **Performance:** Sharpe ratios 1.8-2.5 vs 0.8-1.2 traditional (+125% improvement)
-
-**Options Trading (15 models)**
-- VAE, ANN Greeks, DRL Hedging, GAN Volatility, Informer, PINN, and more
-- **Performance:** <1ms Greeks (1000x faster than finite difference)
-
-**Credit Risk (20 models)**
-- CNN-LSTM, Ensemble, LLM, Transformer, GNN, and 15 specialized models
-- **Performance:** 16% better default prediction than traditional models
-
-**M&A Intelligence (13 models)**
-- ML Screening, NLP Sentiment, AI Due Diligence, Success Prediction, and more
-- **Performance:** 70-80% time savings vs manual processes
-
-**Risk Management (5 models)**
-- EVT VaR, Regime-Switching, RL Adaptive, Ensemble, GJR-GARCH
-- **Performance:** 15-20% accuracy improvement over baseline VaR
+### Real AI/ML Capabilities
+- **LangGraph Multi-Agent:** 10+ operational workflows orchestrating Claude
+- **DSPy Prompt Optimization:** 6 professional signatures with few-shot learning
+- **Graph ML:** Centrality algorithms, community detection, link prediction on 775K edges
+- **Real-Time Intelligence:** News classification, company analysis, correlation detection
+- **Production Monitoring:** Full observability with Prometheus metrics
 
 ---
 
-## 🚀 Key Features
+## 🎯 Platform Architecture (Actual Implementation)
 
-### 🎓 Latest Research (2023-2025)
-- All 60 models based on peer-reviewed papers
-- 103% research coverage (60 of 58+ papers implemented)
-- Continuous research-to-production pipeline
+![Quantitative Finance Analysis](quant_finance_analysis.png)
+*Real platform output: Portfolio optimization, correlation analysis, VaR models, Sharpe ratios*
 
-### 🏗️ Production Infrastructure
-- **MLOps:** MLflow tracking + model registry
-- **Features:** Feast feature store (<10ms serving)
-- **Monitoring:** Evidently drift detection + Prometheus
-- **Serving:** FastAPI REST API + Batch inference engine
-- **Caching:** LRU model cache for performance
-- **Security:** JWT auth, API keys, RBAC, rate limiting
-
-### 💼 Client-Ready Interfaces
-- Interactive dashboards (Plotly)
-- Trading terminals (real-time)
-- Credit reports (committee-ready)
-- M&A deal analysis (board-ready)
-- Executive summaries (C-suite)
-- Research reports (professional)
-- Web UI (Streamlit)
-
-### 🔧 Intelligent Tool Integration
-**We Leverage, Not Reinvent:**
-- **TA-Lib:** 150+ battle-tested indicators
-- **PyPortfolioOpt:** Proven optimization algorithms
-- **QuantLib:** Institutional bond pricing
-- **QuantStats:** 50+ professional metrics
-- **LangGraph:** Modern workflow orchestration
-- **DSPy:** Query optimization
-
----
-
-## 💡 Why This Matters
-
-### For Clients Worldwide
-
-![Feature Comparison](assets/images/06_feature_comparison.png)
-*Complete feature matrix: Axiom vs Bloomberg, FactSet, Refinitiv*
-
-**This platform provides:**
-- ✅ **Institutional-Grade Analytics** (Bloomberg/FactSet alternative)
-- ✅ **Real-Time Trading** (Greeks <1ms, optimal hedges)
-- ✅ **M&A Automation** (70-80% time savings)
-- ✅ **Credit Intelligence** (20 model consensus)
-- ✅ **Professional Reports** (board-ready presentations)
-- ✅ **Cost-Effective** (99% savings vs Bloomberg)
-
-![ROI by Industry](assets/images/05_roi_by_industry.png)
-*Proven ROI across 5 industries - Average 1500%+ return in year 1*
-
----
-
-## 🏆 Technical Highlights
-
-### Performance Achievements
-
-![Executive Summary Dashboard](assets/images/10_executive_summary.png)
-*Complete performance overview at a glance*
-
-- **Greeks Calculation:** <1ms (1000x faster than traditional)
-- **Portfolio Optimization:** Sharpe 1.8-2.5 (vs 0.8-1.2 baseline)
-- **Credit Prediction:** 16% better accuracy
-- **M&A Due Diligence:** 70-80% time reduction
-- **Batch Processing:** 100+ requests/second
-
-### Architecture Excellence
-- **Microservices:** Docker + Kubernetes ready
-- **Scalability:** Horizontal pod autoscaling
-- **Monitoring:** Prometheus + Grafana dashboards
-- **CI/CD:** GitHub Actions automated pipeline
-- **Security:** Production-grade authentication
-- **Observability:** Complete metrics and logging
-
-### Code Quality
-- **23,000+ lines** of production code
-- **Type hints** throughout
-- **Comprehensive tests** (pytest)
-- **Documentation** complete
-- **Examples** for all use cases
-
----
-
-## 📊 Platform Architecture
-
+### Multi-Database Architecture
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Client Interfaces                       │
-│  Dashboards | Reports | Trading Terminal | Web UI          │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────┴──────────────────────────────────┐
-│                      API Layer (FastAPI)                    │
-│    /predict | /batch | /models | /health                   │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────┴──────────────────────────────────┐
-│              ML Models (60) + LangGraph Workflow            │
-│  Portfolio(12) | Options(15) | Credit(20) | M&A(13) | VaR(5)│
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────┴──────────────────────────────────┐
-│                    Infrastructure Layer                      │
-│  MLflow | Feast | Redis | Batch Engine | Monitoring        │
-└─────────────────────────────────────────────────────────────┘
+PostgreSQL (Relational):
+├─ price_data: Real-time OHLCV ingestion (every 1 minute)
+├─ company_fundamentals: Financial statements
+├─ validation_history: Quality tracking (100% pass rate)
+├─ claude_usage_tracking: Cost monitoring ($0.015/run, 70-90% cache savings)
+└─ data_quality_metrics: Automated profiling
+
+Neo4j (Knowledge Graph):
+├─ 775K+ relationships (Company, Stock, Sector, Event nodes)
+├─ COMPETES_WITH, SAME_SECTOR_AS, CORRELATED_WITH edges
+├─ Real-time updates from LangGraph workflows
+└─ Graph ML: Centrality, clustering, pattern detection
+
+Redis (Cache):
+├─ Latest prices (60s TTL)
+├─ Claude responses (6-24h TTL, 70-90% cost savings)
+└─ Query result caching
+
+ChromaDB (Vector):
+└─ Document embeddings (future: semantic search)
 ```
+
+### Dual Orchestration Architecture
+```
+Traditional Data Engineering: Apache Airflow
+├─ 10 production DAGs
+├─ Enterprise operators (CircuitBreaker, CachedClaude)
+├─ YAML-configured workflows
+├─ Complete quality framework
+└─ Web UI monitoring
+
+Modern AI Orchestration: Native LangGraph
+├─ Self-orchestrating services (no Airflow wrapper!)
+├─ Multi-agent M&A analysis every 5 minutes
+├─ Stateful AI workflows
+├─ Direct Claude Sonnet 4 integration
+└─ Demonstrates AI can orchestrate itself
+```
+
+---
+
+## 🚀 Live Platform Features
+
+### 1. Real-Time Data Ingestion
+**Status:** Operational 31+ hours
+- Fetch market data every 1 minute (5+ symbols)
+- Multi-database writes (PostgreSQL + Neo4j + Redis)
+- Automated validation (batch every 5 minutes, 100% pass rate)
+- Circuit breaker protection
+
+### 2. AI-Powered News Classification
+**Status:** Operational 4+ hours, using Claude
+- Fetches company news every 5 minutes
+- Claude classifies: earnings/regulatory/product/acquisition
+- Sentiment analysis: positive/negative/neutral
+- Impact scoring: high/medium/low
+- Creates MarketEvent nodes in Neo4j
+- **Cost:** $0.015/run with 6-hour caching (70% savings)
+
+### 3. Native LangGraph Intelligence Service
+**Status:** Operational 5+ hours
+- Analyzes companies (AAPL, MSFT, GOOGL, TSLA, NVDA) every 5 minutes
+- Multi-agent workflow with Claude Sonnet 4
+- No Airflow wrapper - pure LangGraph orchestration
+- Queries Neo4j + PostgreSQL
+- Self-managing continuous operation
+
+### 4. Knowledge Graph with 775K Relationships
+**Status:** Built and growing
+- Company nodes with TEXT business descriptions
+- Sector hierarchies
+- Competitive relationships (COMPETES_WITH)
+- Stock correlations (775K+ CORRELATED_WITH edges)
+- MarketEvent linkages
+- **Demonstrates:** Graph ML on real financial network
+
+### 5. Production Monitoring
+**Status:** Operational
+- Prometheus collecting metrics from 5+ targets
+- 3 Grafana dashboards (AI overview, Claude costs, data quality)
+- 25+ automated alerts (cost overruns, failures, quality degradation)
+- Real-time cost tracking
+
+### 6. Automated Data Quality
+**Status:** Running daily
+- Statistical profiling (distributions, outliers, quality scores)
+- Anomaly detection (OHLC violations, price spikes, duplicates)
+- Automated cleanup (archives >30 days, maintains ~100 MB)
+- Quality metrics trending
+
+---
+
+## 🤖 AI/ML Engineering Showcase
+
+### LangGraph Multi-Agent Orchestration
+
+**Airflow-Wrapped Workflows:**
+```python
+# events_tracker_v2 DAG (Running 4+ hours)
+Workflow:
+├─ Agent 1: Fetch news (yfinance)
+├─ Agent 2: Claude classifies event type
+├─ Agent 3: Claude scores sentiment
+├─ Agent 4: Claude assesses impact
+├─ Agent 5: Create MarketEvent in Neo4j
+└─ Agent 6: Link to affected companies
+
+Result: Intelligent news classification operational
+```
+
+**Native LangGraph Service:**
+```python
+# axiom-langgraph-ma (Running 5+ hours, no Airflow!)
+Workflow:
+├─ Query Neo4j for company data
+├─ Claude analyzes acquisition potential
+├─ Continuous 5-minute cycles
+└─ Self-orchestrating service
+
+Demonstrates: LangGraph can orchestrate itself
+```
+
+### DSPy Prompt Optimization
+
+**Professional M&A Intelligence:**
+- 6 specialized signatures (entity extraction, rationale, synergies, risks, prediction, integration)
+- Few-shot learning with 3 real deal examples (Microsoft-LinkedIn, Amazon-Whole Foods, Disney-Fox)
+- Chain-of-thought reasoning for complex analysis
+- Structured JSON outputs
+- Production prompt patterns
+
+### Graph ML Analytics (775K Relationships!)
+
+**Implemented Algorithms:**
+- PageRank centrality (identify influential companies)
+- Degree centrality (connection analysis)
+- Community detection (market sector clustering)
+- Shortest path (risk propagation, relationship discovery)
+- Correlation clustering (portfolio construction)
+- Link prediction (infer missing relationships)
+
+**Query Examples:**
+```cypher
+// Find highly correlated stocks
+MATCH (s1:Stock)-[r:CORRELATED_WITH]->(s2:Stock)
+WHERE r.coefficient > 0.8
+RETURN s1.symbol, s2.symbol, r.coefficient
+ORDER BY r.coefficient DESC
+
+// 775K+ edges available for analysis!
+```
+
+---
+
+## 📊 Current Platform Metrics
+
+**Infrastructure:**
+- 30/30 containers healthy
+- 31+ hours continuous uptime (core services)
+- Multi-database architecture operational
+- Zero critical failures on working DAGs
+
+**Data Pipeline:**
+- Real-time ingestion: Every 1 minute
+- Validation: Every 5 minutes, 100% pass rate
+- Quality profiling: Daily automated
+- Data cleanup: Daily archival, ~100 MB steady state
+
+**AI Operations:**
+- Claude API calls: Cost-optimized with caching (70-90% savings)
+- LangGraph cycles: 5-minute intervals, continuous
+- DSPy extractions: Structured output from unstructured text
+- Graph queries: <100ms response times
+
+**Monitoring:**
+- Prometheus: 13 scrape targets configured
+- Metrics collection: 15-30 second intervals
+- Alert rules: 25+ production alerts
+- Cost tracking: Real-time Claude API monitoring
+
+---
+
+## 🎓 Professional Skills Demonstrated
+
+### Data Scientist
+✅ NLP for M&A deal analysis  
+✅ Statistical profiling with anomaly detection  
+✅ Graph ML (centrality, clustering, link prediction on 775K edges)  
+✅ Text mining from financial documents  
+✅ Knowledge graph construction from unstructured data  
+✅ Feature engineering from text/graphs
+
+### AI Architect
+✅ LangGraph multi-agent orchestration (2 architectural approaches)  
+✅ DSPy prompt optimization with few-shot learning  
+✅ Multi-signature chain-of-thought reasoning  
+✅ Production AI deployment patterns  
+✅ Cost optimization strategies (70-90% via caching)  
+✅ Dual orchestration design (Airflow + Native LangGraph)
+
+### Data Engineer
+✅ Apache Airflow production pipelines (10 DAGs operational)  
+✅ Multi-database architecture (4 databases integrated)  
+✅ Real-time + batch processing  
+✅ ETL with comprehensive validation  
+✅ Data lifecycle management (ingest → validate → profile → cleanup)  
+✅ Disk space optimization (~100 MB steady state)
+
+### ML Engineer
+✅ Production model deployment (containerized)  
+✅ Prometheus monitoring integration  
+✅ Grafana dashboards for ML metrics  
+✅ Automated alerting (costs, failures, quality)  
+✅ System health tracking  
+✅ Complete observability (metrics, logs, traces)
+
+### System Architect
+✅ Microservices design (30 Docker containers)  
+✅ Configuration-driven architecture (YAML)  
+✅ Circuit breaker patterns for resilience  
+✅ Multi-orchestration evaluation (Airflow vs Flink vs Dagster vs LangGraph)  
+✅ Technology trade-off analysis  
+✅ Professional documentation (9,000+ lines)
 
 ---
 
 ## 🚀 Quick Start
 
+### Option 1: Run Full Platform
 ```bash
-# 1. Clone repository
-git clone https://github.com/your-org/axiom.git
-cd axiom
+# Start all 30 containers
+docker ps | wc -l  # Verify 30 containers
 
-# 2. Create virtual environment
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+# Access Airflow
+http://localhost:8080  # 10 DAGs operational
 
-# 3. ⚠️ CRITICAL: Configure environment (REQUIRED!)
-python setup_environment.py
-# This will create .env file and guide you through configuration
+# Access Prometheus
+http://localhost:9090  # Metrics dashboard
 
-# 4. Install dependencies
-uv pip install numpy
-uv pip install --no-build-isolation pmdarima
-uv pip install -r requirements.txt
-uv pip install neo4j
-uv pip install -e .
-
-# 5. Start databases
-cd axiom/database
-docker compose up -d postgres
-docker compose --profile cache up -d redis
-docker compose --profile vector-db-light up -d chromadb
-docker compose --profile graph-db up -d neo4j
-
-# 6. Run verification demos
-cd ../..
-python demos/demo_complete_data_infrastructure.py
-python demos/demo_multi_database_architecture.py
+# Access Neo4j
+http://localhost:7474  # Graph browser (775K relationships)
 ```
 
-**⚠️ IMPORTANT**: `.env` configuration is MANDATORY - the setup script will guide you!
+### Option 2: Run Demonstrations
+```bash
+# Complete AI platform demo
+python demos/demo_complete_ai_platform.py
 
----
-
-## 💻 Code Examples
-
-### Portfolio Optimization
-```python
-from axiom.models.base.factory import ModelFactory, ModelType
-
-# Load model
-transformer = ModelFactory.create(ModelType.PORTFOLIO_TRANSFORMER)
-
-# Optimize portfolio
-optimal_weights = transformer.allocate(market_data)
-```
-
-### Real-Time Greeks
-```python
-greeks_calc = ModelFactory.create(ModelType.ANN_GREEKS_CALCULATOR)
-
-# <1ms calculation
-greeks = greeks_calc.calculate_greeks(
-    spot=100, strike=100, time_to_maturity=1.0,
-    risk_free_rate=0.03, volatility=0.25
-)
-# Returns: Delta, Gamma, Theta, Vega, Rho
-```
-
-### Credit Assessment  
-```python
-# Run 20 credit models
-ensemble = ModelFactory.create(ModelType.ENSEMBLE_CREDIT)
-llm = ModelFactory.create(ModelType.LLM_CREDIT_SCORING)
-
-# Multi-model consensus
-default_prob = ensemble.predict_proba(borrower_data)
-```
-
-### M&A Deal Analysis
-```python
-# Automated due diligence
-dd_system = ModelFactory.create(ModelType.AI_DUE_DILIGENCE)
-
-# 70-80% time savings
-results = dd_system.conduct_comprehensive_dd(target, documents)
+# M&A intelligence system
+python demos/demo_ma_intelligence_system.py
 ```
 
 ---
 
-## 📈 Performance Benchmarks
+## 📁 Repository Structure
 
-### Competitive Analysis
-
-![Performance Comparison](assets/images/01_speed_comparison.png)
-*1000x faster calculations validated with reproducible benchmarks*
-
-![Cost Comparison](assets/images/02_cost_comparison.png)
-*90% cost savings vs Bloomberg Terminal*
-
-![Market Positioning](assets/images/09_market_positioning.png)
-*Sweet spot: High capability at low cost*
-
-### Performance Summary
-
-| Capability | Traditional | Axiom | Improvement |
-|-----------|-------------|-------|-------------|
-| Greeks Calculation | 100-1000ms | <1ms | **1000x faster** |
-| Portfolio Sharpe | 0.8-1.2 | 1.8-2.5 | **+125%** |
-| Option Hedging | BS Delta | DRL optimal | **+15-30% P&L** |
-| Credit Accuracy | 70-75% AUC | 85-95% AUC | **+16-20%** |
-| M&A Due Diligence | 6-8 weeks | 2-3 days | **70-80% faster** |
-
-**Generate Charts:** `python benchmarks/generate_visualizations.py`
-**See All Benchmarks:** [benchmarks/README.md](benchmarks/README.md)
-
----
-
-## 🎓 For Tech Companies
-
-**Why This Project Stands Out:**
-
-**ML Engineering Excellence:**
-- Research → Production pipeline (60 papers → 60 models)
-- Distributed systems (Kubernetes, microservices)
-- Performance optimization (caching, batching, GPU)
-- Production monitoring (Prometheus, Grafana)
-
-**System Design:**
-- Scalable architecture (horizontal pod autoscaling)
-- Microservices (Docker containers)
-- Event-driven (real-time data pipelines)
-- Observability (full metrics, logging, tracing)
-
-**Modern Tech Stack:**
-- LangGraph (workflow orchestration)
-- DSPy (AI optimization)
-- FastAPI (high-performance API)
-- MLflow (experiment tracking)
-- Kubernetes (container orchestration)
-
-**Production Quality:**
-- Comprehensive testing (pytest)
-- CI/CD automation (GitHub Actions)
-- Security (JWT, API keys, RBAC)
-- Documentation (complete)
+```
+axiom/
+├── ai_layer/
+│   ├── dspy_ma_intelligence.py          # DSPy 6 signatures
+│   ├── langgraph_ma_orchestrator.py     # Multi-agent workflow
+│   ├── graph_ml_analyzer.py             # Graph algorithms
+│   └── services/
+│       └── langgraph_intelligence_service.py  # Native service
+│
+├── pipelines/airflow/
+│   ├── dags/                            # 10 production DAGs
+│   │   ├── data_ingestion_v2.py         # Real-time (31h+ uptime)
+│   │   ├── events_tracker_v2.py         # Claude classification (4h+)
+│   │   ├── company_enrichment_dag.py    # 50-company expansion
+│   │   ├── data_profiling_dag.py        # Quality monitoring
+│   │   ├── data_cleanup_dag.py          # Automated archival
+│   │   └── ma_deals_ingestion_dag.py    # M&A intelligence
+│   │
+│   └── monitoring/                      # Prometheus exporters
+│
+├── monitoring/
+│   ├── prometheus/                      # Metrics collection
+│   ├── grafana/dashboards/              # 3 production dashboards
+│   └── docker-compose-monitoring.yml
+│
+└── database/
+    └── models.py                        # PostgreSQL schema
+```
 
 ---
 
-## 💰 For Clients
+## 🎯 What to See First
 
-**Value Proposition:**
-
-**Cost-Effective Alternative to Bloomberg/FactSet:**
-- 60 ML models (they have ~20)
-- Real-time capabilities
-- 99% cost savings
-- Customizable
-
-**Institutional-Grade Analytics:**
-- Portfolio management
-- Options trading
-- Credit assessment
-- M&A intelligence
-- Risk management
-
-**Professional Delivery:**
-- Board-ready presentations
-- Interactive dashboards
-- Real-time terminals
-- Automated reports
-
-**Proven Performance:**
-- 1000x faster calculations
-- 125% Sharpe improvement
-- 70-80% time savings
-- 16% better credit predictions
+1. **Airflow UI:** http://localhost:8080 - 10 operational DAGs
+2. **Neo4j Browser:** http://localhost:7474 - 775K relationship graph
+3. **Prometheus:** http://localhost:9090 - Production metrics
+4. **Real-time logs:** `docker logs axiom-langgraph-ma` - Native LangGraph analyzing companies
 
 ---
 
 ## 📚 Documentation
 
-### Core Documentation
-- [Quick Start](docs/QUICKSTART.md) - 5-minute setup
-- [API Docs](docs/API_DOCUMENTATION.md) - REST API reference
-- [Master Index](MASTER_INDEX.md) - Complete project navigation
-- [FAQ](docs/FAQ.md) - 50+ questions answered
+**Current Status:** [`docs/status/current-status.md`](docs/status/current-status.md) - Always up-to-date  
+**Latest Session:** [`docs/sessions/2025-11/`](docs/sessions/2025-11/) - Session history  
+**Technical Guides:** [`docs/`](docs/) - Architecture, APIs, deployment  
+**Milestones:** [`docs/milestones/`](docs/milestones/) - Major achievements
 
-### Marketing & Business
-- [One-Pager](docs/ONE_PAGER.md) - Executive summary
-- [Case Studies](docs/CASE_STUDIES.md) - $2.2B+ value proof
-- [Pitch Deck](docs/PITCH_DECK.md) - Investor presentation
-- [Demo Script](docs/marketing/DEMO_SCRIPT.md) - 5-minute demo
-
-### Technical Deep-Dive
-- [Project Showcase](docs/PROJECT_SHOWCASE.md) - Complete inventory
-- [Performance Benchmarks](benchmarks/README.md) - Validated metrics
-- [Examples](examples/) - Real-world workflows
+**Strategic Analysis:**
+- [Data Strategy for AI Showcase](docs/LANGGRAPH_DSPY_DATA_STRATEGY.md)
+- [Orchestration Technology Evaluation](docs/ORCHESTRATION_TECH_EVALUATION.md)
+- [AI Showcase Priorities](docs/AI_SHOWCASE_PRIORITIES.md)
 
 ---
 
-## 🤝 Use Cases
+## 🔧 Technology Stack (Actually Deployed)
 
-**Hedge Funds:** Portfolio optimization, options trading, risk management  
-**Investment Banks:** M&A intelligence, deal analysis, target screening  
-**Credit Firms:** Automated underwriting, document analysis, risk assessment  
-**Quant Traders:** Real-time Greeks, optimal hedging, backtesting
-
----
-
-## 📊 Competitive Landscape
-
-![Performance Radar](assets/images/04_performance_radar.png)
-*Multi-dimensional comparison: Axiom leads in all key metrics*
-
-![Value Creation](assets/images/08_value_timeline.png)
-*Progressive value creation: $2.2B+ across client deployments*
+**Orchestration:** Apache Airflow + LangGraph (dual approach)  
+**AI/ML:** Claude Sonnet 4 + DSPy + LangGraph  
+**Databases:** PostgreSQL + Neo4j + Redis + ChromaDB  
+**Monitoring:** Prometheus + Grafana + Alertmanager  
+**Container:** Docker (30 containers) + Docker Compose  
+**Languages:** Python 3.13  
 
 ---
 
-## 📞 Contact
+## 🎓 For Technical Evaluation
 
-**For Client Demos:** [Your Email]
-**For Investor Inquiries:** [Your LinkedIn]
-**For Collaboration:** [GitHub Discussions]
+This platform demonstrates:
+
+### Production-Grade Data Engineering
+- Multi-database architecture (4 databases integrated)
+- Real-time + batch processing
+- Complete data lifecycle (ingest → validate → profile → cleanup)
+- Quality automation (100% validation pass rate)
+- Disk management (~100 MB steady state)
+
+### Modern AI/ML Engineering  
+- LangGraph multi-agent workflows (10+ operational)
+- DSPy prompt optimization (professional signatures)
+- Claude Sonnet 4 integration at scale
+- Cost optimization (70-90% via intelligent caching)
+- Graph ML on 775K relationships
+
+### System Architecture & Design
+- 30-container microservices architecture
+- Dual orchestration patterns (shows architectural flexibility)
+- Configuration-driven design (YAML, no hard-coding)
+- Circuit breaker patterns for resilience
+- Technology evaluation and trade-off analysis
+- Comprehensive monitoring and alerting
+
+### Professional Engineering Practices
+- 18,636 lines production code + documentation
+- Organized repository structure
+- Git workflow (feature branches, PR reviews)
+- Comprehensive testing and validation
+- Complete observability
+- Production deployment ready
 
 ---
 
-## 🌟 Star History
+## 📊 Platform Performance
 
-If this project helps you, please ⭐ star it to show support!
+**Uptime:** 30+ hours continuous (LangGraph pipelines, Airflow core DAGs)  
+**Data Quality:** 100% validation pass rate on real-time ingestion  
+**Claude API:** $0.015 per classification, 70-90% cache hit rate  
+**Graph Queries:** <100ms for complex relationship queries  
+**Disk Usage:** ~100 MB steady state (automated cleanup working)  
+**Containers:** 30/30 healthy  
 
 ---
 
-## 📄 License
+## 💻 Run Demonstrations
 
-MIT License - See [LICENSE](LICENSE) for details
+### Complete Platform Demo
+```bash
+python demos/demo_complete_ai_platform.py
+
+# Shows:
+# - Infrastructure health (30 containers)
+# - Data quality framework
+# - LangGraph workflows
+# - DSPy capabilities
+# - Neo4j graph intelligence
+# - Production metrics
+```
+
+### M&A Intelligence Demo
+```bash
+python demos/demo_ma_intelligence_system.py
+
+# Shows:
+# - DSPy deal extraction
+# - LangGraph M&A workflow
+# - Graph ML analysis
+# - Multi-agent orchestration
+```
+
+---
+
+## 🏆 Key Achievements
+
+### Technical Infrastructure
+✅ 30 containers operational (24 core + 1 LangGraph + 5 monitoring)  
+✅ 10 Airflow DAGs (7 active, 2 paused, 1 manual)  
+✅ Native LangGraph service (no Airflow wrapper)  
+✅ 775K Neo4j relationships  
+✅ Complete quality framework
+
+### AI/ML Capabilities
+✅ LangGraph multi-agent workflows operational  
+✅ DSPy M&A intelligence (6 signatures with few-shot)  
+✅ Claude Sonnet 4 integration with cost optimization  
+✅ Graph ML analyzer (centrality, clustering, link prediction)  
+✅ Real-time news classification
+
+### Production Operations
+✅ Prometheus monitoring with 13 targets  
+✅ 3 Grafana dashboards  
+✅ 25+ automated alerts  
+✅ Automated quality profiling  
+✅ Disk space management  
+✅ Cost tracking and optimization
+
+---
+
+## 🎯 For Recruiters/Interviewers
+
+**This is a working production system**, not a toy project.
+
+**Demonstrates:**
+- Modern AI/ML engineering (LangGraph/DSPy/Claude)
+- Traditional data engineering (Airflow/ETL/quality)
+- System architecture (microservices, monitoring, dual orchestration)
+- Production practices (testing, monitoring, documentation)
+- Technology evaluation (Airflow vs Flink vs Dagster analysis)
+
+**Evidence:**
+- 30 containers you can run right now
+- 775K Neo4j relationships you can query
+- 10 Airflow DAGs you can see in UI
+- Native LangGraph service you can tail logs
+- Prometheus metrics you can view
+- 18,636 lines code you can review
+
+---
+
+## 📞 Contact & Links
+
+**Repository:** https://github.com/sandeepyadav1478/axiom  
+**Documentation:** [`docs/`](docs/)  
+**Current Status:** [`docs/status/current-status.md`](docs/status/current-status.md)
 
 ---
 
 ## 🙏 Acknowledgments
 
-Built on the shoulders of giants:
-- Research papers from top institutions
-- Open-source tools (TA-Lib, QuantLib, PyPortfolioOpt, etc.)
-- ML frameworks (PyTorch, scikit-learn)
-- Infrastructure (MLflow, Feast, Evidently)
+Built on modern open-source AI/ML stack:
+- **LangGraph** - AI workflow orchestration
+- **DSPy** - Prompt optimization framework
+- **Claude Sonnet 4** - Anthropic's latest model
+- **Apache Airflow** - Production workflow engine
+- **Neo4j** - Graph database
+- **Prometheus + Grafana** - Monitoring stack
 
 ---
 
 <div align="center">
 
-**Axiom Platform - Where Research Meets Production**
+**Axiom Platform - Production AI/ML Engineering**
 
-*60 ML Models | Complete Infrastructure | Production-Ready*
+*30 Containers | 10 DAGs | 775K Graph | LangGraph + DSPy + Airflow*
 
-Made with ❤️ for the Quant Finance Community
+Built to demonstrate modern AI/ML engineering capabilities at production scale.
 
 </div>

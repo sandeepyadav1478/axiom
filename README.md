@@ -17,6 +17,40 @@
 
 ---
 
+## 📸 Platform Visual Overview
+
+### System Architecture (30 Containers)
+```
+┌──────────────────────────────────────────────────────────────┐
+│                  ORCHESTRATION LAYER (3)                     │
+│  ┌──────────┐  ┌───────────────┐  ┌──────────────┐         │
+│  │ Airflow  │  │ Native        │  │ LangGraph    │         │
+│  │ 2 pods   │  │ LangGraph     │  │ Pipelines    │         │
+│  │ (10 DAGs)│  │ Service       │  │ (4 services) │         │
+│  └──────────┘  └───────────────┘  └──────────────┘         │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                  DATABASE LAYER (4)                          │
+│  [PostgreSQL] [Neo4j: 775K rels] [Redis] [ChromaDB]         │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│              MCP MICROSERVICES (12 servers)                  │
+│  Market Data │ Pricing │ Risk │ Execution │ Others          │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                MONITORING LAYER (6)                          │
+│  Prometheus │ 5 Exporters │ Alerting                        │
+└──────────────────────────────────────────────────────────────┘
+
+Total: 30/30 containers operational
+```
+
+**📊 Screenshot:** [Airflow DAG UI](assets/images/airflow-dags-ui.png) *(10 production workflows)*
+**📊 Screenshot:** [Neo4j Graph](assets/images/neo4j-graph.png) *(775K relationship network)*
+**📊 Screenshot:** [Prometheus Targets](assets/images/prometheus-targets.png) *(13 metric sources)*
+
+---
+
 ## 🏗️ What This Platform Actually IS
 
 ### Real Production Infrastructure (30 Containers)
@@ -328,14 +362,53 @@ axiom/
     └── models.py                        # PostgreSQL schema
 ```
 
+### Platform Monitoring Dashboards
+
+**📊 Screenshot:** [Grafana AI Overview](assets/images/grafana-ai-overview.png) *(Real-time platform metrics)*
+**📊 Screenshot:** [Claude Cost Tracking](assets/images/claude-costs.png) *(API usage and optimization)*
+**📊 Screenshot:** [Data Quality](assets/images/data-quality.png) *(Automated validation results)*
+
 ---
 
-## 🎯 What to See First
+## 🎯 Explore the Live Platform
 
-1. **Airflow UI:** http://localhost:8080 - 10 operational DAGs
-2. **Neo4j Browser:** http://localhost:7474 - 775K relationship graph
-3. **Prometheus:** http://localhost:9090 - Production metrics
-4. **Real-time logs:** `docker logs axiom-langgraph-ma` - Native LangGraph analyzing companies
+### Web Interfaces
+1. **Airflow UI:** http://localhost:8080
+   - View 10 operational DAGs
+   - See real-time task execution
+   - Monitor 31+ hour uptime
+
+2. **Neo4j Browser:** http://localhost:7474
+   - Query 775K relationship graph
+   - Visualize company networks
+   - Run graph algorithms
+
+3. **Prometheus:** http://localhost:9090
+   - View 13 metric targets
+   - Query time-series data
+   - Check system health
+
+4. **Grafana:** http://localhost:3000 *(when deployed)*
+   - AI/ML platform overview
+   - Claude API cost dashboard
+   - Data quality metrics
+
+### Command Line
+```bash
+# View all 30 containers
+docker ps --format "table {{.Names}}\t{{.Status}}"
+
+# Watch LangGraph analyzing companies
+docker logs -f axiom-langgraph-ma
+
+# Check Airflow DAG status
+docker exec axiom-airflow-webserver airflow dags list
+
+# Query Neo4j relationships
+docker exec axiom-neo4j cypher-shell -u neo4j -p password \
+  "MATCH ()-[r]->() RETURN count(r)"
+# Returns: 775K+
+```
 
 ---
 

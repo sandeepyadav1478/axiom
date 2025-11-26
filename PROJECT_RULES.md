@@ -841,6 +841,89 @@ git commit -m "Deprecate old_file.py, moved to deprecated/"
 
 **This ensures code history is never lost and reversions are always possible.**
 
+### Rule #19: Organized Documentation Structure - NEVER Root Directory
+
+**CRITICAL REQUIREMENT**: Session documents, handoffs, status files MUST be organized in proper directory structure. NEVER place in root.
+
+**MANDATORY Directory Structure**:
+```
+docs/
+├── sessions/
+│   ├── 2025-11/
+│   │   ├── session-nov-21.md
+│   │   ├── session-nov-26.md
+│   │   └── README.md (index for month)
+│   └── 2025-10/
+│       └── ...
+├── status/
+│   ├── current-status.md (ONE file, updated)
+│   └── milestones/
+│       ├── milestone-1-complete.md
+│       └── ...
+└── handoffs/
+    ├── handoff-template.md
+    └── latest-handoff.md (symlink or single file)
+```
+
+**FORBIDDEN**:
+- ❌ Root directory placement: `SESSION_HANDOFF_NOV_21.md`, `COMPLETE_STATUS.md`, `FINAL_HANDOFF.md`
+- ❌ Multiple status/summary files with similar names
+- ❌ Scattered documents: Some in root, some in docs/
+- ❌ Creating new top-level .md files for every session
+
+**REQUIRED**:
+- ✅ ONE session document per session in `docs/sessions/YYYY-MM/`
+- ✅ ONE current status file in `docs/status/`
+- ✅ Organized by date/type
+- ✅ Index/README files in each directory
+
+**Examples**:
+
+**WRONG** ❌:
+```
+Project Root:
+├── SESSION_HANDOFF_NOV_21.md
+├── FINAL_SESSION_HANDOFF_NOV_21.md
+├── COMPLETE_QUALITY_FRAMEWORK.md
+├── PRODUCTION_MONITORING_COMPLETE.md
+├── COMPLETE_PROJECT_STATUS_NOV_26.md
+└── ... (cluttered root)
+```
+
+**CORRECT** ✅:
+```
+Project Root:
+├── docs/
+│   ├── sessions/
+│   │   └── 2025-11/
+│   │       ├── session-2025-11-21.md (combines all Nov 21 docs)
+│   │       └── session-2025-11-26.md
+│   ├── status/
+│   │   └── current-status.md (ONE file, always current)
+│   └── milestones/
+│       ├── quality-framework-complete.md
+│       └── monitoring-deployed.md
+└── README.md
+└── PROJECT_RULES.md
+└── (clean root)
+```
+
+**Migration Process**:
+1. Create `docs/sessions/YYYY-MM/` directory
+2. Move all session documents there
+3. Rename with consistent pattern
+4. Create index README.md
+5. Delete from root
+6. Commit: "Organize session docs per Rule #19"
+
+**Going Forward**:
+- Create ONE session doc: `docs/sessions/YYYY-MM/session-YYYY-MM-DD.md`
+- Update ONE status file: `docs/status/current-status.md`
+- Create milestone docs: `docs/milestones/milestone-name.md`
+- NEVER create in root
+
+**This keeps root directory clean and professional.**
+
 ---
 
 ## Enforcement

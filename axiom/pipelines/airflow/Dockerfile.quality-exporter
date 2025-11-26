@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install --no-cache-dir \
+    prometheus-client \
+    psycopg2-binary \
+    python-dotenv
+
+# Copy metrics exporter
+COPY monitoring/data_quality_metrics_exporter.py /app/
+
+# Run the exporter
+CMD ["python", "/app/data_quality_metrics_exporter.py"]

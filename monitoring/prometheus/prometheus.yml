@@ -131,10 +131,7 @@ scrape_configs:
     metrics_path: '/metrics'
     scrape_interval: 15s
 
-# Storage configuration
-storage:
-  tsdb:
-    path: /prometheus
-    retention:
-      time: 30d
-      size: 50GB
+# Storage configuration is set via command-line flags in docker-compose.yml
+# --storage.tsdb.path=/prometheus
+# --storage.tsdb.retention.time=30d
+# --storage.tsdb.retention.size=50GB

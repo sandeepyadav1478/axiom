@@ -1,436 +1,447 @@
-# Real-Time Data Streaming Infrastructure
+# Axiom Real-Time Streaming API
 
-Enterprise-grade real-time data streaming infrastructure for financial markets using battle-tested external libraries.
+Production-grade real-time streaming infrastructure for live market intelligence, AI analysis results, and data quality metrics.
 
 ## 🚀 Features
 
 ### Core Capabilities
-- ✅ **Multi-Provider Support**: Polygon.io, Binance, Alpaca Markets
-- ✅ **WebSocket Management**: Auto-reconnection, heartbeat, connection pooling
-- ✅ **Redis Caching**: Sub-millisecond read/write with pub/sub
-- ✅ **Portfolio Tracking**: Live P&L calculation with position monitoring
-- ✅ **Risk Monitoring**: Real-time VaR, drawdown tracking, limit monitoring
-- ✅ **Event Processing**: 10,000+ events/second with batch processing
-- ✅ **Performance**: <1ms cache operations, <10ms end-to-end latency
+- **WebSocket Endpoints**: Bidirectional real-time communication
+- **Server-Sent Events (SSE)**: One-way streaming for dashboards
+- **Redis Pub/Sub**: Multi-instance message broadcasting
+- **Connection Management**: Automatic heartbeat, health monitoring, reconnection
+- **Load Balancing**: NGINX reverse proxy with 3 API instances
+- **Horizontal Scaling**: Redis-powered event distribution
+- **Production Ready**: Docker containerization, monitoring, metrics
 
-### Supported Data Types
-- **Trades**: Real-time trade execution data
-- **Quotes**: Best bid/ask with depth
-- **Bars/Candles**: 1-minute to daily aggregates
-- **Order Books**: Level 2 market depth (selected providers)
-- **News**: Real-time news feeds (via providers)
+### Event Types
+- **Price Updates**: Live market data streaming
+- **News Alerts**: Breaking news and market events
+- **Claude Analysis**: AI-powered insights and recommendations
+- **Graph Updates**: Neo4j relationship and node changes
+- **Quality Metrics**: Data validation and anomaly detection
+- **M&A Workflow**: Deal analysis progress tracking
 
-## 📦 Installation
+## 📋 Architecture
 
-### Install Dependencies
-
-```bash
-# Install with streaming support
-pip install "axiom[streaming]"
-
-# Or install individually
-pip install websockets redis python-binance alpaca-trade-api polygon-api-client
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Client Applications                      │
+│  (Dashboard, Mobile App, Trading System, Analytics)         │
+└────────┬────────────────────────────────────────────────┬───┘
+         │ WebSocket/SSE                                   │
+         ↓                                                 ↓
+┌────────────────────────────────────────────────────────────┐
+│              NGINX Load Balancer (Port 8001)               │
+│  • Least Connection Load Balancing                         │
+│  • WebSocket Upgrade Support                               │
+│  • SSE Connection Handling                                 │
+└────────┬───────────────┬───────────────┬──────────────────┘
+         │               │               │
+         ↓               ↓               ↓
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│ Streaming   │  │ Streaming   │  │ Streaming   │
+│ API #1      │  │ API #2      │  │ API #3      │
+│ (FastAPI)   │  │ (FastAPI)   │  │ (FastAPI)   │
+└──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+       │                │                │
+       └────────────────┼────────────────┘
+                        ↓
+                ┌───────────────┐
+                │  Redis Pub/Sub │
+                │  (Port 6379)   │
+                └───────────────┘
+                        ↑
+                        │
+        ┌───────────────┼───────────────┐
+        │               │               │
+        ↓               ↓               ↓
+┌──────────────┐ ┌─────────────┐ ┌──────────────┐
+│  LangGraph   │ │   Neo4j     │ │   Quality    │
+│  M&A Agent   │ │   Graph DB  │ │   Framework  │
+└──────────────┘ └─────────────┘ └──────────────┘
 ```
 
-### Start Redis
+## 🔧 Installation
+
+### Prerequisites
+- Python 3.11+
+- Docker & Docker Compose
+- Redis 7+
+
+### Quick Start
 
 ```bash
-# Using Docker Compose
-docker-compose -f docker/streaming-redis.yml up -d
+# Clone repository
+cd axiom/streaming
 
-# Or using Docker directly
-docker run -d -p 6379:6379 --name axiom-redis redis:7-alpine
+# Install dependencies
+pip install -r requirements.txt
+
+# Start with Docker Compose (recommended)
+docker-compose up -d
+
+# Or run locally
+uvicorn axiom.streaming.streaming_service:app --host 0.0.0.0 --port 8001
 ```
 
-### Configure API Keys
-
-Create a `.env` file:
+### Docker Deployment
 
 ```bash
-# Polygon.io (for US stocks)
-POLYGON_API_KEY=your_polygon_key
+# Start all services (3 API instances + Redis + NGINX + Monitoring)
+docker-compose -f axiom/streaming/docker-compose.yml up -d
 
-# Alpaca Markets (for US stocks + paper trading)
-ALPACA_API_KEY=your_alpaca_key
-ALPACA_SECRET_KEY=your_alpaca_secret
+# Check status
+docker-compose ps
 
-# Binance (for cryptocurrency)
-BINANCE_API_KEY=your_binance_key
-BINANCE_SECRET_KEY=your_binance_secret
+# View logs
+docker-compose logs -f streaming-api-1
 
-# Redis
-REDIS_URL=redis://localhost:6379
+# Scale API instances
+docker-compose up -d --scale streaming-api=5
+
+# Stop services
+docker-compose down
 ```
 
-## 🎯 Quick Start
+## 📡 API Endpoints
 
-### Basic Portfolio Tracking
+### WebSocket
+
+```javascript
+// Connect to WebSocket
+const ws = new WebSocket('ws://localhost:8001/ws/client-id-123');
+
+// Subscribe to events
+ws.send(JSON.stringify({
+    action: 'subscribe',
+    event_types: ['price_update', 'news_alert', 'claude_analysis']
+}));
+
+// Receive events
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log('Event:', data.event_type, data.data);
+};
+
+// Handle connection
+ws.onopen = () => console.log('Connected');
+ws.onclose = () => console.log('Disconnected');
+```
+
+### Server-Sent Events (SSE)
+
+```javascript
+// Connect to SSE
+const eventSource = new EventSource('http://localhost:8001/sse/client-id-123');
+
+// Listen for specific event types
+eventSource.addEventListener('price_update', (e) => {
+    const data = JSON.parse(e.data);
+    console.log('Price Update:', data);
+});
+
+eventSource.addEventListener('news_alert', (e) => {
+    const data = JSON.parse(e.data);
+    console.log('News Alert:', data);
+});
+```
+
+### REST API
+
+#### Publish Events
+
+```bash
+# Publish price update
+curl -X POST http://localhost:8001/publish/price \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "AAPL",
+    "price": 150.25,
+    "volume": 5000
+  }'
+
+# Publish news alert
+curl -X POST http://localhost:8001/publish/news \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Breaking News",
+    "summary": "Market update...",
+    "url": "https://example.com"
+  }'
+
+# Publish Claude analysis
+curl -X POST http://localhost:8001/publish/analysis \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Should we invest?",
+    "answer": "Based on analysis...",
+    "confidence": 0.85,
+    "reasoning": ["Data point 1", "Data point 2"]
+  }'
+```
+
+#### Health & Stats
+
+```bash
+# Health check
+curl http://localhost:8001/health
+
+# Statistics
+curl http://localhost:8001/stats
+```
+
+## 🎯 Usage Examples
+
+### Python Client
 
 ```python
 import asyncio
-from axiom.streaming import (
-    StreamingConfig,
-    RealTimeCache,
-    PortfolioTracker,
-    Position,
-)
-from axiom.streaming.market_data import create_streamer
+from axiom.streaming.integrations import IntegratedStreamingPlatform
 
 async def main():
-    # Initialize components
-    config = StreamingConfig.from_env()
-    cache = RealTimeCache(config=config)
-    await cache.connect()
+    # Initialize platform
+    platform = IntegratedStreamingPlatform()
     
-    # Create market data streamer
-    streamer = await create_streamer(['polygon', 'alpaca'], config)
+    # Publish price update
+    await platform.market.stream_price_updates(['AAPL', 'GOOGL'])
     
-    # Setup portfolio tracker
-    tracker = PortfolioTracker(cache, streamer, config)
+    # Publish analysis
+    await platform.streaming.publish_analysis(
+        query="What are the risks?",
+        answer="Primary risks include...",
+        confidence=0.82,
+        reasoning=["Historical data", "Expert opinions"]
+    )
     
-    # Define portfolio
-    positions = [
-        Position("AAPL", quantity=100, avg_cost=150.0),
-        Position("GOOGL", quantity=50, avg_cost=140.0),
-        Position("MSFT", quantity=75, avg_cost=380.0),
-    ]
-    
-    # Start tracking
-    await tracker.track_portfolio(positions)
-    
-    # Monitor portfolio
-    while True:
-        await asyncio.sleep(1)
-        summary = tracker.get_portfolio_summary()
-        print(f"Portfolio Value: ${summary['total_value']:,.2f}")
-        print(f"Total P&L: ${summary['total_pnl']:,.2f} ({summary['total_pnl_pct']:+.2f}%)")
+    # Monitor quality
+    data = {"price": 100.50, "volume": 5000}
+    await platform.quality.monitor_data_quality(data, "market_data")
 
 asyncio.run(main())
 ```
 
-### Real-Time Risk Monitoring
+### JavaScript Dashboard
 
-```python
-from axiom.streaming.risk_monitor import RealTimeRiskMonitor
-
-# Initialize risk monitor
-risk_monitor = RealTimeRiskMonitor(portfolio_tracker, config)
-
-# Set risk limits
-risk_monitor.add_risk_limit('var_percentage', 0.02)  # 2% VaR limit
-risk_monitor.add_risk_limit('max_position_pct', 0.25)  # 25% position limit
-risk_monitor.add_risk_limit('max_drawdown', 0.10)  # 10% drawdown limit
-
-# Setup alert callback
-async def risk_alert(alert_type, current_value, threshold):
-    print(f"🚨 RISK ALERT: {alert_type}")
-    print(f"Current: {current_value:.2%}, Threshold: {threshold:.2%}")
-
-risk_monitor.add_alert_callback('var_limit_breach', 0.02, risk_alert)
-
-# Start monitoring
-await risk_monitor.start_monitoring()
-
-# Get current metrics
-metrics = risk_monitor.get_current_metrics()
-print(f"VaR (95%): ${metrics.var_95:,.2f}")
-print(f"Max Drawdown: {metrics.max_drawdown:.2%}")
-```
-
-### Subscribe to Market Data
-
-```python
-from axiom.streaming.adapters.base_adapter import TradeData
-
-async def on_trade(trade: TradeData):
-    print(f"{trade.symbol}: ${trade.price} ({trade.size} shares)")
-
-# Subscribe to trades
-await streamer.subscribe_trades(['AAPL', 'GOOGL', 'MSFT'], on_trade)
-
-# Subscribe to quotes
-async def on_quote(quote):
-    print(f"{quote.symbol}: Bid ${quote.bid} / Ask ${quote.ask}")
-
-await streamer.subscribe_quotes(['AAPL'], on_quote)
-
-# Subscribe to bars
-async def on_bar(bar):
-    print(f"{bar.symbol}: O ${bar.open} H ${bar.high} L ${bar.low} C ${bar.close}")
-
-await streamer.subscribe_bars(['AAPL'], on_bar, timeframe='1Min')
-```
-
-### Event Processing Pipeline
-
-```python
-from axiom.streaming.event_processor import EventProcessor
-
-# Create processor
-processor = EventProcessor(batch_size=100, batch_timeout=0.1)
-
-# Register processor callback
-async def process_batch(events):
-    for event in events:
-        print(f"Processing {event.type}: {event.data}")
-
-processor.register_processor(process_batch)
-await processor.start()
-
-# Add events
-await processor.add_event("trade", {"symbol": "AAPL", "price": 150.0})
-```
-
-## 📊 Performance Targets
-
-| Metric | Target | Achieved |
-|--------|--------|----------|
-| Cache Read/Write | <1ms | ✅ <0.5ms |
-| End-to-End Latency | <10ms | ✅ <8ms |
-| Event Throughput | 10,000+/sec | ✅ 15,000+/sec |
-| Portfolio Update | <5ms | ✅ <3ms |
-| WebSocket Reconnect | <2s | ✅ <1.5s |
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Market Data Providers                   │
-├──────────────┬──────────────┬──────────────┬────────────────┤
-│  Polygon.io  │   Binance    │    Alpaca    │   More...      │
-└──────┬───────┴──────┬───────┴──────┬───────┴────────────────┘
-       │              │              │
-       └──────────────┴──────────────┘
-                      │
-         ┌────────────▼────────────┐
-         │  Market Data Streamer   │
-         │  (Unified Interface)    │
-         └────────────┬────────────┘
-                      │
-         ┌────────────▼────────────┐
-         │   Event Processor       │
-         │   (Batch Processing)    │
-         └────────────┬────────────┘
-                      │
-         ┌────────────┴────────────┐
-         │                         │
-    ┌────▼────┐             ┌─────▼──────┐
-    │  Redis  │             │ Portfolio  │
-    │  Cache  │             │  Tracker   │
-    └─────────┘             └─────┬──────┘
-                                  │
-                            ┌─────▼──────┐
-                            │    Risk    │
-                            │  Monitor   │
-                            └────────────┘
-```
-
-## 🔧 Configuration
-
-### StreamingConfig Options
-
-```python
-from axiom.streaming import StreamingConfig
-
-config = StreamingConfig(
-    # WebSocket
-    reconnect_attempts=10,
-    reconnect_delay=1.0,
-    ping_interval=30,
+```javascript
+class StreamingDashboard {
+    constructor(clientId) {
+        this.ws = new WebSocket(`ws://localhost:8001/ws/${clientId}`);
+        this.setupHandlers();
+    }
     
-    # Redis
-    redis_url="redis://localhost:6379",
-    redis_ttl=86400,  # 24 hours
+    setupHandlers() {
+        this.ws.onopen = () => {
+            console.log('Connected');
+            this.subscribe(['price_update', 'news_alert']);
+        };
+        
+        this.ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            this.handleEvent(data);
+        };
+        
+        this.ws.onclose = () => {
+            console.log('Disconnected, reconnecting...');
+            setTimeout(() => this.reconnect(), 5000);
+        };
+    }
     
-    # Processing
-    batch_size=100,
-    batch_timeout=0.1,
-    max_queue_size=10000,
+    subscribe(eventTypes) {
+        this.ws.send(JSON.stringify({
+            action: 'subscribe',
+            event_types: eventTypes
+        }));
+    }
     
-    # Risk Monitoring
-    var_limit=0.02,  # 2%
-    position_limit_pct=0.25,  # 25%
-    drawdown_limit=0.10,  # 10%
-    
-    # Performance
-    enable_metrics=True,
-    log_latency=True,
-)
+    handleEvent(data) {
+        switch(data.event_type) {
+            case 'price_update':
+                this.updatePrice(data.data);
+                break;
+            case 'news_alert':
+                this.showNews(data.data);
+                break;
+            case 'claude_analysis':
+                this.displayAnalysis(data.data);
+                break;
+        }
+    }
+}
+
+// Usage
+const dashboard = new StreamingDashboard('dashboard-123');
 ```
 
-## 📚 API Documentation
+## 🔐 Production Configuration
 
-### WebSocketManager
+### Environment Variables
 
-Manages multiple WebSocket connections with auto-reconnection.
+```bash
+# Redis Configuration
+REDIS_URL=redis://redis:6379
 
-```python
-from axiom.streaming.websocket_manager import WebSocketManager
+# API Configuration
+LOG_LEVEL=INFO
+PYTHONUNBUFFERED=1
 
-manager = WebSocketManager(config)
-
-async def on_message(name, message):
-    print(f"Received from {name}: {message}")
-
-# Add connection
-await manager.add_connection(
-    name="polygon_trades",
-    url="wss://socket.polygon.io/stocks",
-    on_message=on_message
-)
-
-# Send message
-await manager.send("polygon_trades", {"action": "subscribe", "params": "T.AAPL"})
-
-# Get statistics
-stats = manager.get_all_stats()
+# Connection Settings
+HEARTBEAT_INTERVAL=30  # seconds
+CONNECTION_TIMEOUT=90  # seconds
+MAX_RECONNECT_ATTEMPTS=10
 ```
 
-### RealTimeCache
+### NGINX Configuration
 
-Redis-based caching with pub/sub.
+Key settings in [`nginx.conf`](./nginx.conf):
+- Load balancing algorithm: `least_conn`
+- WebSocket upgrade support
+- SSE connection handling
+- Long-lived connection timeouts (7 days)
+- Buffering disabled for real-time streaming
 
-```python
-from axiom.streaming.redis_cache import RealTimeCache
+### Redis Configuration
 
-cache = RealTimeCache(config)
-await cache.connect()
+Optimized for pub/sub:
+- Max memory: 256MB
+- Eviction policy: `allkeys-lru`
+- Persistence: AOF (Append-Only File)
 
-# Store price
-await cache.set_price("AAPL", 150.0, timestamp=time.time())
+## 📊 Monitoring
 
-# Get latest price
-price = await cache.get_latest_price("AAPL")
+### Prometheus Metrics
 
-# Get price history
-history = await cache.get_price_history("AAPL", limit=100)
+Access at: `http://localhost:9090`
 
-# Subscribe to updates
-async def on_price_update(data):
-    print(f"Price update: {data}")
+Available metrics:
+- Connection count
+- Message throughput
+- Event latency
+- Error rates
+- Redis pub/sub stats
 
-await cache.subscribe_prices("AAPL", on_price_update)
-```
+### Grafana Dashboards
 
-### Position & Portfolio
-
-Track positions with live P&L.
-
-```python
-# Create position
-position = Position(
-    symbol="AAPL",
-    quantity=100,
-    avg_cost=150.0
-)
-
-# Access properties
-print(f"Market Value: ${position.market_value:,.2f}")
-print(f"Unrealized P&L: ${position.unrealized_pnl:,.2f}")
-print(f"P&L %: {position.unrealized_pnl_pct:.2f}%")
-
-# Add alerts
-tracker.add_alert("AAPL", "stop_loss", -1000.0, alert_callback)
-tracker.add_alert("AAPL", "take_profit", 2000.0, alert_callback)
-```
+Access at: `http://localhost:3001`
+- Default credentials: `admin/admin`
+- Pre-configured streaming dashboards
+- Real-time connection monitoring
+- Performance analytics
 
 ## 🧪 Testing
 
-Run the comprehensive demo:
+### Run Demo
 
 ```bash
-# Start Redis first
-docker-compose -f docker/streaming-redis.yml up -d
+# Comprehensive demo
+python demos/demo_streaming_api.py
 
-# Run demo
-python demos/demo_real_time_streaming.py
+# With WebSocket testing
+python demos/demo_streaming_api.py --test-ws
 ```
 
-Run tests:
+### Load Testing
 
 ```bash
-pytest tests/test_streaming.py -v
+# Install locust
+pip install locust
+
+# Run load test (1000 concurrent connections)
+locust -f tests/load_test_streaming.py --host ws://localhost:8001
 ```
 
-## 📈 Monitoring
+## 🚨 Troubleshooting
 
-### View Redis Data
-
-Access Redis Commander:
-```bash
-# Open in browser
-http://localhost:8081
-```
-
-### Check Performance Metrics
-
-```python
-# Cache statistics
-cache_stats = cache.get_stats()
-print(f"Hit Rate: {cache_stats['hit_rate']:.1%}")
-print(f"Avg Latency: {cache_stats['avg_latency_ms']:.2f}ms")
-
-# Event processor statistics
-processor_stats = processor.get_stats()
-print(f"Throughput: {processor_stats['throughput_per_second']:.0f} events/sec")
-
-# Provider health
-health = await streamer.health_check()
-for provider, status in health.items():
-    print(f"{provider}: {'✓' if status else '✗'}")
-```
-
-## 🐛 Troubleshooting
-
-### Redis Connection Issues
+### Connection Issues
 
 ```bash
-# Check Redis is running
-docker ps | grep redis
+# Check if services are running
+docker-compose ps
 
-# Test connection
-redis-cli ping
+# View logs
+docker-compose logs -f streaming-api-1
 
-# Check logs
-docker logs axiom-streaming-redis
+# Test connectivity
+curl http://localhost:8001/health
 ```
 
-### API Key Issues
+### Redis Issues
 
 ```bash
-# Verify .env file exists
-cat .env | grep API_KEY
+# Check Redis connection
+docker-compose exec redis redis-cli ping
 
-# Test connection manually
-python -c "from axiom.streaming import StreamingConfig; print(StreamingConfig.from_env().polygon_api_key)"
+# View Redis info
+docker-compose exec redis redis-cli info
 ```
 
-### WebSocket Disconnections
+### Performance Issues
 
-Check logs for reconnection attempts. The system automatically reconnects with exponential backoff.
+```bash
+# Check resource usage
+docker stats
 
-## 🔗 External Libraries Used
+# Scale API instances
+docker-compose up -d --scale streaming-api=5
 
-| Library | Purpose | Downloads/Month |
-|---------|---------|-----------------|
-| `websockets` | WebSocket connections | 12M+ |
-| `redis-py` | Redis caching | 8M+ |
-| `python-binance` | Binance API | 200K+ |
-| `alpaca-trade-api` | Alpaca Markets API | 50K+ |
-| `polygon-api-client` | Polygon.io API | 30K+ |
+# Monitor metrics
+curl http://localhost:8001/stats
+```
 
-All libraries are battle-tested, actively maintained, and used in production by major companies.
+## 🎓 Best Practices
 
-## 📝 License
+### Connection Management
+1. Always implement reconnection logic
+2. Use exponential backoff for reconnects
+3. Set appropriate timeouts
+4. Handle connection errors gracefully
 
-MIT License - See LICENSE file for details.
+### Event Publishing
+1. Use appropriate event types
+2. Include correlation IDs for tracking
+3. Add metadata for debugging
+4. Validate data before publishing
+
+### Scaling
+1. Use Redis for multi-instance coordination
+2. Monitor connection distribution
+3. Scale horizontally with Docker Compose
+4. Use load balancer health checks
+
+### Security
+1. Implement authentication (JWT tokens)
+2. Use WSS (WebSocket Secure) in production
+3. Rate limit connections per client
+4. Validate all incoming messages
+
+## 📚 Additional Resources
+
+- [FastAPI WebSocket Documentation](https://fastapi.tiangolo.com/advanced/websockets/)
+- [Redis Pub/Sub Guide](https://redis.io/docs/manual/pubsub/)
+- [NGINX Load Balancing](https://docs.nginx.com/nginx/admin-guide/load-balancer/)
+- [Server-Sent Events Specification](https://html.spec.whatwg.org/multipage/server-sent-events.html)
 
 ## 🤝 Contributing
 
-Contributions welcome! Please read CONTRIBUTING.md first.
+Contributions welcome! Please:
+1. Follow existing code style
+2. Add tests for new features
+3. Update documentation
+4. Submit pull requests
 
-## 📧 Support
+## 📄 License
 
-- GitHub Issues: https://github.com/axiom/axiom/issues
-- Documentation: https://docs.axiom.dev
-- Discord: https://discord.gg/axiom
+Part of the Axiom Analytics Platform. See main repository LICENSE file.
+
+## 🆘 Support
+
+For issues, questions, or feature requests:
+- Open an issue on GitHub
+- Check existing documentation
+- Review demo examples
+
+---
+
+**Built with ❤️ for production real-time streaming**
+
+Last Updated: November 2025
+Version: 1.0.0

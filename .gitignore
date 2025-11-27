@@ -209,7 +209,14 @@ __marimo__/
 # Financial MCP Servers (external repositories)
 axiom/integrations/mcp_servers/financial_data/polygon-io-server/
 axiom/integrations/mcp_servers/financial_data/yahoo-finance-*-server/
--e 
-# Financial MCP Servers (external repositories)
-axiom/integrations/mcp_servers/financial_data/polygon-io-server/
-axiom/integrations/mcp_servers/financial_data/yahoo-finance-*-server/
+
+# AI Assistant Context (local only, not for git)
+AI_CONTEXT.md
+*_CONTEXT.md
+.roo/
+.cursor/
+ai-guidelines/
+ai-context/
+*_GUIDELINES_FOR_AI.md
+ASSISTANT_*.md
+ROO_*.md

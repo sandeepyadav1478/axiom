@@ -10,14 +10,16 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
+# Copy streaming requirements only
+COPY axiom/streaming/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY axiom/ /app/axiom/
+# Create axiom package structure
+RUN mkdir -p /app/axiom && touch /app/axiom/__init__.py
+
+# Copy only streaming service code
 COPY axiom/streaming/ /app/axiom/streaming/
 
 # Expose ports

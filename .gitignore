@@ -211,6 +211,7 @@ axiom/integrations/mcp_servers/financial_data/polygon-io-server/
 axiom/integrations/mcp_servers/financial_data/yahoo-finance-*-server/
 
 # AI Assistant Context (local only, not for git)
+PROJECT_RULES.md
 AI_CONTEXT.md
 *_CONTEXT.md
 .roo/
@@ -218,5 +219,7 @@ AI_CONTEXT.md
 ai-guidelines/
 ai-context/
 *_GUIDELINES_FOR_AI.md
+*_RULES.md
 ASSISTANT_*.md
 ROO_*.md
+CONTEXT_*.md

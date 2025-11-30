@@ -528,6 +528,11 @@
 
         // Handle Events
         function handleEvent(event) {
+            // Skip system events (connection/heartbeat)
+            if (event.event_type === 'connection_status' || event.event_type === 'heartbeat') {
+                return;  // Don't show in stream or count
+            }
+            
             metrics.totalEvents++;
             metrics.lastSecondCount++;
 

@@ -6,7 +6,7 @@ FastAPI service with WebSocket and SSE endpoints for live market intelligence.
 
 import asyncio
 import logging
-from typing import Optional, Set
+from typing import Optional, Set, List
 from datetime import datetime
 import json
 import uuid
@@ -72,6 +72,13 @@ class HealthResponse(BaseModel):
     connections: int
     redis_connected: bool
     uptime_seconds: float
+
+class IntelligenceRequest(BaseModel):
+    """Intelligence analysis request model."""
+    symbols: List[str] = Field(..., description="Stock symbols to analyze")
+    timeframe: str = Field(default='1d', description="Data timeframe: 1h, 1d, 1w, 1m")
+    analysis_type: str = Field(default='market_overview', description="Analysis type")
+
 
 
 # Startup/Shutdown
@@ -300,22 +307,22 @@ async def publish_event(request: PublishRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/publish/price")
-async def publish_price_update(
-    symbol: str,
-    price: float,
-    volume: int,
+class PriceUpdateRequest(BaseModel):
+    """Price update request model."""
+    symbol: str
+    price: float
+    volume: int
     source: Optional[str] = None
-):
+
+@app.post("/publish/price")
+async def publish_price_update(request: PriceUpdateRequest):
     """
     Publish a price update event.
-    
-    Args:
-        symbol: Stock symbol
-        price: Current price
-        volume: Volume
-        source: Data source
     """
+    symbol = request.symbol
+    price = request.price
+    volume = request.volume
+    source = request.source
     event = PriceUpdateEvent.create(
         symbol=symbol,
         price=price,
@@ -340,14 +347,20 @@ async def publish_price_update(
     return {"status": "published", "event_type": "price_update"}
 
 
-@app.post("/publish/news")
-async def publish_news_alert(
-    title: str,
-    summary: str,
-    url: str,
+class NewsAlertRequest(BaseModel):
+    """News alert request model."""
+    title: str
+    summary: str
+    url: str
     sentiment: str = "neutral"
-):
+
+@app.post("/publish/news")
+async def publish_news_alert(request: NewsAlertRequest):
     """Publish a news alert event."""
+    title = request.title
+    summary = request.summary
+    url = request.url
+    sentiment = request.sentiment
     event = NewsAlertEvent.create(
         title=title,
         summary=summary,
@@ -369,14 +382,20 @@ async def publish_news_alert(
     return {"status": "published", "event_type": "news_alert"}
 
 
+class ClaudeAnalysisRequest(BaseModel):
+    """Claude analysis request model."""
+    query: str
+    answer: str
+    confidence: float
+    reasoning: List[str]
+
 @app.post("/publish/analysis")
-async def publish_claude_analysis(
-    query: str,
-    answer: str,
-    confidence: float,
-    reasoning: list
-):
+async def publish_claude_analysis(request: ClaudeAnalysisRequest):
     """Publish Claude analysis result."""
+    query = request.query
+    answer = request.answer
+    confidence = request.confidence
+    reasoning = request.reasoning
     event = ClaudeAnalysisEvent.create(
         query=query,
         answer=answer,
@@ -561,5 +580,106 @@ class StreamingService:
         )
         await self.publish(event)
 
+
+# ================================================================
+# LangGraph Intelligence Integration
+# ================================================================
+
+from typing import List
+
+@app.websocket("/ws/intelligence/{client_id}")
+async def intelligence_websocket(websocket: WebSocket, client_id: str):
+    """
+    WebSocket endpoint for streaming LangGraph intelligence.
+    
+    Provides real-time market analysis with Claude-powered insights.
+    Updates every 60 seconds with fresh intelligence.
+    """
+    await websocket.accept()
+    
+    try:
+        # Import intelligence service
+        import sys
+        sys.path.insert(0, '/app')
+        from axiom.ai_layer.services.langgraph_intelligence_service import IntelligenceSynthesisService
+        
+        # Initialize service
+        intelligence = IntelligenceSynthesisService()
+        
+        # Send welcome
+        await websocket.send_json({
+            "type": "connection",
+            "status": "connected",
+            "client_id": client_id,
+            "service": "LangGraph Intelligence",
+            "update_interval": 60
+        })
+        
+        # Default symbols
+        symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA']
+        
+        # Continuous intelligence streaming
+        while True:
+            try:
+                # Generate intelligence report
+                logger.info(f"Generating intelligence for {client_id}...")
+                report = await intelligence.analyze_market(symbols, timeframe='1d')
+                
+                # Send to client
+                await websocket.send_json({
+                    "type": "intelligence_report",
+                    "timestamp": datetime.now().isoformat(),
+                    "report": report
+                })
+                
+                logger.info(f"✅ Sent intelligence to {client_id}")
+                
+                # Wait for next cycle
+                await asyncio.sleep(60)
+                
+            except WebSocketDisconnect:
+                break
+            except Exception as e:
+                logger.error(f"Intelligence generation error: {e}")
+                await websocket.send_json({"type": "error", "message": str(e)})
+                await asyncio.sleep(60)
+                
+    except WebSocketDisconnect:
+        logger.info(f"Intelligence client {client_id} disconnected")
+    except Exception as e:
+        logger.error(f"Intelligence WebSocket error: {e}")
+    finally:
+        if 'intelligence' in locals():
+            intelligence.close()
+
+
+@app.post("/intelligence/analyze")
+async def get_intelligence_report(request: IntelligenceRequest):
+    """
+    Get one-time intelligence report via REST API.
+    
+    Uses LangGraph multi-agent analysis on current data.
+    """
+    symbols = request.symbols
+    timeframe = request.timeframe
+    analysis_type = request.analysis_type
+    try:
+        from axiom.ai_layer.services.langgraph_intelligence_service import IntelligenceSynthesisService
+        
+        intelligence = IntelligenceSynthesisService()
+        
+        report = await intelligence.analyze_market(
+            symbols=symbols,
+            analysis_type=analysis_type,
+            timeframe=timeframe
+        )
+        
+        intelligence.close()
+        
+        return report
+        
+    except Exception as e:
+        logger.error(f"Intelligence report error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 __all__ = ["app", "StreamingService"]

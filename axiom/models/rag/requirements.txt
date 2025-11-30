@@ -2,6 +2,8 @@
 
 # Core RAG Dependencies
 dspy-ai>=2.4.0
+langgraph>=0.2.0
+langchain>=0.3.0
 chromadb>=0.4.22
 anthropic>=0.20.0
 openai>=2.0.0

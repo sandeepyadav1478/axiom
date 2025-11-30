@@ -9,12 +9,12 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
+# Copy RAG-specific requirements
+COPY axiom/models/rag/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY axiom/ /app/axiom/
 
 # Create data directories
 RUN mkdir -p /app/data/chroma /app/data/uploads

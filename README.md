@@ -4,10 +4,10 @@
 
 <div align="center">
 
-![Containers](https://img.shields.io/badge/Containers-30_Operational-success)
+![Containers](https://img.shields.io/badge/Containers-33_Operational-success)
 ![DAGs](https://img.shields.io/badge/Airflow_DAGs-10_Production-blue)
-![Graph](https://img.shields.io/badge/Neo4j_Relationships-775K-orange)
-![Uptime](https://img.shields.io/badge/Uptime-30+_Hours-brightgreen)
+![Graph](https://img.shields.io/badge/Neo4j_Relationships-4.4M-orange)
+![Uptime](https://img.shields.io/badge/Uptime-Continuous-brightgreen)
 
 **Production Platform Showcasing Modern AI/ML Engineering**
 
@@ -42,21 +42,21 @@
 │  Prometheus │ 5 Exporters │ Alerting                         │
 └──────────────────────────────────────────────────────────────┘
 
-Total: 30/30 containers operational
+Total: 33/33 containers operational
 ```
 
 **📊 Screenshot:** [Airflow DAG UI](assets/images/airflow-dags-ui.png) *(10 production workflows)*
-**📊 Screenshot:** [Neo4j Graph](assets/images/neo4j-graph.png) *(775K relationship network)*
+**📊 Screenshot:** [Neo4j Graph](assets/images/neo4j-graph.png) *(4.4M relationship network)*
 **📊 Screenshot:** [Prometheus Targets](assets/images/prometheus-targets.png) *(13 metric sources)*
 
 ---
 
 ## 🏗️ What This Platform Actually IS
 
-### Real Production Infrastructure (30 Containers)
+### Real Production Infrastructure (33 Containers)
 - **4 Databases:** PostgreSQL, Neo4j (775K relationships!), Redis, ChromaDB
 - **Dual Orchestration:** Apache Airflow (10 DAGs) + Native LangGraph services
-- **Complete Monitoring:** Prometheus + Grafana + 25+ automated alerts
+- **Complete Monitoring:** Prometheus + 5 exporters + automated health checks
 - **LangGraph Pipelines:** 4 services running 30+ hours continuously
 - **12 MCP Servers:** Specialized microservices
 - **Quality Framework:** Automated validation, profiling, cleanup
@@ -64,7 +64,7 @@ Total: 30/30 containers operational
 ### Real AI/ML Capabilities
 - **LangGraph Multi-Agent:** 10+ operational workflows orchestrating Claude
 - **DSPy Prompt Optimization:** 6 professional signatures with few-shot learning
-- **Graph ML:** Centrality algorithms, community detection, link prediction on 775K edges
+- **Graph ML:** Centrality algorithms, community detection, link prediction on 4.4M edges
 - **Real-Time Intelligence:** News classification, company analysis, correlation detection
 - **Production Monitoring:** Full observability with Prometheus metrics
 
@@ -100,10 +100,10 @@ PostgreSQL (Relational):
 └─ data_quality_metrics: Automated profiling
 
 Neo4j (Knowledge Graph):
-├─ 775K+ relationships (Company, Stock, Sector, Event nodes)
-├─ COMPETES_WITH, SAME_SECTOR_AS, CORRELATED_WITH edges
+├─ 4.4M relationships (Company, Stock, Sector, Event nodes)
+├─ COMPETES_WITH (2.5M), SAME_SECTOR_AS (1.8M), BELONGS_TO (96K) edges
 ├─ Real-time updates from LangGraph workflows
-└─ Graph ML: Centrality, clustering, pattern detection
+└─ Graph ML: Centrality, clustering, pattern detection on research-scale graph
 
 Redis (Cache):
 ├─ Latest prices (60s TTL)
@@ -159,14 +159,14 @@ Modern AI Orchestration: Native LangGraph
 - Queries Neo4j + PostgreSQL
 - Self-managing continuous operation
 
-### 4. Knowledge Graph with 775K Relationships
-**Status:** Built and growing
+### 4. Knowledge Graph with 4.4M Relationships
+**Status:** Production operational with research-scale data
+- 33,364 total nodes (5,206 Companies, 73 Sectors, 25 Stocks)
+- 4.4M relationships: COMPETES_WITH (2.5M), SAME_SECTOR_AS (1.8M), BELONGS_TO (96K)
 - Company nodes with TEXT business descriptions
-- Sector hierarchies
-- Competitive relationships (COMPETES_WITH)
-- Stock correlations (775K+ CORRELATED_WITH edges)
-- MarketEvent linkages
-- **Demonstrates:** Graph ML on real financial network
+- Sector hierarchies and industry classification
+- MarketEvent linkages with sentiment analysis
+- **Demonstrates:** Graph ML at research scale (4.4M edges)
 
 ### 5. Production Monitoring
 **Status:** Operational
@@ -232,6 +232,7 @@ Demonstrates: LangGraph can orchestrate itself
 - Shortest path (risk propagation, relationship discovery)
 - Correlation clustering (portfolio construction)
 - Link prediction (infer missing relationships)
+- Pattern mining across 4.4M edges
 
 **Query Examples:**
 ```cypher
@@ -241,7 +242,7 @@ WHERE r.coefficient > 0.8
 RETURN s1.symbol, s2.symbol, r.coefficient
 ORDER BY r.coefficient DESC
 
-// 775K+ edges available for analysis!
+// 4.4M edges available for analysis!
 ```
 
 ---
@@ -249,7 +250,7 @@ ORDER BY r.coefficient DESC
 ## 📊 Current Platform Metrics
 
 **Infrastructure:**
-- 30/30 containers healthy
+- 33/33 containers operational (28 healthy, 5 minor healthcheck issues)
 - 31+ hours continuous uptime (core services)
 - Multi-database architecture operational
 - Zero critical failures on working DAGs
@@ -277,11 +278,11 @@ ORDER BY r.coefficient DESC
 ## 🎓 Professional Skills Demonstrated
 
 ### Data Scientist
-✅ NLP for M&A deal analysis  
-✅ Statistical profiling with anomaly detection  
-✅ Graph ML (centrality, clustering, link prediction on 775K edges)  
-✅ Text mining from financial documents  
-✅ Knowledge graph construction from unstructured data  
+✅ NLP for M&A deal analysis
+✅ Statistical profiling with anomaly detection
+✅ Graph ML (centrality, clustering, link prediction on 4.4M edges)
+✅ Text mining from financial documents
+✅ Knowledge graph construction from unstructured data (research-scale)
 ✅ Feature engineering from text/graphs
 
 ### AI Architect
@@ -322,8 +323,8 @@ ORDER BY r.coefficient DESC
 
 ### Option 1: Run Full Platform
 ```bash
-# Start all 30 containers
-docker ps | wc -l  # Verify 30 containers
+# Start all 33 containers
+docker ps | wc -l  # Verify 33 containers
 
 # Access Airflow
 http://localhost:8080  # 10 DAGs operational
@@ -584,8 +585,8 @@ python demos/demo_ma_intelligence_system.py
 - Technology evaluation (Airflow vs Flink vs Dagster analysis)
 
 **Evidence:**
-- 30 containers you can run right now
-- 775K Neo4j relationships you can query
+- 33 containers you can run right now
+- 4.4M Neo4j relationships you can query
 - 10 Airflow DAGs you can see in UI
 - Native LangGraph service you can tail logs
 - Prometheus metrics you can view
@@ -617,7 +618,7 @@ Built on modern open-source AI/ML stack:
 
 **Axiom Platform - Production AI/ML Engineering**
 
-*30 Containers | 10 DAGs | 775K Graph | LangGraph + DSPy + Airflow*
+*33 Containers | 10 DAGs | 4.4M Graph | LangGraph + DSPy + Airflow*
 
 Built to demonstrate modern AI/ML engineering capabilities at production scale.
 

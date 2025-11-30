@@ -133,7 +133,7 @@ def fetch_company_metadata(context):
     return result
 
 
-def create_company_nodes(context):
+def create_company_nodes(**context):
     """
     Create rich Company nodes in Neo4j.
     
@@ -187,7 +187,7 @@ def create_company_nodes(context):
     return {'created': created_count}
 
 
-def store_in_postgresql(context):
+def store_in_postgresql(**context):
     """
     Store company metadata in PostgreSQL company_fundamentals table.
     

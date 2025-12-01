@@ -1,15 +1,15 @@
 """
 LangGraph SEC Filing Deep Parser
-Extract EVERYTHING from 10-K/10-Q filings that Bloomberg doesn't
+Comprehensive intelligence extraction from 10-K/10-Q filings
 
-Purpose: Go 100x deeper than Bloomberg on SEC filings
+Purpose: Deep strategic intelligence from SEC filings
 Strategy: Multi-agent extraction of ALL strategic information
-Output: Insights no one else has
+Output: Comprehensive insights for alpha generation
 
-What Bloomberg Shows:
-- Financial tables (everyone has this)
+Standard Analysis Provides:
+- Financial tables (basic metrics)
 
-What We Extract:
+Our Deep Extraction Includes:
 - Risk factors (ALL, with change tracking)
 - Management strategy (from MD&A)
 - Hidden liabilities (footnotes)
@@ -21,16 +21,17 @@ What We Extract:
 - Customer concentration (revenue risk)
 - Supplier dependencies (supply chain risk)
 
-Then: Claude synthesizes 10 years → Strategic intelligence
+Then: AI synthesizes multi-year data → Strategic intelligence
 """
 
 import asyncio
 import logging
-from typing import TypedDict, List, Dict, Any, Optional
+from typing import TypedDict, List, Dict, Any, Optional, Annotated
 from datetime import datetime
 import os
 import sys
 import json
+import operator
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -85,9 +86,9 @@ class SECFilingState(TypedDict):
     stored_neo4j: bool
     stored_chromadb: bool
     
-    # Workflow
-    messages: List[str]
-    errors: List[str]
+    # Workflow (use Annotated for parallel updates)
+    messages: Annotated[List[str], operator.add]
+    errors: Annotated[List[str], operator.add]
 
 
 # ================================================================
@@ -228,30 +229,30 @@ class SECFilingDeepParser:
         try:
             prompt = f"""Analyze the Risk Factors section from this SEC filing:
 
-{filing_text[:2000]}
+            {filing_text[:2000]}
 
-Extract EVERY risk factor mentioned. For each risk:
-1. Risk description (detailed)
-2. Severity (high/medium/low)
-3. Likelihood (high/medium/low)
-4. Potential impact ($)
-5. Mitigation strategies mentioned
-6. Whether it's new vs previous filings
+            Extract EVERY risk factor mentioned. For each risk:
+            1. Risk description (detailed)
+            2. Severity (high/medium/low)
+            3. Likelihood (high/medium/low)
+            4. Potential impact ($)
+            5. Mitigation strategies mentioned
+            6. Whether it's new vs previous filings
 
-Return JSON array:
-[
-  {{
-    "risk_category": "Regulatory",
-    "description": "...",
-    "severity": "high",
-    "likelihood": "medium", 
-    "financial_impact_range": "$500M-$2B",
-    "mitigation": "...",
-    "is_new_risk": true,
-    "trend": "increasing"
-  }},
-  ...
-]"""
+            Return JSON array:
+            [
+            {{
+                "risk_category": "Regulatory",
+                "description": "...",
+                "severity": "high",
+                "likelihood": "medium", 
+                "financial_impact_range": "$500M-$2B",
+                "mitigation": "...",
+                "is_new_risk": true,
+                "trend": "increasing"
+            }},
+            ...
+            ]"""
             
             response = self.claude.invoke([
                 SystemMessage(content="You are a risk analyst. Extract ALL risks comprehensively. Return ONLY JSON."),
@@ -280,30 +281,30 @@ Return JSON array:
         try:
             prompt = f"""Analyze the Management Discussion & Analysis section:
 
-{state['filing_text'][:2000]}
+            {state['filing_text'][:2000]}
 
-Extract strategic intelligence:
-1. Key strategic priorities (what management focusing on)
-2. Business concerns (what keeping them up at night)
-3. Forward-looking statements (future plans)
-4. Tone analysis (confident, cautious, defensive)
-5. Competitive positioning (how they see competition)
-6. Market opportunity assessment (TAM, growth outlook)
+            Extract strategic intelligence:
+            1. Key strategic priorities (what management focusing on)
+            2. Business concerns (what keeping them up at night)
+            3. Forward-looking statements (future plans)
+            4. Tone analysis (confident, cautious, defensive)
+            5. Competitive positioning (how they see competition)
+            6. Market opportunity assessment (TAM, growth outlook)
 
-Return JSON:
-{{
-  "strategic_priorities": ["Priority 1", "Priority 2", ...],
-  "management_concerns": ["Concern 1", ...],
-  "forward_guidance": {{
-    "revenue": "expected to grow...",
-    "margins": "under pressure from...",
-    "investments": "increasing in..."
-  }},
-  "management_tone": "confident" | "cautious" | "defensive",
-  "tone_score": 0.75,
-  "competitive_view": "..."
-}}"""
-            
+            Return JSON:
+            {{
+            "strategic_priorities": ["Priority 1", "Priority 2", ...],
+            "management_concerns": ["Concern 1", ...],
+            "forward_guidance": {{
+                "revenue": "expected to grow...",
+                "margins": "under pressure from...",
+                "investments": "increasing in..."
+            }},
+            "management_tone": "confident" | "cautious" | "defensive",
+            "tone_score": 0.75,
+            "competitive_view": "..."
+            }}"""
+                        
             response = self.claude.invoke([
                 SystemMessage(content="You are a strategic analyst. Extract management's true strategic view."),
                 HumanMessage(content=prompt)
@@ -330,17 +331,17 @@ Return JSON:
         try:
             prompt = f"""Extract all legal proceedings from this filing:
 
-{state['filing_text'][:2000]}
+            {state['filing_text'][:2000]}
 
-For each legal matter:
-1. Case name and court
-2. Description of claims
-3. Potential financial exposure
-4. Current status
-5. Management's assessment
-6. Whether new or ongoing
+            For each legal matter:
+            1. Case name and court
+            2. Description of claims
+            3. Potential financial exposure
+            4. Current status
+            5. Management's assessment
+            6. Whether new or ongoing
 
-Return JSON array of all legal matters."""
+            Return JSON array of all legal matters."""
             
             response = self.claude.invoke([
                 SystemMessage(content="You are a legal analyst. Extract ALL legal proceedings."),
@@ -368,17 +369,17 @@ Return JSON array of all legal matters."""
         try:
             prompt = f"""Analyze financial statement footnotes:
 
-{state['filing_text'][:2000]}
+            {state['filing_text'][:2000]}
 
-Extract hidden details often missed:
-1. Off-balance-sheet obligations
-2. Contingent liabilities
-3. Long-term commitments
-4. Related party transactions
-5. Accounting policy changes
-6. Subsequent events
+            Extract hidden details often missed:
+            1. Off-balance-sheet obligations
+            2. Contingent liabilities
+            3. Long-term commitments
+            4. Related party transactions
+            5. Accounting policy changes
+            6. Subsequent events
 
-Return JSON with insights Bloomberg doesn't show."""
+            Return JSON with insights Bloomberg doesn't show."""
             
             response = self.claude.invoke([
                 SystemMessage(content="You are a forensic accountant. Find hidden details in footnotes."),
@@ -406,18 +407,18 @@ Return JSON with insights Bloomberg doesn't show."""
         try:
             prompt = f"""Find ALL forward-looking strategic initiatives:
 
-{state['filing_text'][:2000]}
+            {state['filing_text'][:2000]}
 
-Extract:
-1. New products under development
-2. Market expansions planned
-3. Technology investments announced
-4. Acquisitions mentioned or hinted
-5. Partnership strategies
-6. Cost reduction initiatives
-7. Capital allocation plans
+            Extract:
+            1. New products under development
+            2. Market expansions planned
+            3. Technology investments announced
+            4. Acquisitions mentioned or hinted
+            5. Partnership strategies
+            6. Cost reduction initiatives
+            7. Capital allocation plans
 
-Return JSON with timeline and expected impact."""
+            Return JSON with timeline and expected impact."""
             
             response = self.claude.invoke([
                 SystemMessage(content="You are a strategy consultant. Find future plans in filing."),
@@ -445,15 +446,15 @@ Return JSON with timeline and expected impact."""
         try:
             prompt = f"""Find ALL competitor mentions in this filing:
 
-{state['filing_text'][:2000]}
+            {state['filing_text'][:2000]}
 
-Extract:
-1. Competitor names mentioned
-2. Context (threat, comparison, market share)
-3. Geographic competition (which markets)
-4. Product competition (which product lines)
+            Extract:
+            1. Competitor names mentioned
+            2. Context (threat, comparison, market share)
+            3. Geographic competition (which markets)
+            4. Product competition (which product lines)
 
-Return JSON array of competitive intelligence."""
+            Return JSON array of competitive intelligence."""
             
             response = self.claude.invoke([
                 SystemMessage(content="Find ALL competitors mentioned, even indirectly."),
@@ -481,17 +482,17 @@ Return JSON array of competitive intelligence."""
         try:
             prompt = f"""Extract geographic intelligence:
 
-{state['filing_text'][:1000]}
+            {state['filing_text'][:1000]}
 
-For each geographic region/country:
-1. Revenue percentage
-2. Growth rate
-3. Specific risks mentioned
-4. Regulatory challenges
-5. Political risks
-6. Currency exposure
+            For each geographic region/country:
+            1. Revenue percentage
+            2. Growth rate
+            3. Specific risks mentioned
+            4. Regulatory challenges
+            5. Political risks
+            6. Currency exposure
 
-Return detailed geographic breakdown Bloomberg doesn't provide."""
+            Return detailed geographic breakdown Bloomberg doesn't provide."""
             
             response = self.claude.invoke([
                 SystemMessage(content="Extract detailed geographic intelligence."),
@@ -519,15 +520,15 @@ Return detailed geographic breakdown Bloomberg doesn't provide."""
         try:
             prompt = f"""Extract customer concentration intelligence:
 
-{state['filing_text'][:1000]}
+            {state['filing_text'][:1000]}
 
-Find:
-1. Top customer revenue percentages
-2. Customer concentration risk
-3. Major customer relationships
-4. Loss of major customer risk
+            Find:
+            1. Top customer revenue percentages
+            2. Customer concentration risk
+            3. Major customer relationships
+            4. Loss of major customer risk
 
-Return JSON with concentration metrics."""
+            Return JSON with concentration metrics."""
             
             response = self.claude.invoke([
                 SystemMessage(content="Analyze customer concentration and risks."),
@@ -555,16 +556,16 @@ Return JSON with concentration metrics."""
         try:
             prompt = f"""Extract supply chain intelligence:
 
-{state['filing_text'][:1000]}
+            {state['filing_text'][:1000]}
 
-Find:
-1. Key suppliers mentioned
-2. Single-source dependencies
-3. Geographic supplier concentration
-4. Alternative source availability
-5. Supplier-related risks
+            Find:
+            1. Key suppliers mentioned
+            2. Single-source dependencies
+            3. Geographic supplier concentration
+            4. Alternative source availability
+            5. Supplier-related risks
 
-Return JSON array of supplier intelligence."""
+            Return JSON array of supplier intelligence."""
             
             response = self.claude.invoke([
                 SystemMessage(content="Map complete supplier dependency network."),
@@ -592,16 +593,16 @@ Return JSON array of supplier intelligence."""
         try:
             prompt = f"""Analyze R&D investments in detail:
 
-{state['filing_text'][:1000]}
+            {state['filing_text'][:1000]}
 
-Extract:
-1. R&D spending by category (if mentioned)
-2. R&D as % of revenue (trend)
-3. Key R&D focus areas
-4. R&D efficiency (patents per $ spent)
-5. Innovation pipeline indicators
+            Extract:
+            1. R&D spending by category (if mentioned)
+            2. R&D as % of revenue (trend)
+            3. Key R&D focus areas
+            4. R&D efficiency (patents per $ spent)
+            5. Innovation pipeline indicators
 
-Return JSON with R&D intelligence."""
+            Return JSON with R&D intelligence."""
             
             response = self.claude.invoke([
                 SystemMessage(content="Analyze R&D investments comprehensively."),
@@ -632,28 +633,28 @@ Return JSON with R&D intelligence."""
         try:
             prompt = f"""Synthesize all intelligence extracted from this {state['filing_type']}:
 
-Risk Factors: {len(state.get('risk_factors', []))} identified
-Strategic Initiatives: {len(state.get('strategic_initiatives', []))} found
-Legal Proceedings: {len(state.get('legal_proceedings', []))} active
-Competitors: {len(state.get('competitive_mentions', []))} mentioned
-Geographic Risk: {state.get('geographic_breakdown', {}).get('high_risk_regions', 'N/A')}
+            Risk Factors: {len(state.get('risk_factors', []))} identified
+            Strategic Initiatives: {len(state.get('strategic_initiatives', []))} found
+            Legal Proceedings: {len(state.get('legal_proceedings', []))} active
+            Competitors: {len(state.get('competitive_mentions', []))} mentioned
+            Geographic Risk: {state.get('geographic_breakdown', {}).get('high_risk_regions', 'N/A')}
 
-Generate insights Bloomberg DOESN'T provide:
+            Generate insights Bloomberg DOESN'T provide:
 
-1. Strategic Shifts (has strategy changed from last filing?)
-2. Early Warning Signals (risks materializing?)
-3. Hidden Opportunities (mentioned but underappreciated?)
-4. Competitive Threats (who management really worried about?)
-5. Execution Risks (can they deliver on plans?)
+            1. Strategic Shifts (has strategy changed from last filing?)
+            2. Early Warning Signals (risks materializing?)
+            3. Hidden Opportunities (mentioned but underappreciated?)
+            4. Competitive Threats (who management really worried about?)
+            5. Execution Risks (can they deliver on plans?)
 
-Return JSON:
-{{
-  "key_insights": ["Insight 1 Bloomberg doesn't have", "Insight 2", ...],
-  "strategic_shifts": ["Shift 1 detected", ...],
-  "early_warning_signals": ["Signal 1 flashing", ...],
-  "hidden_opportunities": ["Opportunity 1", ...],
-  "confidence_score": 0.85
-}}"""
+            Return JSON:
+            {{
+            "key_insights": ["Insight 1 Bloomberg doesn't have", "Insight 2", ...],
+            "strategic_shifts": ["Shift 1 detected", ...],
+            "early_warning_signals": ["Signal 1 flashing", ...],
+            "hidden_opportunities": ["Opportunity 1", ...],
+            "confidence_score": 0.85
+            }}"""
             
             response = self.claude.invoke([
                 SystemMessage(content="You are a senior analyst. Generate insights competitors don't have."),
@@ -781,9 +782,9 @@ async def main():
     parser = SECFilingDeepParser()
     
     logger.info("\n" + "="*70)
-    logger.info("SEC FILING DEEP PARSER - DEMO")
+    logger.info("SEC FILING DEEP PARSER - COMPREHENSIVE ANALYSIS")
     logger.info("="*70)
-    logger.info("Extracting intelligence Bloomberg doesn't provide...")
+    logger.info("Extracting comprehensive strategic intelligence...")
     
     # Analyze Apple's latest 10-K
     result = await parser.analyze_filing(
@@ -795,7 +796,7 @@ async def main():
     
     # Print unique insights
     print("\n" + "="*70)
-    print("UNIQUE INSIGHTS (Bloomberg doesn't have these):")
+    print("DEEP STRATEGIC INSIGHTS GENERATED:")
     print("="*70)
     
     for i, insight in enumerate(result['unique_insights']['key_insights'], 1):
